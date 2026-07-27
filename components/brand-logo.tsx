@@ -10,7 +10,7 @@ export function BrandLogo({ href = "/", className, size = "md" }: { href?: strin
       <span className={cn("flex items-center justify-center rounded-xl bg-brand-gradient shadow-md", s)}>
         <Briefcase className="h-4 w-4 text-white" />
       </span>
-      <span className={cn("font-extrabold text-brand-gradient", t)}>LocalJobFinder</span>
+      <span className={cn("font-extrabold text-brand-gradient", t)}>HireHub</span>
     </Link>
   );
 }
