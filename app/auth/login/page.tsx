@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { AuthLayout } from "@/components/auth-layout";
 import { GuestRoute } from "@/components/auth-guard";
-import { Button, Input, Label } from "@/components/ui";
+import { Button, Input, Label, PasswordInput } from "@/components/ui";
 import { loginSchema, type LoginForm } from "@/lib/schemas";
 import { getErrorMessage } from "@/lib/utils";
 import { useAuth, getDashboardPath } from "@/providers/auth-provider";
@@ -36,12 +36,12 @@ export default function LoginPage() {
 
   return (
     <GuestRoute>
-      <AuthLayout title="Welcome back" subtitle="Sign in to LocalJobFinder">
+      <AuthLayout title="Welcome back" subtitle="Sign in to HireHub">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2"><Label>Email</Label><Input type="email" {...register("email")} /></div>
-          <div className="space-y-2"><Label>Password</Label><Input type="password" {...register("password")} /></div>
+          <div className="space-y-2"><Label htmlFor="login-password">Password</Label><PasswordInput id="login-password" autoComplete="current-password" {...register("password")} /></div>
           <Button type="submit" variant="gradient" disabled={isSubmitting} className="w-full rounded-full">{isSubmitting ? "Signing in..." : "Sign In"}</Button>
-          <p className="text-center text-sm text-muted">No account? <Link href="/auth/register" className="font-semibold text-info">Register</Link></p>
+          <p className="text-center text-sm text-muted">Don&apos;t have an account? <Link href="/auth/register" className="font-semibold text-info">Sign up</Link></p>
         </form>
       </AuthLayout>
     </GuestRoute>
