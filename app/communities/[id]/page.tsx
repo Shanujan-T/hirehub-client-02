@@ -1,7 +1,9 @@
 "use client";
 
+import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { BackButton } from "@/components/back-button";
 import { MemberCard } from "@/components/member-card";
 import { Badge, Card } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
@@ -9,7 +11,7 @@ import { useAsyncItem } from "@/lib/hooks/use-async";
 import { getCommunity, getOpenCalls } from "@/services/community";
 import type { OpenCall } from "@/types/community";
 
-export default function CommunityDetailPage() {
+function CommunityDetailContent() {
   const params = useParams();
   const id = Number(params.id);
   const { data: community, loading } = useAsyncItem(useCallback(() => getCommunity(id), [id]));
@@ -24,6 +26,7 @@ export default function CommunityDetailPage() {
 
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
+      <BackButton fallbackHref="/communities" label="Back to communities" />
       <div>
         <h1 className="text-3xl font-extrabold">{community.name}</h1>
         <p className="text-muted">{community.description}</p>
@@ -40,16 +43,28 @@ export default function CommunityDetailPage() {
       </div>
       <div>
         <h2 className="mb-4 text-xl font-bold">Open Calls</h2>
-        {openCalls.length === 0 ? <EmptyState title="No open calls" /> : openCalls.map((oc) => (
-          <Card key={oc.id} className="mb-2">
-            <p className="font-bold">{oc.title}</p>
-            <p className="text-sm text-muted">
-              {oc.skills?.map((s) => s.skill?.name).filter(Boolean).join(", ") || "Open recruitment"}
-            </p>
-            <Badge variant="open" className="mt-2">{oc.status}</Badge>
-          </Card>
-        ))}
+        {openCalls.length === 0 ? (
+          <EmptyState title="No open calls" />
+        ) : (
+          openCalls.map((oc) => (
+            <Card key={oc.id} className="mb-2">
+              <p className="font-bold">{oc.title}</p>
+              <p className="text-sm text-muted">
+                {oc.skills?.map((s) => s.skill?.name).filter(Boolean).join(", ") || "Open recruitment"}
+              </p>
+              <Badge variant="open" className="mt-2">{oc.status}</Badge>
+            </Card>
+          ))
+        )}
       </div>
     </div>
+  );
+}
+
+export default function CommunityDetailPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <CommunityDetailContent />
+    </Suspense>
   );
 }
