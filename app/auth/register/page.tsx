@@ -1,80 +1,51 @@
 "use client";
 
-import { useState } from "react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
+import { AuthLayout } from "@/components/auth-layout";
 import { GuestRoute } from "@/components/auth-guard";
 import { Button, Input, Label, Select } from "@/components/ui";
+import { registerSchema, type RegisterForm } from "@/lib/schemas";
+import { getErrorMessage } from "@/lib/utils";
 import { useAuth, getDashboardPath } from "@/providers/auth-provider";
 
 export default function RegisterPage() {
-  const { register } = useAuth();
+  const { register: authRegister } = useAuth();
   const router = useRouter();
-  const [form, setForm] = useState({
-    email: "",
-    password: "",
-    full_name: "",
-    location: "",
-    role: "user" as "user" | "employer",
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm<RegisterForm>({
+    resolver: zodResolver(registerSchema),
+    defaultValues: { role: "user" },
   });
-  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+  const onSubmit = async (data: RegisterForm) => {
     try {
-      await register(form);
+      await authRegister(data);
       toast.success("Account created");
       router.push(getDashboardPath(JSON.parse(localStorage.getItem("user") || "{}")));
-    } catch (err: unknown) {
-      const msg =
-        (err as { response?: { data?: { error?: string } } })?.response?.data?.error ||
-        "Registration failed";
-      toast.error(msg);
-    } finally {
-      setLoading(false);
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Registration failed"));
     }
   };
 
   return (
     <GuestRoute>
-      <div className="mx-auto max-w-md space-y-6">
-        <div>
-          <h1 className="text-3xl font-extrabold">Register</h1>
-          <p className="text-muted">Create your LocalJobFinder account</p>
-        </div>
-        <form onSubmit={handleSubmit} className="space-y-4">
+      <AuthLayout title="Create account" subtitle="Join as employer or skilled member">
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label>Account Type</Label>
-            <Select
-              value={form.role}
-              onChange={(e) => setForm({ ...form, role: e.target.value as "user" | "employer" })}
-            >
-              <option value="user">Skilled User</option>
-              <option value="employer">Employer</option>
-            </Select>
+            <Select {...register("role")}><option value="user">Skilled User</option><option value="employer">Employer</option></Select>
           </div>
-          <div className="space-y-2">
-            <Label htmlFor="full_name">Full Name</Label>
-            <Input id="full_name" value={form.full_name} onChange={(e) => setForm({ ...form, full_name: e.target.value })} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input id="email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input id="password" type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="location">Location</Label>
-            <Input id="location" value={form.location} onChange={(e) => setForm({ ...form, location: e.target.value })} />
-          </div>
-          <Button type="submit" disabled={loading} className="w-full">
-            {loading ? "Creating..." : "Create Account"}
-          </Button>
+          <div className="space-y-2"><Label>Full Name</Label><Input {...register("full_name")} /></div>
+          <div className="space-y-2"><Label>Email</Label><Input type="email" {...register("email")} /></div>
+          <div className="space-y-2"><Label>Password</Label><Input type="password" {...register("password")} /></div>
+          <div className="space-y-2"><Label>Location</Label><Input {...register("location")} /></div>
+          <Button type="submit" variant="gradient" disabled={isSubmitting} className="w-full rounded-full">{isSubmitting ? "Creating..." : "Create Account"}</Button>
+          <p className="text-center text-sm text-muted">Have an account? <Link href="/auth/login" className="font-semibold text-info">Sign in</Link></p>
         </form>
-      </div>
+      </AuthLayout>
     </GuestRoute>
   );
 }
