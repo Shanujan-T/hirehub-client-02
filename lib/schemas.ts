@@ -1,0 +1,50 @@
+import { z } from "zod";
+
+export const loginSchema = z.object({
+  email: z.string().email("Valid email required"),
+  password: z.string().min(1, "Password required"),
+});
+
+export const registerSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6, "Min 6 characters"),
+  full_name: z.string().min(2, "Name required"),
+  location: z.string().optional(),
+  role: z.enum(["user", "employer"]),
+});
+
+export const createJobSchema = z.object({
+  category_id: z.coerce.number().min(1, "Category required"),
+  title: z.string().min(3),
+  description: z.string().min(10),
+  location: z.string().min(2),
+  deadline: z.string().min(1),
+  final_price: z.coerce.number().positive(),
+});
+
+export const openCallSchema = z.object({
+  community_id: z.coerce.number(),
+  title: z.string().min(3),
+  skill_ids: z.array(z.coerce.number()).optional(),
+});
+
+export const reviewSchema = z.object({
+  community_id: z.coerce.number(),
+  member_id: z.coerce.number().optional(),
+  rating: z.coerce.number().min(1).max(5),
+  comment: z.string().optional(),
+});
+
+export const deliverableSchema = z.object({
+  deliverable_url: z.string().url("Valid URL required"),
+});
+
+export const categorySchema = z.object({
+  name: z.string().min(2),
+});
+
+export type LoginForm = z.infer<typeof loginSchema>;
+export type RegisterForm = z.infer<typeof registerSchema>;
+export type CreateJobForm = z.infer<typeof createJobSchema>;
+export type OpenCallForm = z.infer<typeof openCallSchema>;
+export type ReviewForm = z.infer<typeof reviewSchema>;
