@@ -1,44 +1,36 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useCallback } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { Badge, Button, Card } from "@/components/ui";
+import { ContractProgressBar } from "@/components/contract-progress-bar";
+import { PortalShell, memberNav } from "@/components/portal-shell";
+import { StatusBadge } from "@/components/status-badge";
+import { EmptyState, LoadingState } from "@/components/page-states";
+import { Card } from "@/components/ui";
+import { useAsyncList } from "@/lib/hooks/use-async";
 import { getContracts } from "@/services/contract";
-import type { Contract } from "@/types/contract";
 
 export default function MemberDashboardPage() {
-  const [contracts, setContracts] = useState<Contract[]>([]);
-
-  useEffect(() => {
-    getContracts().then(setContracts).catch(console.error);
-  }, []);
+  const { data: contracts, loading } = useAsyncList(useCallback(() => getContracts(), []));
 
   return (
     <AuthenticatedRoute allowedRoles={["user"]}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-extrabold">Member Dashboard</h1>
-          <p className="text-muted">Your applications, assignments, and earnings</p>
-        </div>
-        <div className="flex flex-wrap gap-2">
-          <Link href="/member/profile"><Button variant="outline">Profile</Button></Link>
-          <Link href="/member/communities"><Button variant="outline">Communities</Button></Link>
-          <Link href="/member/contracts"><Button variant="outline">Contracts</Button></Link>
-          <Link href="/member/earnings"><Button variant="outline">Earnings</Button></Link>
-        </div>
-        <div>
-          <h2 className="mb-2 text-xl font-bold">Recent Contracts</h2>
-          {contracts.slice(0, 5).map((c) => (
-            <Card key={c.id} className="mb-2">
-              <div className="flex justify-between">
-                <span>{c.job?.title ?? `Contract #${c.id}`}</span>
-                <Badge>{c.status}</Badge>
+      <PortalShell title="Member Dashboard" subtitle="Applications, assignments, and earnings" navItems={memberNav}>
+        {loading ? <LoadingState /> : contracts.length === 0 ? (
+          <EmptyState title="No contracts yet" description="Join a community and apply to internal contracts." />
+        ) : (
+          contracts.slice(0, 5).map((c) => (
+            <Card key={c.id} className="mb-3">
+              <div className="mb-3 flex justify-between gap-3">
+                <Link href={`/member/contracts/${c.id}`} className="font-bold hover:text-info">{c.job?.title ?? `#${c.id}`}</Link>
+                <StatusBadge status={c.status} kind="contract" />
               </div>
+              <ContractProgressBar status={c.status} />
             </Card>
-          ))}
-        </div>
-      </div>
+          ))
+        )}
+      </PortalShell>
     </AuthenticatedRoute>
   );
 }
