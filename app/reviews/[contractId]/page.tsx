@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useEffect } from "react";
 import { useForm } from "react-hook-form";
@@ -12,7 +13,7 @@ import { reviewSchema, type ReviewForm } from "@/lib/schemas";
 import { getErrorMessage } from "@/lib/utils";
 import { createReview, getContract } from "@/services/contract";
 
-export default function ReviewPage() {
+function ReviewContent() {
   const params = useParams();
   const router = useRouter();
   const contractId = Number(params.contractId);
@@ -40,7 +41,13 @@ export default function ReviewPage() {
 
   return (
     <AuthenticatedRoute allowedRoles={["employer"]}>
-      <PortalShell title="Leave a Review" subtitle="Rate the community and optional member" navItems={employerNav}>
+      <PortalShell
+        title="Leave a Review"
+        subtitle="Rate the community and optional member"
+        navItems={employerNav}
+        backHref={`/contracts/${contractId}`}
+        backLabel="Back to contract"
+      >
         <Card className="mx-auto max-w-md">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <input type="hidden" {...register("community_id")} />
@@ -52,5 +59,13 @@ export default function ReviewPage() {
         </Card>
       </PortalShell>
     </AuthenticatedRoute>
+  );
+}
+
+export default function ReviewPage() {
+  return (
+    <Suspense fallback={null}>
+      <ReviewContent />
+    </Suspense>
   );
 }
