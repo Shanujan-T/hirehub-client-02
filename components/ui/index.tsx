@@ -3,21 +3,30 @@ import { cn } from "@/lib/utils";
 export function Button({
   className,
   variant = "default",
+  size = "default",
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "default" | "outline" | "destructive" | "ghost";
+  variant?: "default" | "gradient" | "outline" | "destructive" | "ghost";
+  size?: "default" | "sm" | "lg";
 }) {
   const variants = {
-    default: "bg-primary text-primary-foreground hover:opacity-90",
-    outline: "border border-border bg-transparent hover:bg-border/50",
+    default: "bg-primary text-white hover:brightness-110",
+    gradient: "bg-brand-gradient font-bold text-white shadow-md hover:scale-[1.02] active:scale-[0.98]",
+    outline: "border-[1.5px] border-accent bg-transparent text-secondary hover:bg-accent/5",
     destructive: "bg-destructive text-white hover:opacity-90",
-    ghost: "hover:bg-border/50",
+    ghost: "text-muted hover:bg-border/50 hover:text-foreground",
+  };
+  const sizes = {
+    default: "h-10 rounded-xl px-4 text-sm",
+    sm: "h-8 rounded-xl px-3 text-xs",
+    lg: "h-12 rounded-xl px-6 text-base",
   };
   return (
     <button
       className={cn(
-        "inline-flex items-center justify-center rounded-md px-4 py-2 text-sm font-medium transition disabled:opacity-50",
+        "inline-flex items-center justify-center font-medium transition disabled:opacity-50",
         variants[variant],
+        sizes[size],
         className
       )}
       {...props}
@@ -25,14 +34,11 @@ export function Button({
   );
 }
 
-export function Input({
-  className,
-  ...props
-}: React.InputHTMLAttributes<HTMLInputElement>) {
+export function Input({ className, ...props }: React.InputHTMLAttributes<HTMLInputElement>) {
   return (
     <input
       className={cn(
-        "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm",
+        "flex h-10 w-full rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-info focus:ring-2 focus:ring-info/20",
         className
       )}
       {...props}
@@ -40,14 +46,11 @@ export function Input({
   );
 }
 
-export function Textarea({
-  className,
-  ...props
-}: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
+export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<HTMLTextAreaElement>) {
   return (
     <textarea
       className={cn(
-        "flex min-h-[80px] w-full rounded-md border border-border bg-background px-3 py-2 text-sm",
+        "flex min-h-[80px] w-full rounded-xl border border-border bg-background px-3 py-2 text-sm outline-none focus:border-info focus:ring-2 focus:ring-info/20",
         className
       )}
       {...props}
@@ -55,15 +58,9 @@ export function Textarea({
   );
 }
 
-export function Card({
-  className,
-  children,
-}: {
-  className?: string;
-  children: React.ReactNode;
-}) {
+export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-lg border border-border bg-card p-6 shadow-sm", className)}>
+    <div className={cn("rounded-2xl border border-border bg-card p-6 shadow-sm", className)}>
       {children}
     </div>
   );
@@ -76,56 +73,35 @@ export function Badge({
 }: {
   className?: string;
   children: React.ReactNode;
-  variant?: "default" | "success" | "warning" | "destructive";
+  variant?: "default" | "pending" | "open" | "active" | "completed" | "rejected" | "info";
 }) {
   const variants = {
-    default: "bg-border text-foreground",
-    success: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-100",
-    warning: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-100",
-    destructive: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-100",
+    default: "bg-border/60 text-foreground",
+    pending: "bg-gray-500/10 font-bold text-gray-600 dark:text-gray-400",
+    open: "bg-info/10 font-bold text-info",
+    active: "bg-secondary/10 font-bold text-secondary",
+    completed: "bg-success/10 font-bold text-success",
+    rejected: "bg-destructive/10 font-bold text-destructive",
+    info: "bg-info/10 font-bold text-info",
   };
   return (
-    <span
-      className={cn(
-        "inline-flex rounded-full px-2.5 py-0.5 text-xs font-medium",
-        variants[variant],
-        className
-      )}
-    >
+    <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs capitalize", variants[variant], className)}>
       {children}
     </span>
   );
 }
 
-export function Label({
-  className,
-  children,
-  htmlFor,
-}: {
-  className?: string;
-  children: React.ReactNode;
-  htmlFor?: string;
-}) {
+export function Label({ className, children, htmlFor }: { className?: string; children: React.ReactNode; htmlFor?: string }) {
   return (
-    <label htmlFor={htmlFor} className={cn("text-sm font-medium", className)}>
+    <label htmlFor={htmlFor} className={cn("text-sm font-semibold", className)}>
       {children}
     </label>
   );
 }
 
-export function Select({
-  className,
-  children,
-  ...props
-}: React.SelectHTMLAttributes<HTMLSelectElement>) {
+export function Select({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select
-      className={cn(
-        "flex h-10 w-full rounded-md border border-border bg-background px-3 py-2 text-sm",
-        className
-      )}
-      {...props}
-    >
+    <select className={cn("flex h-10 w-full rounded-xl border border-border bg-background px-3 text-sm", className)} {...props}>
       {children}
     </select>
   );
