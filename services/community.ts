@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import type { Community, CommunityMember, OpenCall } from "@/types/community";
+import type { Community, CommunityMember, OpenCall, OpenCallSkill } from "@/types/community";
 
 export async function getCommunities(): Promise<Community[]> {
   const { data } = await apiClient.get<{ communities: Community[] }>("/api/communities");
@@ -69,8 +69,15 @@ export async function getOpenCalls(communityId?: number): Promise<OpenCall[]> {
 export async function createOpenCall(payload: {
   community_id: number;
   title: string;
-  required_skills?: string;
+  skill_ids?: number[];
 }): Promise<OpenCall> {
   const { data } = await apiClient.post<{ open_call: OpenCall }>("/api/open-calls", payload);
   return data.open_call;
+}
+
+export async function getSkills() {
+  const { data } = await apiClient.get<{ skills: { id: number; name: string; category?: string }[] }>(
+    "/api/skills"
+  );
+  return data.skills;
 }
