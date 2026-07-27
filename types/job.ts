@@ -4,6 +4,13 @@ export interface Category {
   created_at: string;
 }
 
+export interface Skill {
+  id: number;
+  name: string;
+  category?: string | null;
+  created_at: string;
+}
+
 export interface CategoryPricing {
   id: number;
   category_id: number;
