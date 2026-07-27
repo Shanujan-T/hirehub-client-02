@@ -1,58 +1,55 @@
-"use client";
-
-import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
-import { toast } from "sonner";
-import { AuthenticatedRoute } from "@/components/auth-guard";
-import { MemberCard } from "@/components/member-card";
-import { Badge, Button, Card } from "@/components/ui";
-import { getContractApplicants, selectMember } from "@/services/contract";
-import type { ContractApplication } from "@/types/contract";
-
-export default function SelectMemberPage() {
-  const params = useParams();
-  const contractId = Number(params.id);
-  const [applications, setApplications] = useState<ContractApplication[]>([]);
-
-  useEffect(() => {
-    getContractApplicants(contractId).then(setApplications).catch(console.error);
-  }, [contractId]);
-
-  const handleSelect = async (applicationId: number) => {
-    try {
-      await selectMember(contractId, applicationId);
-      toast.success("Member selected");
-      setApplications((apps) =>
-        apps.map((a) => ({
-          ...a,
-          status: a.id === applicationId ? "selected" : a.status === "applied" ? "rejected" : a.status,
-        }))
-      );
-    } catch {
-      toast.error("Failed to select member");
-    }
-  };
-
-  return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-extrabold">Select Member</h1>
-          <p className="text-muted">Choose one member to carry out this contract</p>
-        </div>
-        {applications.map((app) => (
-          <Card key={app.id}>
-            <div className="flex items-start justify-between">
-              {app.member && <MemberCard user={app.member} />}
-              <Badge>{app.status}</Badge>
-            </div>
-            {app.note && <p className="mt-2 text-sm text-muted">{app.note}</p>}
-            {app.status === "applied" && (
-              <Button className="mt-4" onClick={() => handleSelect(app.id)}>Select</Button>
-            )}
-          </Card>
-        ))}
-      </div>
-    </AuthenticatedRoute>
-  );
-}
+"use client";
+
+import { useParams } from "next/navigation";
+import { useCallback } from "react";
+import { toast } from "sonner";
+import { CommunityAdminRoute } from "@/components/community-admin-route";
+import { MemberCard } from "@/components/member-card";
+import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { StatusBadge } from "@/components/status-badge";
+import { EmptyState, LoadingState } from "@/components/page-states";
+import { Button, Card } from "@/components/ui";
+import { useAsyncList } from "@/lib/hooks/use-async";
+import { getErrorMessage } from "@/lib/utils";
+import { getContractApplicants, selectMember } from "@/services/contract";
+
+export default function SelectMemberPage() {
+  const params = useParams();
+  const contractId = Number(params.id);
+  const { data: applications, loading, reload } = useAsyncList(
+    useCallback(() => getContractApplicants(contractId), [contractId])
+  );
+
+  const handleSelect = async (applicationId: number) => {
+    try {
+      await selectMember(contractId, applicationId);
+      toast.success("Member selected");
+      reload();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
+    }
+  };
+
+  return (
+    <CommunityAdminRoute>
+      <PortalShell title="Select Member" subtitle="contract_application → one member" navItems={communityAdminNav}>
+        {loading ? <LoadingState /> : applications.length === 0 ? (
+          <EmptyState title="No applicants" description="Members apply after contract is opened internally." />
+        ) : (
+          applications.map((app) => (
+            <Card key={app.id} className="mb-3">
+              <div className="flex flex-col gap-4 sm:flex-row sm:justify-between">
+                {app.member && <MemberCard user={app.member} />}
+                <StatusBadge status={app.status} kind="application" />
+              </div>
+              {app.note && <p className="mt-2 text-sm text-muted">{app.note}</p>}
+              {app.status === "applied" && (
+                <Button variant="gradient" className="mt-4 rounded-full" onClick={() => handleSelect(app.id)}>Select Member</Button>
+              )}
+            </Card>
+          ))
+        )}
+      </PortalShell>
+    </CommunityAdminRoute>
+  );
+}
