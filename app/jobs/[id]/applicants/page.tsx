@@ -1,5 +1,7 @@
 "use client";
 
+import Link from "next/link";
+import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { toast } from "sonner";
@@ -10,12 +12,14 @@ import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
+import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { getErrorMessage } from "@/lib/utils";
 import { approveCommunity, getJobApplicants, rejectCommunity } from "@/services/job";
 
-export default function JobApplicantsPage() {
+function JobApplicantsContent() {
   const params = useParams();
   const jobId = Number(params.id);
+  const { hrefWithReturn } = useListNavigation();
   const { data: applications, loading, reload } = useAsyncList(
     useCallback(() => getJobApplicants(jobId), [jobId])
   );
@@ -42,15 +46,26 @@ export default function JobApplicantsPage() {
 
   return (
     <AuthenticatedRoute allowedRoles={["employer"]}>
-      <PortalShell title="Applying Communities" subtitle="Review community members, approve one community" navItems={employerNav}>
+      <PortalShell
+        title="Applying Communities"
+        subtitle="Review community members, approve one community"
+        navItems={employerNav}
+        backHref={`/jobs/${jobId}`}
+        backLabel="Back to job"
+      >
         {loading ? <LoadingState /> : applications.length === 0 ? (
           <EmptyState title="No applications yet" description="Communities can apply to this open job." />
         ) : (
           <div className="grid gap-4">
             {applications.map((app) => (
               <Card key={app.id}>
-                <div className="mb-4 flex items-center justify-between">
-                  <h3 className="text-lg font-bold">{app.community?.name}</h3>
+                <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
+                  <Link
+                    href={hrefWithReturn(`/communities/${app.community_id}`)}
+                    className="text-lg font-bold hover:text-info"
+                  >
+                    {app.community?.name}
+                  </Link>
                   <StatusBadge status={app.status} kind="application" />
                 </div>
                 <div className="grid gap-3 md:grid-cols-2">
@@ -58,7 +73,9 @@ export default function JobApplicantsPage() {
                 </div>
                 {app.status === "applied" && (
                   <div className="mt-4 flex gap-2">
-                    <Button variant="gradient" className="rounded-full" onClick={() => handleApprove(app.id)}>Approve Community</Button>
+                    <Button variant="gradient" className="rounded-full" onClick={() => handleApprove(app.id)}>
+                      Approve Community
+                    </Button>
                     <Button variant="destructive" onClick={() => handleReject(app.id)}>Reject</Button>
                   </div>
                 )}
@@ -68,5 +85,13 @@ export default function JobApplicantsPage() {
         )}
       </PortalShell>
     </AuthenticatedRoute>
+  );
+}
+
+export default function JobApplicantsPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <JobApplicantsContent />
+    </Suspense>
   );
 }
