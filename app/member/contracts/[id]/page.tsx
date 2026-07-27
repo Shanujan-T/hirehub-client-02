@@ -1,5 +1,6 @@
 "use client";
 
+import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { useForm } from "react-hook-form";
@@ -34,6 +35,14 @@ function toMemberTaskView(contract: Awaited<ReturnType<typeof getContract>>): Me
 }
 
 export default function MemberContractDetailPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <MemberContractDetailContent />
+    </Suspense>
+  );
+}
+
+function MemberContractDetailContent() {
   const params = useParams();
   const contractId = Number(params.id);
   const { data: contract, loading, reload } = useAsyncItem(useCallback(() => getContract(contractId), [contractId]));
@@ -55,7 +64,13 @@ export default function MemberContractDetailPage() {
 
   return (
     <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell title="Contract Task" subtitle="Scope only — employer identity never shown" navItems={memberNav}>
+      <PortalShell
+        title="Contract Task"
+        subtitle="Scope only — employer identity never shown"
+        navItems={memberNav}
+        backHref="/member/contracts"
+        backLabel="Back to contracts"
+      >
         {loading || !contract || !task ? <LoadingState /> : (
           <Card className="max-w-lg space-y-4">
             <div className="flex justify-between gap-3">
