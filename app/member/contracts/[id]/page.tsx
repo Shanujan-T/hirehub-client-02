@@ -1,59 +1,78 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
+import { useCallback } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { Badge, Button, Card, Input, Label } from "@/components/ui";
+import { PortalShell, memberNav } from "@/components/portal-shell";
+import { StatusBadge } from "@/components/status-badge";
+import { LoadingState } from "@/components/page-states";
+import { Button, Card, Input, Label } from "@/components/ui";
+import { deliverableSchema } from "@/lib/schemas";
+import { useAsyncItem } from "@/lib/hooks/use-async";
+import { getErrorMessage } from "@/lib/utils";
 import { getContract, submitDeliverable } from "@/services/contract";
-import type { Contract } from "@/types/contract";
+import { z } from "zod";
+
+type MemberTaskView = {
+  title: string;
+  description: string;
+  location: string;
+  deadline: string;
+};
+
+function toMemberTaskView(contract: Awaited<ReturnType<typeof getContract>>): MemberTaskView | null {
+  if (!contract.job) return null;
+  return {
+    title: contract.job.title,
+    description: contract.job.description,
+    location: contract.job.location,
+    deadline: contract.job.deadline,
+  };
+}
 
 export default function MemberContractDetailPage() {
   const params = useParams();
   const contractId = Number(params.id);
-  const [contract, setContract] = useState<Contract | null>(null);
-  const [deliverableUrl, setDeliverableUrl] = useState("");
+  const { data: contract, loading, reload } = useAsyncItem(useCallback(() => getContract(contractId), [contractId]));
+  const { register, handleSubmit, formState: { isSubmitting } } = useForm<z.infer<typeof deliverableSchema>>({
+    resolver: zodResolver(deliverableSchema),
+  });
 
-  useEffect(() => {
-    getContract(contractId).then(setContract).catch(console.error);
-  }, [contractId]);
+  const task = contract ? toMemberTaskView(contract) : null;
 
-  const handleSubmit = async () => {
+  const onSubmit = async (data: z.infer<typeof deliverableSchema>) => {
     try {
-      await submitDeliverable(contractId, deliverableUrl);
+      await submitDeliverable(contractId, data.deliverable_url);
       toast.success("Deliverable submitted to admin");
-      getContract(contractId).then(setContract);
-    } catch {
-      toast.error("Failed to submit");
+      reload();
+    } catch (err) {
+      toast.error(getErrorMessage(err));
     }
   };
 
-  if (!contract) return <p className="text-muted">Loading...</p>;
-
   return (
     <AuthenticatedRoute allowedRoles={["user"]}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-extrabold">{contract.job?.title}</h1>
-          <p className="text-muted">Task details (employer identity hidden)</p>
-          <Badge className="mt-2">{contract.status}</Badge>
-        </div>
-        <Card>
-          <h3 className="font-semibold">Scope</h3>
-          <p className="mt-2 text-sm">{contract.job?.description}</p>
-          <p className="mt-2 text-sm text-muted">Location: {contract.job?.location}</p>
-          {/* employer_id intentionally absent from member-facing contract type */}
-        </Card>
-        {contract.status === "active" && (
-          <div className="space-y-4">
-            <div className="space-y-2">
-              <Label>Deliverable URL</Label>
-              <Input value={deliverableUrl} onChange={(e) => setDeliverableUrl(e.target.value)} placeholder="https://..." />
+      <PortalShell title="Contract Task" subtitle="Scope only — employer identity never shown" navItems={memberNav}>
+        {loading || !contract || !task ? <LoadingState /> : (
+          <Card className="max-w-lg space-y-4">
+            <div className="flex justify-between gap-3">
+              <h2 className="text-xl font-extrabold">{task.title}</h2>
+              <StatusBadge status={contract.status} kind="contract" />
             </div>
-            <Button onClick={handleSubmit}>Submit to Admin</Button>
-          </div>
+            <p className="text-sm text-muted">{task.description}</p>
+            <p className="text-sm text-muted">Location: {task.location} · Due: {task.deadline}</p>
+            {contract.status === "active" && (
+              <form onSubmit={handleSubmit(onSubmit)} className="space-y-3">
+                <div className="space-y-2"><Label>Deliverable URL</Label><Input {...register("deliverable_url")} placeholder="https://..." /></div>
+                <Button type="submit" variant="gradient" disabled={isSubmitting} className="rounded-full">Submit to Admin</Button>
+              </form>
+            )}
+          </Card>
         )}
-      </div>
+      </PortalShell>
     </AuthenticatedRoute>
   );
 }
