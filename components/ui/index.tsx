@@ -101,8 +101,17 @@ export function Label({ className, children, htmlFor }: { className?: string; ch
 
 export function Select({ className, children, ...props }: React.SelectHTMLAttributes<HTMLSelectElement>) {
   return (
-    <select className={cn("flex h-10 w-full rounded-xl border border-border bg-background px-3 text-sm", className)} {...props}>
+    <select
+      className={cn(
+        "flex h-10 w-full appearance-none rounded-xl border border-border bg-background px-3 text-sm outline-none focus:border-info focus:ring-2 focus:ring-info/20",
+        className
+      )}
+      {...props}
+    >
       {children}
     </select>
   );
 }
+
+export { SelectMenu, type SelectMenuOption } from "./select-menu";
+export { PasswordInput } from "./password-input";
