@@ -36,7 +36,7 @@ export default function RegisterPage() {
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
           <div className="space-y-2">
             <Label>Account Type</Label>
-            <Select {...register("role")}><option value="user">Skilled User</option><option value="employer">Employer</option></Select>
+            <Select {...register("role")}><option value="user">User</option><option value="employer">Employer</option></Select>
           </div>
           <div className="space-y-2"><Label>Full Name</Label><Input {...register("full_name")} /></div>
           <div className="space-y-2"><Label>Email</Label><Input type="email" {...register("email")} /></div>
