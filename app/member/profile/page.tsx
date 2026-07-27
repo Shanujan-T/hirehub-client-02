@@ -4,7 +4,8 @@ import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { PortalShell, memberNav } from "@/components/portal-shell";
-import { Badge, Button, Card, Input, Label, Select, Textarea } from "@/components/ui";
+import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
+import { Award, Wrench } from "lucide-react";
 import { useAuth } from "@/providers/auth-provider";
 import { getErrorMessage } from "@/lib/utils";
 import { createUserSkill, getSkills, getUserSkills, updateUser } from "@/services/contract";
@@ -56,14 +57,29 @@ export default function MemberProfilePage() {
             <ul className="mt-2 space-y-1 text-sm">{userSkills.map((s) => <li key={s.id}><Badge variant="info">{s.skill?.name} — {s.level}</Badge></li>)}</ul>
           </div>
           <div className="space-y-2">
-            <Label>Add Skill</Label>
-            <Select value={newSkill.skill_id} onChange={(e) => setNewSkill({ ...newSkill, skill_id: e.target.value })}>
-              <option value="">Select</option>
-              {skills.map((s) => <option key={s.id} value={s.id}>{s.name}</option>)}
-            </Select>
-            <Select value={newSkill.level} onChange={(e) => setNewSkill({ ...newSkill, level: e.target.value })}>
-              <option value="beginner">Beginner</option><option value="intermediate">Intermediate</option><option value="advanced">Advanced</option><option value="expert">Expert</option>
-            </Select>
+            <Label htmlFor="skill-select">Add Skill</Label>
+            <SelectMenu
+              id="skill-select"
+              value={newSkill.skill_id}
+              onChange={(v) => setNewSkill({ ...newSkill, skill_id: v })}
+              placeholder="Select skill"
+              options={skills.map((s) => ({
+                value: String(s.id),
+                label: s.name,
+                icon: <Wrench className="h-4 w-4" aria-hidden />,
+              }))}
+            />
+            <SelectMenu
+              id="skill-level"
+              value={newSkill.level}
+              onChange={(v) => setNewSkill({ ...newSkill, level: v })}
+              options={[
+                { value: "beginner", label: "Beginner", icon: <Award className="h-4 w-4" aria-hidden /> },
+                { value: "intermediate", label: "Intermediate", icon: <Award className="h-4 w-4" aria-hidden /> },
+                { value: "advanced", label: "Advanced", icon: <Award className="h-4 w-4" aria-hidden /> },
+                { value: "expert", label: "Expert", icon: <Award className="h-4 w-4" aria-hidden /> },
+              ]}
+            />
             <Button variant="outline" onClick={handleAddSkill}>Add Skill</Button>
           </div>
         </Card>
