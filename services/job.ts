@@ -1,6 +1,11 @@
 import apiClient from "@/lib/api-client";
 import type { Category, CommunityApplication, Job } from "@/types/job";
 
+export interface PricingSuggestion {
+  average_price: number | null;
+  sample_size: number;
+}
+
 export async function getJobs(): Promise<Job[]> {
   const { data } = await apiClient.get<{ jobs: Job[] }>("/api/jobs");
   return data.jobs;
@@ -31,12 +36,12 @@ export async function getCategories(): Promise<Category[]> {
 export async function getPricingSuggestion(
   categoryId: number,
   location: string
-): Promise<number> {
-  const { data } = await apiClient.get<{ suggested_price: number }>(
+): Promise<PricingSuggestion> {
+  const { data } = await apiClient.get<PricingSuggestion>(
     `/api/categories/${categoryId}/pricing-suggestion`,
     { params: { location } }
   );
-  return data.suggested_price;
+  return data;
 }
 
 export async function applyToJob(jobId: number, communityId: number): Promise<CommunityApplication> {
@@ -54,8 +59,16 @@ export async function getJobApplicants(jobId: number): Promise<CommunityApplicat
   return data.community_applications;
 }
 
-export async function approveCommunity(applicationId: number) {
-  const { data } = await apiClient.post(`/api/community-applications/${applicationId}/approve`);
+export async function approveCommunity(applicationId: number, commissionPercent = 3) {
+  const { data } = await apiClient.post(
+    `/api/community-applications/${applicationId}/approve`,
+    { commission_percent: commissionPercent }
+  );
+  return data;
+}
+
+export async function rejectCommunity(applicationId: number) {
+  const { data } = await apiClient.post(`/api/community-applications/${applicationId}/reject`);
   return data;
 }
 
