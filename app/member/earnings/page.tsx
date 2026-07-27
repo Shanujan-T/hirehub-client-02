@@ -1,33 +1,31 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useCallback } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
+import { PortalShell, memberNav } from "@/components/portal-shell";
+import { EmptyState, LoadingState } from "@/components/page-states";
 import { Card } from "@/components/ui";
+import { useAsyncList } from "@/lib/hooks/use-async";
 import { getMyEarnings } from "@/services/contract";
-import type { Payment } from "@/types/contract";
 
 export default function MemberEarningsPage() {
-  const [payments, setPayments] = useState<Payment[]>([]);
-
-  useEffect(() => {
-    getMyEarnings().then(setPayments).catch(console.error);
-  }, []);
+  const { data: payments, loading } = useAsyncList(useCallback(() => getMyEarnings(), []));
 
   return (
     <AuthenticatedRoute allowedRoles={["user"]}>
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-extrabold">My Earnings</h1>
-          <p className="text-muted">Payout history from completed contracts</p>
-        </div>
-        {payments.map((p) => (
-          <Card key={p.id}>
-            <p>Contract #{p.contract_id}</p>
-            <p className="text-lg font-semibold">${p.member_payout}</p>
-            <p className="text-xs text-muted">{p.status} · {p.released_at}</p>
-          </Card>
-        ))}
-      </div>
+      <PortalShell title="My Earnings" subtitle="Member payout history (payment)" navItems={memberNav}>
+        {loading ? <LoadingState /> : payments.length === 0 ? (
+          <EmptyState title="No payouts yet" />
+        ) : (
+          payments.map((p) => (
+            <Card key={p.id} className="mb-2">
+              <p className="text-sm text-muted">Contract #{p.contract_id}</p>
+              <p className="text-2xl font-extrabold text-info">${p.member_payout}</p>
+              <p className="text-xs capitalize text-muted">{p.status}</p>
+            </Card>
+          ))
+        )}
+      </PortalShell>
     </AuthenticatedRoute>
   );
 }
