@@ -1,3 +1,4 @@
+import type { Skill } from "./job";
 import type { User } from "./user";
 
 export interface Community {
@@ -21,11 +22,18 @@ export interface CommunityMember {
   user?: User;
 }
 
+export interface OpenCallSkill {
+  id: number;
+  open_call_id: number;
+  skill_id: number;
+  skill?: Skill | null;
+}
+
 export interface OpenCall {
   id: number;
   community_id: number;
   title: string;
-  required_skills?: string | null;
   status: "open" | "closed";
   created_at: string;
+  skills?: OpenCallSkill[];
 }
