@@ -1,27 +1,67 @@
 "use client";
 
 import Link from "next/link";
-import { useCallback } from "react";
-import { Badge, Card } from "@/components/ui";
+import { Suspense, useMemo } from "react";
+import { BackButton } from "@/components/back-button";
+import { Badge, Card, Input, Label } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { useAsyncList } from "@/lib/hooks/use-async";
+import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { getCommunities } from "@/services/community";
+import { useCallback } from "react";
 
-export default function CommunitiesPage() {
+function CommunitiesBrowseContent() {
+  const { hrefWithReturn, setFilter, getFilter } = useListNavigation();
+  const locationFilter = getFilter("location");
+  const queryFilter = getFilter("q");
   const { data: communities, loading } = useAsyncList(useCallback(() => getCommunities(), []));
+
+  const filtered = useMemo(() => {
+    return communities.filter((c) => {
+      if (locationFilter && !(c.location ?? "").toLowerCase().includes(locationFilter.toLowerCase())) {
+        return false;
+      }
+      if (queryFilter) {
+        const q = queryFilter.toLowerCase();
+        return c.name.toLowerCase().includes(q) || (c.description ?? "").toLowerCase().includes(q);
+      }
+      return true;
+    });
+  }, [communities, locationFilter, queryFilter]);
 
   return (
     <div className="mx-auto max-w-6xl space-y-6 px-4 py-8">
+      <BackButton fallbackHref="/" label="Back" />
       <div>
         <h1 className="text-3xl font-extrabold text-primary dark:text-foreground">Communities</h1>
         <p className="text-muted">Browse skilled communities — only teams apply to jobs</p>
       </div>
-      {loading ? <LoadingState /> : communities.length === 0 ? (
-        <EmptyState title="No communities yet" />
+      <Card className="grid gap-3 sm:grid-cols-2">
+        <div className="space-y-2">
+          <Label htmlFor="community-q">Search</Label>
+          <Input
+            id="community-q"
+            placeholder="Community name"
+            value={queryFilter}
+            onChange={(e) => setFilter("q", e.target.value || null)}
+          />
+        </div>
+        <div className="space-y-2">
+          <Label htmlFor="community-location">Location</Label>
+          <Input
+            id="community-location"
+            placeholder="City or area"
+            value={locationFilter}
+            onChange={(e) => setFilter("location", e.target.value || null)}
+          />
+        </div>
+      </Card>
+      {loading ? <LoadingState /> : filtered.length === 0 ? (
+        <EmptyState title="No communities yet" description="Try adjusting your filters." />
       ) : (
         <div className="grid gap-4 md:grid-cols-2">
-          {communities.map((c) => (
-            <Link key={c.id} href={`/communities/${c.id}`}>
+          {filtered.map((c) => (
+            <Link key={c.id} href={hrefWithReturn(`/communities/${c.id}`)}>
               <Card className="transition hover:border-info">
                 <h3 className="font-bold">{c.name}</h3>
                 <p className="text-sm text-muted">{c.location}</p>
@@ -35,5 +75,13 @@ export default function CommunitiesPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function CommunitiesPage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <CommunitiesBrowseContent />
+    </Suspense>
   );
 }
