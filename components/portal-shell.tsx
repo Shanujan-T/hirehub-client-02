@@ -74,7 +74,7 @@ export function PortalShell({
     <div className="flex min-h-screen">
       <aside className="hidden w-64 shrink-0 flex-col bg-primary text-white lg:flex">
         <div className="border-b border-white/10 p-5">
-          <Link href="/" className="text-lg font-extrabold">LocalJobFinder</Link>
+          <Link href="/" className="text-lg font-extrabold">HireHub</Link>
         </div>
         <nav className="flex-1 space-y-1 p-3">
           {navItems.map((item) => {
