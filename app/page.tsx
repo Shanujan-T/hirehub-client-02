@@ -24,7 +24,7 @@ export default function HomePage() {
 
       <main className="mx-auto max-w-2xl px-4 py-20 text-center lg:px-8">
         <h1 className="text-4xl font-extrabold text-primary dark:text-foreground sm:text-5xl">
-          LocalJobFinder
+          HireHub
         </h1>
         <p className="mx-auto mt-4 max-w-lg text-muted">
           Employers post jobs. Skilled communities apply as teams. Admins assign work internally — one contract platform for local hiring.
