@@ -113,7 +113,10 @@ function MyCommunityContent() {
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     {m.user ? (
-                      <MemberCard user={m.user} />
+                      <MemberCard
+                        user={m.user}
+                        nameHref={hrefWithReturn(`/community-admin/my-community/members/${m.id}`)}
+                      />
                     ) : (
                       <p className="font-bold">{`User #${m.user_id}`}</p>
                     )}
