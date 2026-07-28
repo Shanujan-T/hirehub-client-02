@@ -1,32 +1,16 @@
 "use client";
 
 import Link from "next/link";
-import { BrandLogo } from "@/components/brand-logo";
+import { AppHeader } from "@/components/app-header";
 import { LandingFlowStrip } from "@/components/landing-flow-strip";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { AccountTypeSection } from "@/sections/home/account-type-cards";
+import { CtaBannerSection } from "@/sections/home/cta-banner";
 import { Button } from "@/components/ui";
 
 export default function HomePage() {
   return (
     <div className="relative min-h-screen bg-background">
-      <header className="sticky top-[3px] z-50 border-b border-border/70 bg-card/85 shadow-sm shadow-secondary/5 backdrop-blur-md">
-        <div aria-hidden className="h-px w-full bg-brand-gradient opacity-30" />
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-4 lg:px-8">
-          <BrandLogo />
-          <div className="flex items-center gap-3">
-            <Link href="/communities" className="text-sm text-muted transition hover:text-info">
-              Communities
-            </Link>
-            <ThemeToggle />
-            <Link href="/auth/login" className="text-sm text-muted transition hover:text-info">
-              Login
-            </Link>
-            <Link href="/auth/register">
-              <Button variant="gradient" className="rounded-full">Register</Button>
-            </Link>
-          </div>
-        </nav>
-      </header>
+      <AppHeader />
 
       <main>
         <section className="relative overflow-hidden">
@@ -73,6 +57,9 @@ export default function HomePage() {
 
           <div aria-hidden className="pointer-events-none absolute inset-x-0 bottom-0 h-px bg-brand-gradient opacity-20" />
         </section>
+
+        <AccountTypeSection />
+        <CtaBannerSection />
       </main>
     </div>
   );
