@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
-import { LogOut } from "lucide-react";
+import { AppHeader } from "@/components/app-header";
 import { BackButton } from "@/components/back-button";
-import { ThemeToggle } from "@/components/theme-toggle";
-import { Button } from "@/components/ui";
 import { useAuth } from "@/providers/auth-provider";
 import { cn } from "@/lib/utils";
 
@@ -63,60 +61,57 @@ export function PortalShell({
   navItems: NavItem[];
   children: React.ReactNode;
   actions?: React.ReactNode;
-  /** When set, renders a back button that respects ?returnTo= for list/filter preservation. */
   backHref?: string;
   backLabel?: string;
 }) {
   const pathname = usePathname();
-  const { user, logout } = useAuth();
+  const { user } = useAuth();
 
   return (
-    <div className="flex min-h-screen">
-      <aside className="hidden w-64 shrink-0 flex-col bg-primary text-white lg:flex">
-        <div className="border-b border-white/10 p-5">
-          <Link href="/" className="text-lg font-extrabold">HireHub</Link>
-        </div>
-        <nav className="flex-1 space-y-1 p-3">
-          {navItems.map((item) => {
-            const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={cn(
-                  "block rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                  active ? "bg-brand-gradient font-bold shadow-md" : "text-white/75 hover:bg-white/10"
+    <div className="flex min-h-screen flex-col">
+      <AppHeader />
+
+      <div className="flex min-h-0 flex-1">
+        <aside className="hidden w-64 shrink-0 flex-col bg-primary text-white lg:flex">
+          <nav className="flex-1 space-y-1 p-3 pt-5">
+            {navItems.map((item) => {
+              const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+              return (
+                <Link
+                  key={item.href}
+                  href={item.href}
+                  className={cn(
+                    "block rounded-xl px-3 py-2.5 text-sm font-medium transition",
+                    active ? "bg-brand-gradient font-bold shadow-md" : "text-white/75 hover:bg-white/10"
+                  )}
+                >
+                  {item.label}
+                </Link>
+              );
+            })}
+          </nav>
+          <div className="border-t border-white/10 p-4">
+            <p className="truncate text-xs text-white/60">{user?.email}</p>
+          </div>
+        </aside>
+
+        <div className="flex min-w-0 flex-1 flex-col">
+          <div className="border-b border-border bg-card/95 px-4 py-4 backdrop-blur-sm lg:px-8">
+            <div className="flex items-start justify-between gap-4">
+              <div className="min-w-0">
+                {backHref && (
+                  <Suspense fallback={null}>
+                    <BackButton fallbackHref={backHref} label={backLabel} className="mb-1" />
+                  </Suspense>
                 )}
-              >
-                {item.label}
-              </Link>
-            );
-          })}
-        </nav>
-        <div className="border-t border-white/10 p-4">
-          <p className="truncate text-xs text-white/60">{user?.email}</p>
-          <Button variant="ghost" size="sm" onClick={logout} className="mt-2 w-full justify-start text-white/80 hover:bg-white/10">
-            <LogOut className="mr-2 h-4 w-4" />Sign out
-          </Button>
+                <h1 className="text-2xl font-extrabold text-primary dark:text-foreground">{title}</h1>
+                {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
+              </div>
+              {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
+            </div>
+          </div>
+          <div className="flex-1 p-4 lg:p-8">{children}</div>
         </div>
-      </aside>
-      <div className="flex min-w-0 flex-1 flex-col">
-        <header className="flex items-center justify-between border-b border-border bg-card px-4 py-4 lg:px-8">
-          <div className="min-w-0">
-            {backHref && (
-              <Suspense fallback={null}>
-                <BackButton fallbackHref={backHref} label={backLabel} className="mb-1" />
-              </Suspense>
-            )}
-            <h1 className="text-2xl font-extrabold text-primary dark:text-foreground">{title}</h1>
-            {subtitle && <p className="text-sm text-muted">{subtitle}</p>}
-          </div>
-          <div className="flex items-center gap-2">
-            {actions}
-            <ThemeToggle />
-          </div>
-        </header>
-        <div className="flex-1 p-4 lg:p-8">{children}</div>
       </div>
     </div>
   );
