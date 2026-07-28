@@ -14,5 +14,5 @@ export function StatusBadge({ status, kind = "job" }: { status: string; kind?: "
   else if (kind === "contract") variant = contractStatusVariant(status);
   else if (kind === "application") variant = applicationStatusVariant(status);
   else variant = memberStatusVariant(status);
-  return <Badge variant={variant}>{formatStatus(status)}</Badge>;
+  return <Badge variant={variant}>{formatStatus(status, kind)}</Badge>;
 }
