@@ -59,6 +59,13 @@ export async function getCommunityMembers(
   return data.community_members;
 }
 
+export async function removeCommunityMember(membershipId: number): Promise<void> {
+  await apiClient.delete(`/api/community-members/${membershipId}`);
+}
+
+/** Matches API MIN_COMMUNITY_MEMBERS — used for listing eligibility warnings. */
+export const MIN_COMMUNITY_MEMBERS = 3;
+
 export async function getOpenCalls(communityId?: number): Promise<OpenCall[]> {
   const { data } = await apiClient.get<{ open_calls: OpenCall[] }>("/api/open-calls", {
     params: communityId ? { community_id: communityId } : {},
