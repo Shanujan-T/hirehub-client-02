@@ -5,6 +5,7 @@ import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useCallback } from "react";
 import { CommunityAdminRoute } from "@/components/community-admin-route";
+import { CommunityAvatar } from "@/components/community-avatar";
 import { ContractProgressBar } from "@/components/contract-progress-bar";
 import { PortalShell, communityAdminNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -37,13 +38,27 @@ function ContractDetailContent() {
               <StatusBadge status={contract.status} kind="contract" />
             </div>
             <ContractProgressBar status={contract.status} />
-            <p className="text-sm text-muted">${contract.total_amount} · commission {contract.commission_percent}%</p>
+            <div className="mt-2 flex items-center gap-3">
+              {contract.community && (
+                <CommunityAvatar
+                  name={contract.community.name}
+                  imageUrl={contract.community.image_url}
+                  size="sm"
+                />
+              )}
+              <p className="text-sm text-muted">
+                {contract.community?.name ?? `Community #${contract.community_id}`} · ${contract.total_amount} · commission {contract.commission_percent}%
+              </p>
+            </div>
             {contract.deliverable_url && (
               <a href={contract.deliverable_url} className="text-sm text-info underline" target="_blank" rel="noreferrer">
                 View deliverable
               </a>
             )}
             <div className="flex flex-wrap gap-2 pt-2">
+              <Link href={hrefWithReturn(`/community-admin/contracts/${contract.id}/messages`)}>
+                <Button variant="outline" size="sm" className="rounded-full">Messages</Button>
+              </Link>
               {contract.status === "open_internally" && (
                 <Link href={hrefWithReturn(`/community-admin/contracts/${contract.id}/applicants`)}>
                   <Button variant="gradient" size="sm" className="rounded-full">Assign Member</Button>

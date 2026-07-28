@@ -1,44 +1,54 @@
 "use client";
 
-import { Suspense } from "react";
+import Link from "next/link";
+import { Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
-import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { PortalShell, communityAdminNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
-import { Button, Card } from "@/components/ui";
+import { Badge, Button, Card } from "@/components/ui";
+import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { buildFilteredPath } from "@/lib/navigation";
-import { getErrorMessage } from "@/lib/utils";
-import { applyToJob, getJob } from "@/services/job";
+import { getJob } from "@/services/job";
 import type { Job } from "@/types/job";
+
+function formatDeadline(value: string) {
+  try {
+    return new Date(value).toLocaleDateString(undefined, {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+    });
+  } catch {
+    return value;
+  }
+}
+
+function formatPostedAgo(value: string) {
+  const created = new Date(value);
+  const days = Math.floor((Date.now() - created.getTime()) / (1000 * 60 * 60 * 24));
+  if (Number.isNaN(days) || days < 0) return null;
+  if (days === 0) return "Posted today";
+  if (days === 1) return "Posted 1 day ago";
+  return `Posted ${days} days ago`;
+}
 
 function JobDetailContent() {
   const params = useParams();
   const jobId = Number(params.id);
   const { communityId } = useCommunityAdmin();
+  const { hrefWithReturn } = useListNavigation();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
-
   const jobsListFallback = buildFilteredPath("/community-admin/jobs", {});
 
   useEffect(() => {
     getJob(jobId)
       .then(setJob)
-      .catch(() => toast.error("Failed to load job"))
+      .catch(() => {})
       .finally(() => setLoading(false));
   }, [jobId]);
-
-  const handleApply = async () => {
-    if (!communityId) return;
-    try {
-      await applyToJob(jobId, communityId);
-      toast.success("Applied on behalf of community");
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
-  };
 
   return (
     <PortalShell
@@ -51,19 +61,29 @@ function JobDetailContent() {
         <LoadingState />
       ) : (
         <Card>
-          <div className="mb-4 flex items-start justify-between">
+          <div className="mb-4 flex flex-wrap items-start justify-between gap-3">
             <h2 className="text-xl font-bold">{job.title}</h2>
-            <StatusBadge status={job.status} kind="job" />
+            <div className="flex flex-wrap items-center gap-2">
+              {job.category?.name && <Badge variant="info">{job.category.name}</Badge>}
+              <StatusBadge status={job.status} kind="job" />
+            </div>
           </div>
-          <p className="text-sm text-muted">{job.location} · ${job.final_price}</p>
+          <p className="text-sm text-muted">{job.location} · Asking price ${job.final_price}</p>
+          <p className="text-sm text-muted">Due by {formatDeadline(job.deadline)}</p>
           {job.suggested_price != null && (
             <p className="text-sm text-muted">Suggested: ${job.suggested_price}</p>
           )}
+          {(() => {
+            const postedAgo = formatPostedAgo(job.created_at);
+            return postedAgo ? <p className="text-xs text-muted">{postedAgo}</p> : null;
+          })()}
           <p className="mt-4">{job.description}</p>
-          {job.status === "open" && (
-            <Button variant="gradient" className="mt-4 rounded-full" onClick={handleApply}>
-              Apply as Community
-            </Button>
+          {job.status === "open" && communityId && (
+            <Link href={hrefWithReturn(`/community-admin/jobs/${jobId}/apply`)} className="mt-4 inline-block">
+              <Button variant="gradient" className="rounded-full">
+                Submit Bid
+              </Button>
+            </Link>
           )}
         </Card>
       )}

@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { Suspense, useMemo } from "react";
-import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { PortalShell, communityAdminNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -10,8 +9,7 @@ import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
-import { getErrorMessage } from "@/lib/utils";
-import { applyToJob, getJobs } from "@/services/job";
+import { getJobs } from "@/services/job";
 import { useCallback } from "react";
 
 function JobsBrowseContent() {
@@ -34,18 +32,8 @@ function JobsBrowseContent() {
     });
   }, [jobs, locationFilter, queryFilter]);
 
-  const handleApply = async (jobId: number) => {
-    if (!communityId) return;
-    try {
-      await applyToJob(jobId, communityId);
-      toast.success("Applied on behalf of community");
-    } catch (err) {
-      toast.error(getErrorMessage(err));
-    }
-  };
-
   return (
-    <PortalShell title="Browse Jobs" subtitle="Apply via community_application" navItems={communityAdminNav}>
+    <PortalShell title="Browse Jobs" subtitle="Submit a bid for open jobs" navItems={communityAdminNav}>
       <Card className="mb-6 grid gap-3 sm:grid-cols-2">
         <div className="space-y-2">
           <Label htmlFor="job-q">Search</Label>
@@ -76,15 +64,17 @@ function JobsBrowseContent() {
                 <Link href={hrefWithReturn(`/community-admin/jobs/${job.id}`)} className="font-bold hover:text-info">
                   {job.title}
                 </Link>
-                <p className="text-sm text-muted">{job.location} · ${job.final_price}</p>
+                <p className="text-sm text-muted">{job.location} · Asking price ${job.final_price}</p>
               </div>
               <StatusBadge status={job.status} kind="job" />
             </div>
             <p className="mt-2 text-sm text-muted">{job.description.slice(0, 160)}…</p>
-            {job.status === "open" && (
-              <Button variant="gradient" className="mt-3 rounded-full" onClick={() => handleApply(job.id)}>
-                Apply as Community
-              </Button>
+            {job.status === "open" && communityId && (
+              <Link href={hrefWithReturn(`/community-admin/jobs/${job.id}/apply`)} className="mt-3 inline-block">
+                <Button variant="gradient" className="rounded-full">
+                  Submit Bid
+                </Button>
+              </Link>
             )}
           </Card>
         ))
