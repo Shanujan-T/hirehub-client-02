@@ -2,8 +2,16 @@ import type { User } from "@/types/user";
 import type { UserSkill } from "@/types/skill";
 import { Badge, Card } from "@/components/ui";
 
-export function MemberCard({ user, skills = [] }: { user: User; skills?: UserSkill[] }) {
-  const initials = user.full_name.split(" ").map((n) => n[0]).join("").slice(0, 2).toUpperCase();
+export function MemberCard({ user, skills }: { user: User; skills?: UserSkill[] }) {
+  const displaySkills = skills ?? user.user_skills ?? [];
+  const initials = user.full_name
+    .split(" ")
+    .map((n) => n[0])
+    .join("")
+    .slice(0, 2)
+    .toUpperCase();
+  const projectCount = user.completed_project_count ?? 0;
+
   return (
     <div className="flex items-start gap-3">
       <div className="rounded-full bg-brand-gradient p-[2px]">
@@ -11,14 +19,24 @@ export function MemberCard({ user, skills = [] }: { user: User; skills?: UserSki
           {initials}
         </div>
       </div>
-      <div className="flex-1">
+      <div className="min-w-0 flex-1">
         <h3 className="font-bold">{user.full_name}</h3>
-        <p className="text-sm text-muted">{user.location}</p>
-        <Badge variant="info" className="mt-1">★ {user.rating?.toFixed(1) ?? "0.0"}</Badge>
-        {skills.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1">
-            {skills.map((s) => (
-              <Badge key={s.id} variant="info">{s.skill?.name}</Badge>
+        {user.location && <p className="text-sm text-muted">{user.location}</p>}
+        <div className="mt-1 flex flex-wrap items-center gap-2">
+          <Badge variant="completed">★ {user.rating?.toFixed(1) ?? "0.0"}</Badge>
+          <span className="text-xs text-muted">
+            {projectCount === 1 ? "1 project completed" : `${projectCount} projects completed`}
+          </span>
+        </div>
+        {displaySkills.length > 0 && (
+          <div className="mt-2 flex flex-wrap gap-1.5">
+            {displaySkills.map((s) => (
+              <span key={s.id} className="inline-flex items-center gap-1">
+                <Badge variant="info">{s.skill?.name ?? "Skill"}</Badge>
+                <Badge variant="default" className="px-1.5 py-0 text-[10px] normal-case">
+                  {s.level}
+                </Badge>
+              </span>
             ))}
           </div>
         )}
