@@ -82,6 +82,18 @@ export async function getMyEarnings(): Promise<Payment[]> {
   return data.payments;
 }
 
+export async function getPayments(): Promise<Payment[]> {
+  const { data } = await apiClient.get<{ payments: Payment[] }>("/api/payments");
+  return data.payments;
+}
+
+export async function getMyContractApplications(): Promise<ContractApplication[]> {
+  const { data } = await apiClient.get<{ contract_applications: ContractApplication[] }>(
+    "/api/contract-applications/my"
+  );
+  return data.contract_applications;
+}
+
 export async function createReview(payload: {
   contract_id: number;
   community_id: number;
