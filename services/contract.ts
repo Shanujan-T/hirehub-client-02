@@ -114,7 +114,15 @@ export async function getUserSkills(userId?: number) {
   return data.user_skills;
 }
 
-export async function updateUser(userId: number, payload: Record<string, string>) {
+export async function updateUser(
+  userId: number,
+  payload: {
+    full_name?: string;
+    bio?: string;
+    location?: string | null;
+    avatar_url?: string | null;
+  }
+) {
   const { data } = await apiClient.put(`/api/users/${userId}`, payload);
   return data.user;
 }

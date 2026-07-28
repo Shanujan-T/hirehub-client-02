@@ -1,3 +1,5 @@
+import type { UserSkill } from "./skill";
+
 export type UserRole = "admin" | "employer" | "user";
 
 export interface User {
@@ -12,6 +14,7 @@ export interface User {
   created_at: string;
   completed_project_count?: number;
   rating?: number;
+  user_skills?: UserSkill[];
 }
 
 export interface AuthResponse {
@@ -23,7 +26,6 @@ export interface RegisterPayload {
   email: string;
   password: string;
   full_name: string;
-  location?: string;
   role?: "user" | "employer";
 }
 
