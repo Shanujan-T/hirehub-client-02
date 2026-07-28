@@ -25,6 +25,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const me = await authService.getMe();
       setUser(me);
+      localStorage.setItem("user", JSON.stringify(me));
     } catch {
       setUser(null);
       setToken(null);
@@ -39,7 +40,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (storedToken && storedUser) {
       setToken(storedToken);
       setUser(JSON.parse(storedUser));
-      refreshUser().finally(() => setLoading(false));
+      setLoading(false);
+      void refreshUser();
     } else {
       setLoading(false);
     }
@@ -51,6 +53,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("user", JSON.stringify(data.user));
     setToken(data.access_token);
     setUser(data.user);
+    setLoading(false);
   };
 
   const register = async (payload: RegisterPayload) => {
@@ -59,6 +62,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem("user", JSON.stringify(data.user));
     setToken(data.access_token);
     setUser(data.user);
+    setLoading(false);
   };
 
   const logout = () => {
