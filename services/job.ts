@@ -44,10 +44,16 @@ export async function getPricingSuggestion(
   return data;
 }
 
-export async function applyToJob(jobId: number, communityId: number): Promise<CommunityApplication> {
+export async function applyToJob(payload: {
+  job_id: number;
+  community_id: number;
+  proposed_cost: number;
+  proposed_days: number;
+  note?: string;
+}): Promise<CommunityApplication> {
   const { data } = await apiClient.post<{ community_application: CommunityApplication }>(
     "/api/community-applications/apply",
-    { job_id: jobId, community_id: communityId }
+    payload
   );
   return data.community_application;
 }
