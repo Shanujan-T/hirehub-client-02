@@ -2,7 +2,7 @@
 
 import { Suspense } from "react";
 import { useParams } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { PortalShell, communityAdminNav } from "@/components/portal-shell";
