@@ -49,8 +49,76 @@
   );
 }
 
+@utility bg-dot-pattern {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, #4d2bd8 7%, transparent) 1px,
+    transparent 1px
+  );
+  background-size: 22px 22px;
+}
+
+@utility bg-hero-glow {
+  background-image:
+    radial-gradient(
+      ellipse 55% 45% at 12% 18%,
+      color-mix(in srgb, #4d2bd8 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 88% 82%,
+      color-mix(in srgb, #7d07db 12%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 50% 100%,
+      color-mix(in srgb, #08308b 8%, transparent),
+      transparent 70%
+    );
+}
+
+.dark .bg-dot-pattern {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, #4d2bd8 12%, transparent) 1px,
+    transparent 1px
+  );
+}
+
+.dark .bg-hero-glow {
+  background-image:
+    radial-gradient(
+      ellipse 55% 45% at 12% 18%,
+      color-mix(in srgb, #4d2bd8 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 40% at 88% 82%,
+      color-mix(in srgb, #7d07db 18%, transparent),
+      transparent 72%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 50% 100%,
+      color-mix(in srgb, #08308b 14%, transparent),
+      transparent 70%
+    );
+}
+
 body {
   background: var(--color-background);
   color: var(--color-foreground);
   font-family: var(--font-sans);
+}
+
+/* Shared marketing / auth surface rhythm */
+.section-y {
+  padding-top: 5rem;
+  padding-bottom: 5rem;
+}
+
+@media (min-width: 1024px) {
+  .section-y {
+    padding-top: 6rem;
+    padding-bottom: 6rem;
+  }
 }
