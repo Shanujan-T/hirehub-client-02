@@ -4,32 +4,40 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
+import { CommunityAvatar } from "@/components/community-avatar";
+import { ImageUploadControl } from "@/components/image-upload-control";
 import { MemberCard } from "@/components/member-card";
 import { PortalShell, communityAdminNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge, Button, Card } from "@/components/ui";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
+import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { buildFilteredPath } from "@/lib/navigation";
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import {
+  getCommunity,
   getCommunityMembers,
   MIN_COMMUNITY_MEMBERS,
   removeCommunityMember,
+  uploadCommunityImage,
 } from "@/services/community";
-import type { CommunityMember } from "@/types/community";
+import type { Community, CommunityMember } from "@/types/community";
 
 function MyCommunityContent() {
   const { user } = useAuth();
   const { communityId } = useCommunityAdmin();
   const { hrefWithReturn, getFilter } = useListNavigation();
   const tab = getFilter("tab", "members");
+  const [community, setCommunity] = useState<Community | null>(null);
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [pending, setPending] = useState<CommunityMember[]>([]);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  const [uploadingImage, setUploadingImage] = useState(false);
 
   const reload = async (cid: number) => {
+    setCommunity(await getCommunity(cid));
     setMembers(await getCommunityMembers(cid, "approved"));
     setPending(await getCommunityMembers(cid, "pending"));
   };
@@ -57,9 +65,43 @@ function MyCommunityContent() {
   const pendingListHref = buildFilteredPath("/community-admin/my-community", { tab: "pending" });
   const belowMinimum = tab === "members" && members.length < MIN_COMMUNITY_MEMBERS;
 
+  const handleCommunityImageUpload = async (file: File) => {
+    if (!communityId) return;
+    setUploadingImage(true);
+    try {
+      const updated = await uploadCommunityImage(communityId, file);
+      setCommunity(updated);
+      notify.success("Community image updated");
+    } catch (err) {
+      notify.error(getErrorMessage(err, "Failed to upload community image"));
+      throw err;
+    } finally {
+      setUploadingImage(false);
+    }
+  };
+
   return (
     <CommunityAdminRoute>
       <PortalShell title="My Community" subtitle="Approve or reject join requests" navItems={communityAdminNav}>
+        {community && (
+          <Card className="mb-6">
+            <ImageUploadControl
+              label="Community image"
+              shape="rounded"
+              previewUrl={community.image_url}
+              uploading={uploadingImage}
+              onUpload={handleCommunityImageUpload}
+              fallback={
+                <CommunityAvatar
+                  name={community.name}
+                  imageUrl={community.image_url}
+                  size="lg"
+                  className="h-24 w-24 sm:h-28 sm:w-28"
+                />
+              }
+            />
+          </Card>
+        )}
         <div className="mb-6 flex gap-2">
           <Link href={buildFilteredPath("/community-admin/my-community", { tab: "members" })}>
             <Button variant={tab === "members" ? "gradient" : "outline"} size="sm" className="rounded-full">
@@ -115,7 +157,9 @@ function MyCommunityContent() {
                     {m.user ? (
                       <MemberCard
                         user={m.user}
-                        nameHref={hrefWithReturn(`/community-admin/my-community/members/${m.id}`)}
+                        nameHref={hrefWithReturn(
+                          communityMemberDetailPath(communityId!, m.id, "admin")
+                        )}
                       />
                     ) : (
                       <p className="font-bold">{`User #${m.user_id}`}</p>

@@ -1,26 +1,42 @@
 import { cn } from "@/lib/utils";
 
-export function UserAvatar({
-  name,
-  className,
-  size = "md",
-}: {
-  name: string;
-  className?: string;
-  size?: "sm" | "md" | "lg";
-}) {
-  const initials = name
+function getInitials(name: string) {
+  return name
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map((part) => part[0]?.toUpperCase() ?? "")
     .join("");
+}
+
+export function UserAvatar({
+  name,
+  avatarUrl,
+  className,
+  size = "md",
+}: {
+  name: string;
+  avatarUrl?: string | null;
+  className?: string;
+  size?: "sm" | "md" | "lg";
+}) {
+  const initials = getInitials(name);
 
   const sizes = {
     sm: "h-9 w-9 text-xs",
     md: "h-11 w-11 text-sm",
     lg: "h-14 w-14 text-base",
   };
+
+  if (avatarUrl) {
+    return (
+      <img
+        src={avatarUrl}
+        alt={`${name} avatar`}
+        className={cn("inline-flex shrink-0 rounded-full object-cover shadow-sm", sizes[size], className)}
+      />
+    );
+  }
 
   return (
     <span
@@ -38,13 +54,13 @@ export function UserAvatar({
 
 export function roleLabel(role: string) {
   if (role === "user") return "Member";
-  if (role === "employer") return "Employer";
+  if (role === "client") return "Client";
   if (role === "admin") return "Admin";
   return role;
 }
 
 export function roleBadgeVariant(role: string): "info" | "active" | "completed" | "default" {
   if (role === "admin") return "completed";
-  if (role === "employer") return "active";
+  if (role === "client") return "active";
   return "info";
 }

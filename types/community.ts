@@ -6,6 +6,7 @@ export interface Community {
   name: string;
   description?: string | null;
   location?: string | null;
+  image_url?: string | null;
   reputation_score: number;
   created_at: string;
   member_count?: number;

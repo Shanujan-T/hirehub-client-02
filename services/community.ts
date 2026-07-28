@@ -20,6 +20,17 @@ export async function createCommunity(payload: {
   return data.community;
 }
 
+export async function uploadCommunityImage(communityId: number, file: File): Promise<Community> {
+  const formData = new FormData();
+  formData.append("image", file);
+  const { data } = await apiClient.post<{ community: Community }>(
+    `/api/communities/${communityId}/image`,
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data.community;
+}
+
 export async function getMyMemberships(): Promise<CommunityMember[]> {
   const { data } = await apiClient.get<{ community_members: CommunityMember[] }>(
     "/api/community-members/my"

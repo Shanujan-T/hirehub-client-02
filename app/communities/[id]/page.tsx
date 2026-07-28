@@ -4,7 +4,9 @@ import { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BackButton } from "@/components/back-button";
+import { CommunityAvatar } from "@/components/community-avatar";
 import { MemberCardPanel } from "@/components/member-card";
+import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { Badge, Button, Card } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { useAsyncItem } from "@/lib/hooks/use-async";
@@ -83,12 +85,15 @@ function CommunityDetailContent() {
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
       <BackButton fallbackHref="/communities" label="Back to communities" />
       <div className="flex flex-wrap items-start justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h1 className="text-3xl font-extrabold">{community.name}</h1>
-          <p className="text-muted">{community.description}</p>
-          <div className="mt-3 flex flex-wrap gap-2">
-            {community.location && <Badge variant="info">{community.location}</Badge>}
-            <Badge variant="completed">★ {community.reputation_score.toFixed(1)} reputation</Badge>
+        <div className="flex min-w-0 flex-1 items-start gap-4">
+          <CommunityAvatar name={community.name} imageUrl={community.image_url} size="lg" />
+          <div className="min-w-0 flex-1">
+            <h1 className="text-3xl font-extrabold">{community.name}</h1>
+            <p className="text-muted">{community.description}</p>
+            <div className="mt-3 flex flex-wrap gap-2">
+              {community.location && <Badge variant="info">{community.location}</Badge>}
+              <Badge variant="completed">★ {community.reputation_score.toFixed(1)} reputation</Badge>
+            </div>
           </div>
         </div>
         {showJoinButton && (
@@ -113,7 +118,14 @@ function CommunityDetailContent() {
         {community.members && community.members.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
             {community.members.map((m) =>
-              m.user ? <MemberCardPanel key={m.id} user={m.user} skills={m.user.user_skills} /> : null
+              m.user ? (
+                <MemberCardPanel
+                  key={m.id}
+                  user={m.user}
+                  skills={m.user.user_skills}
+                  detailHref={communityMemberDetailPath(id, m.id, "public")}
+                />
+              ) : null
             )}
           </div>
         ) : (
