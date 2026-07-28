@@ -122,3 +122,130 @@ body {
     padding-bottom: 6rem;
   }
 }
+
+/* ── In-app toast notifications (Sonner) ─────────────────────────────────── */
+[data-sonner-toaster] {
+  --width: 22rem;
+  font-family: var(--font-sans);
+}
+
+[data-sonner-toast].hirehub-toast {
+  position: relative;
+  overflow: hidden;
+  width: var(--width);
+  padding: 0.875rem 1rem 0.875rem 1.125rem;
+  border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
+  border-radius: var(--radius-xl);
+  background: color-mix(in srgb, var(--color-card) 94%, transparent);
+  color: var(--color-foreground);
+  box-shadow:
+    0 10px 40px color-mix(in srgb, var(--color-secondary) 14%, transparent),
+    0 2px 8px color-mix(in srgb, #000 8%, transparent);
+  backdrop-filter: blur(12px);
+}
+
+[data-sonner-toast].hirehub-toast::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 3px;
+  background: linear-gradient(180deg, #08308b, #4d2bd8, #7d07db);
+}
+
+[data-sonner-toast].hirehub-toast[data-type="success"]::before {
+  background: linear-gradient(180deg, #08308b, #16a34a);
+}
+
+[data-sonner-toast].hirehub-toast[data-type="error"]::before {
+  background: linear-gradient(180deg, #7d07db, #dc2626);
+}
+
+[data-sonner-toast].hirehub-toast[data-type="info"]::before {
+  background: linear-gradient(180deg, #08308b, #007acd);
+}
+
+.hirehub-toast-title {
+  font-size: 0.875rem;
+  font-weight: 700;
+  color: var(--color-foreground);
+}
+
+.hirehub-toast-description {
+  font-size: 0.8125rem;
+  color: var(--color-muted);
+  line-height: 1.45;
+}
+
+.hirehub-toast-action {
+  margin-top: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: none;
+  border-radius: 9999px;
+  background: linear-gradient(90deg, #08308b, #4d2bd8, #7d07db);
+  color: #fff;
+  font-size: 0.75rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.hirehub-toast-action:hover {
+  opacity: 0.92;
+  transform: scale(1.02);
+}
+
+.hirehub-toast-cancel {
+  margin-top: 0.375rem;
+  padding: 0.375rem 0.75rem;
+  border: 1px solid color-mix(in srgb, var(--color-border) 90%, transparent);
+  border-radius: 9999px;
+  background: transparent;
+  color: var(--color-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.hirehub-toast-close {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 1.5rem;
+  height: 1.5rem;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  border-radius: 0.5rem;
+  background: color-mix(in srgb, var(--color-background) 60%, transparent);
+  color: var(--color-muted);
+  cursor: pointer;
+  transition: color 0.15s ease, border-color 0.15s ease;
+}
+
+.hirehub-toast-close:hover {
+  color: var(--color-foreground);
+  border-color: color-mix(in srgb, var(--color-accent) 50%, transparent);
+}
+
+/* Stack vertically; newest toast closest to viewport corner */
+[data-sonner-toaster][data-y-position="bottom"] {
+  flex-direction: column-reverse;
+}
+
+/* Mobile: bottom-center, full-width with edge margin */
+@media (max-width: 639px) {
+  [data-sonner-toaster][data-y-position="bottom"] {
+    left: 1rem !important;
+    right: 1rem !important;
+    width: auto !important;
+    transform: none !important;
+  }
+
+  [data-sonner-toast].hirehub-toast {
+    width: 100%;
+    max-width: none;
+  }
+}
