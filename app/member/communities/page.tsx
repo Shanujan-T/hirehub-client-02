@@ -2,7 +2,6 @@
 
 import { Suspense, useCallback } from "react";
 import Link from "next/link";
-import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { PortalShell, memberNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -10,6 +9,7 @@ import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
+import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
 import { getCommunities, getMyMemberships, joinCommunity } from "@/services/community";
 import { useEffect, useState } from "react";
@@ -21,7 +21,7 @@ function MemberCommunitiesContent() {
   const [communities, setCommunities] = useState<Community[]>([]);
 
   useEffect(() => {
-    getCommunities().then(setCommunities).catch(() => toast.error("Failed to load communities"));
+    getCommunities().then(setCommunities).catch(() => notify.error("Failed to load communities"));
   }, []);
 
   const joinedIds = new Set(memberships.map((m) => m.community_id));
@@ -29,16 +29,27 @@ function MemberCommunitiesContent() {
   const handleJoin = async (communityId: number) => {
     try {
       await joinCommunity(communityId);
-      toast.success("Join request sent");
+      notify.success("Join request sent");
       reload();
     } catch (err) {
-      toast.error(getErrorMessage(err));
+      notify.error(getErrorMessage(err));
     }
   };
 
   return (
     <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell title="My Communities" subtitle="community_member memberships" navItems={memberNav}>
+      <PortalShell
+        title="My Communities"
+        subtitle="Memberships, join requests, and new communities"
+        navItems={memberNav}
+        actions={
+          <Link href="/member/communities/new">
+            <Button variant="gradient" size="sm" className="rounded-full">
+              Create Community
+            </Button>
+          </Link>
+        }
+      >
         {loading ? <LoadingState /> : (
           <>
             <h2 className="mb-3 font-bold">Memberships</h2>
