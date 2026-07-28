@@ -50,7 +50,16 @@ export function memberStatusVariant(s: string): StatusVariant {
   return MEMBER[s] ?? "default";
 }
 
-export function formatStatus(s: string) {
+const MEMBER_LABELS: Record<string, string> = {
+  pending: "Pending",
+  approved: "Active",
+  rejected: "Rejected",
+};
+
+export function formatStatus(s: string, kind?: "job" | "contract" | "application" | "member") {
+  if (kind === "member" && MEMBER_LABELS[s]) {
+    return MEMBER_LABELS[s];
+  }
   return s.replace(/_/g, " ");
 }
 
