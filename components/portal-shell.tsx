@@ -1,17 +1,15 @@
 "use client";
 
-import Link from "next/link";
 import { Suspense } from "react";
 import { usePathname } from "next/navigation";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AppHeader } from "@/components/app-header";
 import { BackButton } from "@/components/back-button";
-import { useAuth } from "@/providers/auth-provider";
-import {
-  adminCommunityNav,
+import { PortalSidebar } from "@/components/portal-sidebar";
+import {  adminCommunityNav,
   adminNav,
   communityAdminNav,
-  employerNav,
+  clientNav,
   memberNav,
   platformNav,
   type NavItem,
@@ -19,7 +17,7 @@ import {
 import { cn } from "@/lib/utils";
 
 export type { NavItem };
-export { adminCommunityNav, adminNav, communityAdminNav, employerNav, memberNav, platformNav };
+export { adminCommunityNav, adminNav, communityAdminNav, clientNav, memberNav, platformNav };
 
 export function PortalShell({
   title,
@@ -39,41 +37,13 @@ export function PortalShell({
   backLabel?: string;
 }) {
   const pathname = usePathname();
-  const { user } = useAuth();
   const isAdminPortal = pathname.startsWith("/admin");
-
   return (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
 
-      <div className={cn("flex min-h-0 flex-1", isAdminPortal ? "items-start" : "items-stretch")}>
-        {isAdminPortal ? (
-          <AdminSidebar />
-        ) : (
-          <aside className="relative z-10 hidden w-64 shrink-0 flex-col bg-primary text-white shadow-xl shadow-black/20 lg:flex">
-            <nav className="flex-1 space-y-1 p-3 pt-5">
-              {navItems.map((item) => {
-                const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
-                return (
-                  <Link
-                    key={item.href}
-                    href={item.href}
-                    className={cn(
-                      "block rounded-xl px-3 py-2.5 text-sm font-medium transition",
-                      active ? "bg-brand-gradient font-bold shadow-md" : "text-white/75 hover:bg-white/10"
-                    )}
-                  >
-                    {item.label}
-                  </Link>
-                );
-              })}
-            </nav>
-            <div className="border-t border-white/10 p-4">
-              <p className="truncate text-xs text-white/60">{user?.email}</p>
-            </div>
-          </aside>
-        )}
-
+      <div className="flex min-h-0 flex-1 items-start">
+        {isAdminPortal ? <AdminSidebar /> : <PortalSidebar navItems={navItems} />}
         <div
           className={cn(
             "relative flex min-w-0 flex-1 flex-col",

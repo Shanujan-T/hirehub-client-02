@@ -74,6 +74,7 @@ export function AdminSidebar() {
           <div className="flex min-w-0 items-center gap-2.5">
             <UserAvatar
               name={user?.full_name ?? user?.email ?? "Admin"}
+              avatarUrl={user?.avatar_url}
               size="sm"
               className="h-8 w-8 text-[10px]"
             />
