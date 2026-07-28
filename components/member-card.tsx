@@ -28,18 +28,20 @@ export function MemberCard({ user, skills }: { user: User; skills?: UserSkill[] 
             {projectCount === 1 ? "1 project completed" : `${projectCount} projects completed`}
           </span>
         </div>
-        {displaySkills.length > 0 && (
-          <div className="mt-2 flex flex-wrap gap-1.5">
-            {displaySkills.map((s) => (
+        <div className="mt-1.5 flex flex-wrap items-center gap-1.5">
+          {displaySkills.length > 0 ? (
+            displaySkills.map((s) => (
               <span key={s.id} className="inline-flex items-center gap-1">
                 <Badge variant="info">{s.skill?.name ?? "Skill"}</Badge>
                 <Badge variant="default" className="px-1.5 py-0 text-[10px] normal-case">
                   {s.level}
                 </Badge>
               </span>
-            ))}
-          </div>
-        )}
+            ))
+          ) : (
+            <span className="text-xs text-muted">No skills listed</span>
+          )}
+        </div>
       </div>
     </div>
   );
