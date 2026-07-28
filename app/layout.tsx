@@ -55,7 +55,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <main className={standalone || portal ? "flex-1 pt-[3px]" : "mx-auto max-w-6xl flex-1 px-4 py-8 pt-[3px]"}>
               {children}
             </main>
-            <Footer />
+            {!portal && <Footer />}
             <AppToaster />
           </AuthProvider>
         </ThemeProvider>
