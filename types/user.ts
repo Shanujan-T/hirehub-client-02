@@ -1,3 +1,4 @@
+import type { CommunityMember } from "@/types/community";
 import type { UserSkill } from "./skill";
 
 export type UserRole = "admin" | "employer" | "user";
@@ -15,6 +16,9 @@ export interface User {
   completed_project_count?: number;
   rating?: number;
   user_skills?: UserSkill[];
+  community_memberships?: (CommunityMember & {
+    community?: { id: number; name: string };
+  })[];
 }
 
 export interface AuthResponse {
