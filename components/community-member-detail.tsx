@@ -48,7 +48,7 @@ export function CommunityMemberDetail({
   return (
     <Card className={cn("max-w-lg space-y-5 p-5", className)}>
       <div className="flex items-start gap-4">
-        <UserAvatar name={user.full_name} size="lg" />
+        <UserAvatar name={user.full_name} avatarUrl={user.avatar_url} size="lg" />
         <div className="min-w-0 flex-1">
           <h2 className="text-xl font-extrabold text-foreground">{user.full_name}</h2>
           {user.location && <p className="text-sm text-muted">{user.location}</p>}
