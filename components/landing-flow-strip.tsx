@@ -33,11 +33,17 @@ export function LandingFlowStrip({ className }: { className?: string }) {
                   className="hidden h-4 w-4 shrink-0 text-secondary/40 sm:block"
                 />
               )}
-              <div className="flex flex-1 flex-col items-center rounded-2xl border border-border/70 bg-card/70 px-3 py-4 shadow-sm backdrop-blur-sm dark:border-border/80 dark:bg-card/50 dark:shadow-md dark:shadow-black/20">
-                <span className="flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gradient shadow-md shadow-secondary/20">
+              <div className="relative flex flex-1 flex-col items-center rounded-2xl border border-border/70 bg-card/70 px-3 py-3.5 shadow-sm backdrop-blur-sm dark:border-border/80 dark:bg-card/50 dark:shadow-md dark:shadow-black/20">
+                <span
+                  aria-hidden
+                  className="absolute -top-2.5 left-3 flex h-6 w-6 items-center justify-center rounded-full bg-brand-gradient text-[11px] font-bold text-white shadow-md shadow-secondary/25"
+                >
+                  {index + 1}
+                </span>
+                <span className="flex h-10 w-10 items-center justify-center rounded-xl bg-brand-gradient shadow-md shadow-secondary/20">
                   <Icon className="h-5 w-5 text-white" aria-hidden />
                 </span>
-                <p className="mt-2.5 text-sm font-bold text-foreground">{step.label}</p>
+                <p className="mt-2 text-sm font-bold text-foreground">{step.label}</p>
                 <p className="mt-0.5 text-xs text-muted">{step.detail}</p>
               </div>
             </div>
