@@ -1,10 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
+import { getReturnToParam } from "@/lib/navigation";
 import { AuthLayout } from "@/components/auth-layout";
 import { GuestRoute } from "@/components/auth-guard";
 import { Button, Input, Label, PasswordInput } from "@/components/ui";
@@ -13,16 +15,22 @@ import { getErrorMessage } from "@/lib/utils";
 import { useAuth, getDashboardPath } from "@/providers/auth-provider";
 import { getMyMemberships } from "@/services/community";
 
-export default function LoginPage() {
+function LoginFormContent() {
   const { login } = useAuth();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { register, handleSubmit, formState: { isSubmitting } } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginForm) => {
     try {
       await login(data);
-      toast.success("Logged in");
+      notify.success("Logged in");
       const user = JSON.parse(localStorage.getItem("user") || "{}");
+      const returnTo = getReturnToParam(searchParams, "");
+      if (returnTo) {
+        router.push(returnTo);
+        return;
+      }
       let isCommunityAdmin = false;
       if (user.role === "user") {
         const memberships = await getMyMemberships();
@@ -30,7 +38,7 @@ export default function LoginPage() {
       }
       router.push(getDashboardPath(user, isCommunityAdmin));
     } catch (err) {
-      toast.error(getErrorMessage(err, "Login failed"));
+      notify.error(getErrorMessage(err, "Login failed"));
     }
   };
 
@@ -45,5 +53,13 @@ export default function LoginPage() {
         </form>
       </AuthLayout>
     </GuestRoute>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={null}>
+      <LoginFormContent />
+    </Suspense>
   );
 }
