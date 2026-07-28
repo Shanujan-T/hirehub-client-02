@@ -1,9 +1,24 @@
+import Link from "next/link";
 import type { User } from "@/types/user";
 import type { UserSkill } from "@/types/skill";
 import { Badge, Card } from "@/components/ui";
+import { cn } from "@/lib/utils";
 
-export function MemberCard({ user, skills }: { user: User; skills?: UserSkill[] }) {
-  const displaySkills = skills ?? user.user_skills ?? [];
+const nameLinkClass =
+  "font-bold text-foreground transition hover:text-info hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/30 rounded-sm";
+
+export function MemberCard({
+  user,
+  skills,
+  nameHref,
+  onNameClick,
+}: {
+  user: User;
+  skills?: UserSkill[];
+  /** When set, the member name links to a detail view. */
+  nameHref?: string;
+  onNameClick?: () => void;
+}) {  const displaySkills = skills ?? user.user_skills ?? [];
   const initials = user.full_name
     .split(" ")
     .map((n) => n[0])
@@ -20,8 +35,17 @@ export function MemberCard({ user, skills }: { user: User; skills?: UserSkill[] 
         </div>
       </div>
       <div className="min-w-0 flex-1">
-        <h3 className="font-bold">{user.full_name}</h3>
-        {user.location && <p className="text-sm text-muted">{user.location}</p>}
+        {nameHref ? (
+          <Link href={nameHref} className={nameLinkClass}>
+            {user.full_name}
+          </Link>
+        ) : onNameClick ? (
+          <button type="button" onClick={onNameClick} className={cn(nameLinkClass, "text-left")}>
+            {user.full_name}
+          </button>
+        ) : (
+          <h3 className="font-bold">{user.full_name}</h3>
+        )}        {user.location && <p className="text-sm text-muted">{user.location}</p>}
         <div className="mt-1 flex flex-wrap items-center gap-2">
           <Badge variant="completed">★ {user.rating?.toFixed(1) ?? "0.0"}</Badge>
           <span className="text-xs text-muted">
