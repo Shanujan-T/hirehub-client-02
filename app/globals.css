@@ -110,6 +110,126 @@ body {
   font-family: var(--font-sans);
 }
 
+/* Compact hero rhythm (home page) */
+.hero-y {
+  padding-top: 2.5rem;
+  padding-bottom: 2rem;
+}
+
+@media (min-width: 640px) {
+  .hero-y {
+    padding-top: 3rem;
+    padding-bottom: 2.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .hero-y {
+    padding-top: 3.5rem;
+    padding-bottom: 3rem;
+  }
+}
+
+@utility bg-hero-blobs {
+  background-image:
+    radial-gradient(
+      ellipse 45% 40% at 18% 22%,
+      color-mix(in srgb, #4d2bd8 18%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 82% 28%,
+      color-mix(in srgb, #7d07db 14%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 45% at 50% 88%,
+      color-mix(in srgb, #08308b 10%, transparent),
+      transparent 72%
+    );
+}
+
+.dark .bg-hero-blobs {
+  background-image:
+    radial-gradient(
+      ellipse 45% 40% at 18% 22%,
+      color-mix(in srgb, #4d2bd8 28%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 40% 35% at 82% 28%,
+      color-mix(in srgb, #7d07db 22%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 50% 45% at 50% 88%,
+      color-mix(in srgb, #08308b 16%, transparent),
+      transparent 72%
+    );
+}
+
+/* Admin portal — dark mode only; light mode keeps default surfaces */
+.dark .admin-portal-root {
+  --color-card: #141f36;
+  --color-border: #273549;
+}
+
+@utility bg-admin-portal-base {
+  background-color: #0b0f1a;
+  background-image: linear-gradient(
+    148deg,
+    #0b0f1a 0%,
+    color-mix(in srgb, #0b0f1a 72%, #12102a) 42%,
+    color-mix(in srgb, #0b0f1a 62%, #1a1040) 68%,
+    color-mix(in srgb, #0b0f1a 78%, #15082e) 100%
+  );
+}
+
+@utility bg-admin-portal-glow {
+  background-image:
+    radial-gradient(
+      ellipse 58% 48% at 10% 30%,
+      color-mix(in srgb, #4d2bd8 14%, transparent),
+      transparent 68%
+    ),
+    radial-gradient(
+      ellipse 52% 42% at 88% 72%,
+      color-mix(in srgb, #7d07db 11%, transparent),
+      transparent 70%
+    ),
+    radial-gradient(
+      ellipse 45% 38% at 55% 100%,
+      color-mix(in srgb, #08308b 9%, transparent),
+      transparent 72%
+    );
+}
+
+@utility bg-admin-sidebar {
+  background-color: #041638;
+  background-image:
+    radial-gradient(
+      ellipse 110% 75% at 50% -12%,
+      color-mix(in srgb, #007acd 30%, transparent),
+      transparent 58%
+    ),
+    linear-gradient(
+      180deg,
+      #08308b 0%,
+      color-mix(in srgb, #062666 92%, #041638) 50%,
+      color-mix(in srgb, #041638 88%, #030d24) 100%
+    );
+}
+
+@utility bg-admin-sidebar-texture {
+  background-image: repeating-linear-gradient(
+    -42deg,
+    transparent 0,
+    transparent 5px,
+    color-mix(in srgb, white 2.5%, transparent) 5px,
+    color-mix(in srgb, white 2.5%, transparent) 6px
+  );
+}
+
 /* Shared marketing / auth surface rhythm */
 .section-y {
   padding-top: 5rem;
