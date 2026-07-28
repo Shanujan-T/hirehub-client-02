@@ -69,7 +69,7 @@ const EMPLOYER_CHECKLIST = [
 
 export function AccountTypeSection() {
   return (
-    <section className="border-t border-border/70 bg-card/30 py-16 lg:py-20">
+    <section className="border-t border-border/60 bg-card/30 py-10 lg:py-12">
       <div className="mx-auto max-w-5xl px-4 lg:px-8">
         <div className="mx-auto max-w-2xl text-center">
           <h2 className="text-2xl font-extrabold text-primary dark:text-foreground sm:text-3xl">
@@ -79,7 +79,7 @@ export function AccountTypeSection() {
             Communities apply as teams — pick the path that matches how you&apos;ll use HireHub.
           </p>
         </div>
-        <div className="mt-10 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
+        <div className="mt-8 grid grid-cols-1 gap-6 md:grid-cols-2 md:gap-8">
           <AccountTypeCard
             title="For Skilled Workers"
             description="Build your skill profile, join a trusted community, and get selected for contracts your community wins."
