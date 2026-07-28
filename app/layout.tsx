@@ -8,6 +8,7 @@ import { Toaster } from "sonner";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { AuthProvider } from "@/providers/auth-provider";
+import { Footer } from "@/sections/layout/footer";
 import "./globals.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
@@ -35,7 +36,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
   return (
     <html lang="en" suppressHydrationWarning className={inter.variable}>
-      <body className="min-h-screen bg-background font-sans antialiased">
+      <body className="flex min-h-screen flex-col bg-background font-sans antialiased">
         <ThemeProvider attribute="class" defaultTheme="system" enableSystem>
           <AuthProvider>
             <div className="fixed inset-x-0 top-0 z-[100] h-[3px] bg-brand-gradient" />
@@ -51,9 +52,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 </nav>
               </header>
             )}
-            <main className={standalone || portal ? "pt-[3px]" : "mx-auto max-w-6xl px-4 py-8 pt-[3px]"}>
+            <main className={standalone || portal ? "flex-1 pt-[3px]" : "mx-auto max-w-6xl flex-1 px-4 py-8 pt-[3px]"}>
               {children}
             </main>
+            <Footer />
             <Toaster richColors position="top-right" />
           </AuthProvider>
         </ThemeProvider>
