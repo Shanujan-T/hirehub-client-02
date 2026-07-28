@@ -1,5 +1,5 @@
 import apiClient from "@/lib/api-client";
-import type { Community, CommunityMember, OpenCall, OpenCallSkill } from "@/types/community";
+import type { Community, CommunityMember, OpenCall } from "@/types/community";
 
 export async function getCommunities(): Promise<Community[]> {
   const { data } = await apiClient.get<{ communities: Community[] }>("/api/communities");
