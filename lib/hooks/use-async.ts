@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
-import { toast } from "sonner";
+import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
 
 export function useAsyncList<T>(fetcher: () => Promise<T[]>, errorMsg = "Failed to load") {
@@ -13,7 +13,7 @@ export function useAsyncList<T>(fetcher: () => Promise<T[]>, errorMsg = "Failed 
     try {
       setData(await fetcher());
     } catch (err) {
-      toast.error(getErrorMessage(err, errorMsg));
+      notify.error(getErrorMessage(err, errorMsg));
       setData([]);
     } finally {
       setLoading(false);
@@ -36,7 +36,7 @@ export function useAsyncItem<T>(fetcher: () => Promise<T>, errorMsg = "Failed to
     try {
       setData(await fetcher());
     } catch (err) {
-      toast.error(getErrorMessage(err, errorMsg));
+      notify.error(getErrorMessage(err, errorMsg));
       setData(null);
     } finally {
       setLoading(false);
