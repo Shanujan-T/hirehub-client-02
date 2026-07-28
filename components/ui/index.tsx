@@ -11,8 +11,8 @@ export function Button({
 }) {
   const variants = {
     default: "bg-primary text-white hover:brightness-110",
-    gradient: "bg-brand-gradient font-bold text-white shadow-md hover:scale-[1.02] active:scale-[0.98]",
-    outline: "border-[1.5px] border-accent bg-transparent text-secondary hover:bg-accent/5",
+    gradient: "bg-brand-gradient font-bold text-white shadow-md shadow-secondary/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-secondary/25 active:scale-[0.98]",
+    outline: "border-[1.5px] border-accent/80 bg-transparent text-secondary shadow-sm hover:border-accent hover:bg-accent/5 dark:border-accent/60 dark:shadow-none",
     destructive: "bg-destructive text-white hover:opacity-90",
     ghost: "text-muted hover:bg-border/50 hover:text-foreground",
   };
@@ -60,7 +60,7 @@ export function Textarea({ className, ...props }: React.TextareaHTMLAttributes<H
 
 export function Card({ className, children }: { className?: string; children: React.ReactNode }) {
   return (
-    <div className={cn("rounded-2xl border border-border bg-card p-6 shadow-sm", className)}>
+    <div className={cn("rounded-2xl border border-border bg-card p-6 shadow-sm dark:shadow-md dark:shadow-black/25", className)}>
       {children}
     </div>
   );
