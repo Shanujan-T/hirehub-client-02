@@ -1,14 +1,13 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useMemo } from "react";
+import { Suspense, useMemo, useCallback } from "react";
 import { BackButton } from "@/components/back-button";
 import { Badge, Card, Input, Label } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { getCommunities } from "@/services/community";
-import { useCallback } from "react";
 
 function CommunitiesBrowseContent() {
   const { hrefWithReturn, setFilter, getFilter } = useListNavigation();
