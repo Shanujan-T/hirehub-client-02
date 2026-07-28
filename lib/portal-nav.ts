@@ -3,11 +3,12 @@ import { Flag, Folder, LayoutDashboard, Users } from "lucide-react";
 
 export type NavItem = { href: string; label: string };
 
-export const employerNav: NavItem[] = [
+export const clientNav: NavItem[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/jobs", label: "My Jobs" },
   { href: "/jobs/new", label: "Post Job" },
   { href: "/contracts", label: "Contracts" },
+  { href: "/dashboard/profile", label: "Profile" },
 ];
 
 export const communityAdminNav: NavItem[] = [

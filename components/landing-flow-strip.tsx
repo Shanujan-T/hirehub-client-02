@@ -4,7 +4,7 @@ import { cn } from "@/lib/utils";
 const STEPS = [
   {
     icon: Briefcase,
-    label: "Employers post",
+    label: "Clients post",
     detail: "Jobs go live",
   },
   {

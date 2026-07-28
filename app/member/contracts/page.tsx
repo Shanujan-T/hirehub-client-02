@@ -28,7 +28,7 @@ function MemberContractsContent() {
 
   return (
     <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell title="Contracts" subtitle="Apply to open internal contracts — no employer info shown" navItems={memberNav}>
+      <PortalShell title="Contracts" subtitle="Apply to open internal contracts — no client info shown" navItems={memberNav}>
         {loading ? <LoadingState /> : contracts.length === 0 ? (
           <EmptyState title="No contracts" />
         ) : (

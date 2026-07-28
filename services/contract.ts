@@ -70,9 +70,9 @@ export async function adminApproveDeliverable(contractId: number): Promise<Contr
   return data.contract;
 }
 
-export async function employerApproveDeliverable(contractId: number) {
+export async function clientApproveDeliverable(contractId: number) {
   const { data } = await apiClient.post(
-    `/api/contracts/${contractId}/employer-approve-deliverable`
+    `/api/contracts/${contractId}/client-approve-deliverable`
   );
   return data;
 }

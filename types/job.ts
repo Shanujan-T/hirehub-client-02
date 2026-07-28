@@ -22,7 +22,7 @@ export interface CategoryPricing {
 
 export interface Job {
   id: number;
-  employer_id?: number;
+  client_id?: number;
   category_id: number;
   title: string;
   description: string;
@@ -40,6 +40,9 @@ export interface CommunityApplication {
   job_id: number;
   community_id: number;
   status: "applied" | "approved" | "rejected";
+  proposed_cost: number;
+  proposed_days: number;
+  note?: string | null;
   applied_at: string;
   community?: import("./community").Community;
   job?: Job;

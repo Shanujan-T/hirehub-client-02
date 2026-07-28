@@ -67,7 +67,7 @@ export default function HomePage() {
               <LandingFlowStrip className="relative mt-5 sm:mt-6" />
 
               <p className="relative mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted sm:mt-6 sm:text-lg">
-                Employers post jobs. Skilled communities apply as teams. Admins assign work internally — one
+                Clients post jobs. Skilled communities apply as teams. Admins assign work internally — one
                 contract platform for local hiring.
               </p>
 

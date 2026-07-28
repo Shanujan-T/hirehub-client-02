@@ -66,7 +66,7 @@ function MemberContractDetailContent() {
     <AuthenticatedRoute allowedRoles={["user"]}>
       <PortalShell
         title="Contract Task"
-        subtitle="Scope only — employer identity never shown"
+        subtitle="Scope only — client identity never shown"
         navItems={memberNav}
         backHref="/member/contracts"
         backLabel="Back to contracts"

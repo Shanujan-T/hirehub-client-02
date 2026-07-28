@@ -5,8 +5,9 @@ import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
+import { CommunityAvatar } from "@/components/community-avatar";
 import { ContractProgressBar } from "@/components/contract-progress-bar";
-import { PortalShell, employerNav } from "@/components/portal-shell";
+import { PortalShell, clientNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
@@ -29,8 +30,8 @@ function ContractDetailContent() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <AuthenticatedRoute allowedRoles={["employer"]}>
-      <PortalShell title="Contract Details" navItems={employerNav} backHref="/contracts" backLabel="Back to contracts">
+    <AuthenticatedRoute allowedRoles={["client"]}>
+      <PortalShell title="Contract Details" navItems={clientNav} backHref="/contracts" backLabel="Back to contracts">
         {loading || !contract ? <LoadingState /> : (
           <Card>
             <div className="mb-4 flex items-start justify-between">
@@ -38,7 +39,21 @@ function ContractDetailContent() {
               <StatusBadge status={contract.status} kind="contract" />
             </div>
             <ContractProgressBar status={contract.status} />
-            <p className="mt-4 text-sm text-muted">{contract.community?.name} · ${contract.total_amount}</p>
+            <div className="mt-4 flex items-center gap-3">
+              {contract.community && (
+                <CommunityAvatar
+                  name={contract.community.name}
+                  imageUrl={contract.community.image_url}
+                  size="sm"
+                />
+              )}
+              <p className="text-sm text-muted">
+                {contract.community?.name ?? `Community #${contract.community_id}`} · ${contract.total_amount}
+              </p>
+            </div>
+            <Link href={hrefWithReturn(`/contracts/${contract.id}/messages`)} className="mt-4 inline-block">
+              <Button variant="outline" size="sm" className="rounded-full">Messages</Button>
+            </Link>
             {contract.deliverable_url && (
               <a href={contract.deliverable_url} className="mt-2 block text-sm text-info underline" target="_blank" rel="noreferrer">
                 View Deliverable

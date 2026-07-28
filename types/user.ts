@@ -1,7 +1,7 @@
 import type { CommunityMember } from "@/types/community";
 import type { UserSkill } from "./skill";
 
-export type UserRole = "admin" | "employer" | "user";
+export type UserRole = "admin" | "client" | "user";
 
 export interface User {
   id: number;
@@ -30,7 +30,7 @@ export interface RegisterPayload {
   email: string;
   password: string;
   full_name: string;
-  role?: "user" | "employer";
+  role?: "user" | "client";
 }
 
 export interface LoginPayload {

@@ -61,7 +61,7 @@ const WORKER_CHECKLIST = [
   "Get picked for contracts by your admin",
 ] as const;
 
-const EMPLOYER_CHECKLIST = [
+const CLIENT_CHECKLIST = [
   "Post jobs with auto-suggested pricing",
   "Review communities & member profiles",
   "Approve deliverables & release payment",
@@ -91,11 +91,11 @@ export function AccountTypeSection() {
             iconWrapClass="bg-gradient-to-br from-info to-primary"
           />
           <AccountTypeCard
-            title="For Employers"
+            title="For Clients"
             description="Post jobs, review applying communities and their members, and pay with confidence."
-            checklist={[...EMPLOYER_CHECKLIST]}
-            buttonLabel="Create Employer Account"
-            href="/auth/register?role=employer"
+            checklist={[...CLIENT_CHECKLIST]}
+            buttonLabel="Create Client Account"
+            href="/auth/register?role=client"
             icon={<Building2 className="h-5 w-5 text-white" aria-hidden />}
             accentClass="bg-brand-gradient"
             iconWrapClass="bg-brand-gradient"

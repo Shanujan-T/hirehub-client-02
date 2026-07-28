@@ -9,7 +9,7 @@ export const registerSchema = z.object({
   email: z.string().email(),
   password: z.string().min(6, "Min 6 characters"),
   full_name: z.string().min(2, "Name required"),
-  role: z.enum(["user", "employer"]),
+  role: z.enum(["user", "client"]),
 });
 
 export const createCommunitySchema = z.object({
@@ -25,6 +25,12 @@ export const createJobSchema = z.object({
   location: z.string().min(2),
   deadline: z.string().min(1),
   final_price: z.coerce.number().positive(),
+});
+
+export const jobBidSchema = z.object({
+  proposed_cost: z.coerce.number().positive("Bid amount must be greater than 0"),
+  proposed_days: z.coerce.number().int().positive("Timeline must be at least 1 day"),
+  note: z.string().optional(),
 });
 
 export const openCallSchema = z.object({
@@ -52,5 +58,6 @@ export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type CreateCommunityForm = z.infer<typeof createCommunitySchema>;
 export type CreateJobForm = z.infer<typeof createJobSchema>;
+export type JobBidForm = z.infer<typeof jobBidSchema>;
 export type OpenCallForm = z.infer<typeof openCallSchema>;
 export type ReviewForm = z.infer<typeof reviewSchema>;

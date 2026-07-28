@@ -5,9 +5,10 @@ import { usePathname } from "next/navigation";
 import { Bell, LogOut } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
+import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui";
 import { getDashboardPath, useAuth } from "@/providers/auth-provider";
-import type { User, UserRole } from "@/types/user";
+import type { UserRole } from "@/types/user";
 import { cn } from "@/lib/utils";
 
 export type HeaderNavLink = { href: string; label: string };
@@ -36,7 +37,7 @@ export function getHeaderNavLinks(pathname: string, role: UserRole): HeaderNavLi
     pathname.startsWith("/contracts") ||
     pathname.startsWith("/reviews") ||
     pathname === "/dashboard" ||
-    role === "employer"
+    role === "client"
   ) {
     return [
       { href: "/dashboard", label: "Dashboard" },
@@ -49,25 +50,6 @@ export function getHeaderNavLinks(pathname: string, role: UserRole): HeaderNavLi
     { href: "/member/dashboard", label: "Dashboard" },
     { href: "/communities", label: "Communities" },
   ];
-}
-
-function UserAvatar({ user }: { user: User }) {
-  const initials = user.full_name
-    .split(/\s+/)
-    .filter(Boolean)
-    .slice(0, 2)
-    .map((part) => part[0]?.toUpperCase() ?? "")
-    .join("");
-
-  return (
-    <span
-      className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-brand-gradient text-xs font-bold text-white shadow-sm"
-      aria-hidden={!!user.full_name}
-      title={user.full_name}
-    >
-      {initials || "?"}
-    </span>
-  );
 }
 
 export function AppHeader({ className }: { className?: string }) {
@@ -105,7 +87,12 @@ export function AppHeader({ className }: { className?: string }) {
               </button>
               <ThemeToggle />
               <div className="hidden items-center gap-2 sm:flex">
-                <UserAvatar user={user} />
+                <UserAvatar
+                  name={user.full_name}
+                  avatarUrl={user.avatar_url}
+                  size="sm"
+                  className="h-8 w-8 text-xs"
+                />
                 <span className="max-w-[140px] truncate text-sm font-medium text-foreground">
                   {user.full_name}
                 </span>

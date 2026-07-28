@@ -12,6 +12,7 @@ interface AuthContextValue {
   register: (payload: RegisterPayload) => Promise<void>;
   logout: () => void;
   refreshUser: () => Promise<void>;
+  updateUser: (user: User) => void;
 }
 
 const AuthContext = createContext<AuthContextValue | null>(null);
@@ -32,6 +33,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
     }
+  }, []);
+
+  const updateUser = useCallback((next: User) => {
+    setUser(next);
+    localStorage.setItem("user", JSON.stringify(next));
   }, []);
 
   useEffect(() => {
@@ -73,7 +79,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, login, register, logout, refreshUser }}>
+    <AuthContext.Provider value={{ user, token, loading, login, register, logout, refreshUser, updateUser }}>
       {children}
     </AuthContext.Provider>
   );
@@ -87,7 +93,7 @@ export function useAuth() {
 
 export function getDashboardPath(user: User | null, isCommunityAdmin = false): string {
   if (!user) return "/auth/login";
-  if (user.role === "employer") return "/dashboard";
+  if (user.role === "client") return "/dashboard";
   if (user.role === "admin") return "/admin/dashboard";
   if (isCommunityAdmin) return "/community-admin/dashboard";
   return "/member/dashboard";

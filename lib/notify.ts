@@ -49,7 +49,7 @@ export const notify = {
     toast.dismiss(id);
   },
 
-  /** §4.3 — employer must approve/reject; do not auto-expire. */
+  /** §4.3 — client must approve/reject; do not auto-expire. */
   handoverRequest(description: string, onReview: () => void) {
     return notify.actionRequired("Handover request received", {
       description,

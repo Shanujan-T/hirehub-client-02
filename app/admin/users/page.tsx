@@ -16,7 +16,7 @@ import type { User } from "@/types/user";
 const ROLE_FILTER_OPTIONS = [
   { value: "all", label: "All roles" },
   { value: "user", label: "Member" },
-  { value: "employer", label: "Employer" },
+  { value: "client", label: "Client" },
   { value: "admin", label: "Admin" },
 ];
 
@@ -113,7 +113,7 @@ export default function AdminUsersPage() {
                               href={`/admin/users/${user.id}`}
                               className="flex items-center gap-3 hover:text-info"
                             >
-                              <UserAvatar name={user.full_name} size="sm" />
+                              <UserAvatar name={user.full_name} avatarUrl={user.avatar_url} size="sm" />
                               <div className="min-w-0">
                                 <p className="font-semibold text-foreground">{user.full_name}</p>
                                 <p className="truncate text-xs text-muted">{user.email}</p>

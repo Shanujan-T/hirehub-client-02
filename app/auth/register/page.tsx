@@ -21,14 +21,14 @@ const ROLE_OPTIONS = [
     icon: <User className="h-4 w-4" aria-hidden />,
   },
   {
-    value: "employer",
-    label: "Employer",
+    value: "client",
+    label: "Client",
     icon: <Briefcase className="h-4 w-4" aria-hidden />,
   },
 ];
 
 function roleFromParam(param: string | null): RegisterForm["role"] {
-  return param === "employer" ? "employer" : "user";
+  return param === "client" ? "client" : "user";
 }
 
 function RegisterForm() {
@@ -57,7 +57,7 @@ function RegisterForm() {
   };
 
   return (
-    <AuthLayout title="Create account" subtitle="Join as employer or skilled member">
+    <AuthLayout title="Create account" subtitle="Join as client or skilled member">
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-2">
           <Label htmlFor="account-type">Account Type</Label>
@@ -88,7 +88,7 @@ function RegisterForm() {
 export default function RegisterPage() {
   return (
     <GuestRoute>
-      <Suspense fallback={<AuthLayout title="Create account" subtitle="Join as employer or skilled member"><p className="text-center text-sm text-muted">Loading...</p></AuthLayout>}>
+      <Suspense fallback={<AuthLayout title="Create account" subtitle="Join as client or skilled member"><p className="text-center text-sm text-muted">Loading...</p></AuthLayout>}>
         <RegisterForm />
       </Suspense>
     </GuestRoute>

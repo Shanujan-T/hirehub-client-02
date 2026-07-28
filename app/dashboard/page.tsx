@@ -3,8 +3,9 @@
 import Link from "next/link";
 import { Briefcase, CircleDollarSign, FileCheck, FileText, Plus } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { CommunityAvatar } from "@/components/community-avatar";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { PortalShell, employerNav } from "@/components/portal-shell";
+import { PortalShell, clientNav } from "@/components/portal-shell";
 import { StatCard, StatCardGrid, DashboardPanel } from "@/components/stat-card";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
@@ -15,7 +16,7 @@ import { getJobs } from "@/services/job";
 import type { Contract } from "@/types/contract";
 import type { Job } from "@/types/job";
 
-export default function EmployerDashboardPage() {
+export default function ClientDashboardPage() {
   const [loading, setLoading] = useState(true);
   const [jobs, setJobs] = useState<Job[]>([]);
   const [contracts, setContracts] = useState<Contract[]>([]);
@@ -59,11 +60,11 @@ export default function EmployerDashboardPage() {
   }, [contracts, jobs.length, totalSpent]);
 
   return (
-    <AuthenticatedRoute allowedRoles={["employer"]}>
+    <AuthenticatedRoute allowedRoles={["client"]}>
       <PortalShell
-        title="Employer Dashboard"
+        title="Client Dashboard"
         subtitle="Post jobs and manage community applications"
-        navItems={employerNav}
+        navItems={clientNav}
         actions={
           <Link href="/jobs/new">
             <Button variant="gradient" size="sm" className="rounded-full">
@@ -115,13 +116,22 @@ export default function EmployerDashboardPage() {
                   {contracts.slice(0, 3).map((contract) => (
                     <Card key={contract.id} className="p-4 shadow-none">
                       <div className="flex items-start justify-between gap-4">
-                        <div>
-                          <Link href={`/contracts/${contract.id}`} className="font-bold hover:text-info">
-                            {contract.job?.title ?? `Contract #${contract.id}`}
-                          </Link>
-                          <p className="text-sm text-muted">
-                            {contract.community?.name ?? `Community #${contract.community_id}`}
-                          </p>
+                        <div className="flex items-start gap-3">
+                          {contract.community && (
+                            <CommunityAvatar
+                              name={contract.community.name}
+                              imageUrl={contract.community.image_url}
+                              size="sm"
+                            />
+                          )}
+                          <div>
+                            <Link href={`/contracts/${contract.id}`} className="font-bold hover:text-info">
+                              {contract.job?.title ?? `Contract #${contract.id}`}
+                            </Link>
+                            <p className="text-sm text-muted">
+                              {contract.community?.name ?? `Community #${contract.community_id}`}
+                            </p>
+                          </div>
                         </div>
                         <StatusBadge status={contract.status} kind="contract" />
                       </div>

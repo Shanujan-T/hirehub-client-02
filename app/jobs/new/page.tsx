@@ -7,7 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { FolderOpen, Info } from "lucide-react";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { PortalShell, employerNav } from "@/components/portal-shell";
+import { PortalShell, clientNav } from "@/components/portal-shell";
 import { Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { createJobSchema, type CreateJobForm } from "@/lib/schemas";
 import { getErrorMessage } from "@/lib/utils";
@@ -50,8 +50,8 @@ export default function NewJobPage() {
   };
 
   return (
-    <AuthenticatedRoute allowedRoles={["employer"]}>
-      <PortalShell title="Post a Job" subtitle="Communities apply as teams — not individuals" navItems={employerNav}>
+    <AuthenticatedRoute allowedRoles={["client"]}>
+      <PortalShell title="Post a Job" subtitle="Communities apply as teams — not individuals" navItems={clientNav}>
         <Card className="mx-auto max-w-lg">
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">

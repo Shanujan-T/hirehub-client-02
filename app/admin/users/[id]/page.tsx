@@ -87,7 +87,7 @@ export default function AdminUserDetailPage() {
         ) : (
           <div className="space-y-6">
             <Card className="flex flex-wrap items-start gap-4">
-              <UserAvatar name={user.full_name} size="lg" />
+              <UserAvatar name={user.full_name} avatarUrl={user.avatar_url} size="lg" />
               <div className="min-w-0 flex-1 space-y-2">
                 <div className="flex flex-wrap items-center gap-2">
                   <h2 className="text-2xl font-extrabold text-foreground">{user.full_name}</h2>
