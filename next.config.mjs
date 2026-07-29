@@ -14,7 +14,7 @@ const nextConfig = {
       { source: "/employer/:path*", destination: "/:path*", permanent: true },
       { source: "/client/:path*", destination: "/:path*", permanent: true },
       { source: "/admin-community/:path*", destination: "/community-admin/:path*", permanent: true },
-      { source: "/platform-admin/:path*", destination: "/admin/:path*", permanent: true },
+      { source: "/member/dashboard", destination: "/dashboard", permanent: false },
     ];
   },
 };
