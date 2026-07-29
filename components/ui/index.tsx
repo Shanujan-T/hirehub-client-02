@@ -6,12 +6,14 @@ export function Button({
   size = "default",
   ...props
 }: React.ButtonHTMLAttributes<HTMLButtonElement> & {
-  variant?: "default" | "gradient" | "outline" | "destructive" | "ghost";
+  variant?: "default" | "gradient" | "gradientCommunity" | "outline" | "destructive" | "ghost";
   size?: "default" | "sm" | "lg";
 }) {
   const variants = {
     default: "bg-primary text-white hover:brightness-110",
     gradient: "bg-brand-gradient font-bold text-white shadow-md shadow-secondary/20 hover:scale-[1.02] hover:shadow-lg hover:shadow-secondary/25 active:scale-[0.98]",
+    gradientCommunity:
+      "bg-community-gradient font-bold text-white shadow-md shadow-info/25 hover:scale-[1.02] hover:shadow-lg hover:shadow-info/30 active:scale-[0.98]",
     outline: "border-[1.5px] border-accent/80 bg-transparent text-secondary shadow-sm hover:border-accent hover:bg-accent/5 dark:border-accent/60 dark:shadow-none",
     destructive: "bg-destructive text-white hover:opacity-90",
     ghost: "text-muted hover:bg-border/50 hover:text-foreground",
