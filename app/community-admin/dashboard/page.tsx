@@ -8,7 +8,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Card } from "@/components/ui";
 import { getCommunity } from "@/services/community";
 import { getContracts } from "@/services/contract";
-import { getJobs } from "@/services/job";
+import { getMarketplaceJobs } from "@/services/job";
 import type { Community } from "@/types/community";
 import type { Contract } from "@/types/contract";
 import type { Job } from "@/types/job";
@@ -20,7 +20,7 @@ export default function CommunityAdminDashboardPage() {
   const [contracts, setContracts] = useState<Contract[]>([]);
 
   useEffect(() => {
-    getJobs().then(setJobs).catch(console.error);
+    getMarketplaceJobs().then(setJobs).catch(console.error);
     getContracts().then(setContracts).catch(console.error);
   }, []);
 

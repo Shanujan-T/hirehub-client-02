@@ -9,7 +9,7 @@ import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
-import { getJobs } from "@/services/job";
+import { getMarketplaceJobs } from "@/services/job";
 import { useCallback } from "react";
 
 function JobsBrowseContent() {
@@ -17,7 +17,7 @@ function JobsBrowseContent() {
   const { hrefWithReturn, setFilter, getFilter } = useListNavigation();
   const locationFilter = getFilter("location");
   const queryFilter = getFilter("q");
-  const { data: jobs, loading } = useAsyncList(useCallback(() => getJobs(), []));
+  const { data: jobs, loading } = useAsyncList(useCallback(() => getMarketplaceJobs(), []));
 
   const filtered = useMemo(() => {
     return jobs.filter((job) => {
