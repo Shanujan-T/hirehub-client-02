@@ -132,7 +132,7 @@ function CommunityReviewCard({
               <div className="mt-2 flex flex-wrap gap-2">
                 <StatusBadge status={data.admin_user.identity_status} kind="identity" />
                 {data.admin_user.nic_masked && (
-                  <span className="text-xs text-muted">NIC: {data.admin_user.nic_masked}</span>
+                  <span className="text-xs text-muted">NIC (legacy): {data.admin_user.nic_masked}</span>
                 )}
               </div>
               {data.admin_user.nic_document_url && (
@@ -145,7 +145,7 @@ function CommunityReviewCard({
                   View NIC document
                 </a>
               )}
-              {data.admin_user.identity_status === "pending" && (
+              {data.admin_user.identity_status === "pending" && data.admin_user.nic_document_url && (
                 <div className="mt-3 flex flex-wrap gap-2">
                   <Button
                     type="button"
