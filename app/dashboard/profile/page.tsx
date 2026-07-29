@@ -4,8 +4,6 @@
 
 import { Suspense, useEffect, useState } from "react";
 
-import { useRouter, useSearchParams } from "next/navigation";
-
 import { notify } from "@/lib/notify";
 
 import { AuthenticatedRoute } from "@/components/auth-guard";
@@ -13,8 +11,6 @@ import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ImageUploadControl } from "@/components/image-upload-control";
 
 import { LoadingState } from "@/components/page-states";
-
-import { ProfileAccountVerificationSection } from "@/components/profile-account-verification-section";
 
 import {
   addressPayloadForSave,
@@ -27,10 +23,6 @@ import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
 
 import { Button, Card, Input, Label, Textarea } from "@/components/ui";
-
-import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
-
-import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 
 import { useAuth } from "@/providers/auth-provider";
 
@@ -46,15 +38,7 @@ import type { UserAddress } from "@/types/user";
 
 function ClientProfileContent() {
 
-  const router = useRouter();
-
-  const searchParams = useSearchParams();
-
-  const returnTo = safeReturnPath(searchParams.get("returnTo"), MY_COMMUNITIES_RETURN);
-
   const { user, refreshUser, updateUser: setAuthUser } = useAuth();
-
-  useScrollToAccountSection();
 
 
 
@@ -69,18 +53,6 @@ function ClientProfileContent() {
   const [saving, setSaving] = useState(false);
 
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
-
-
-
-  useEffect(() => {
-
-    if (user?.identity_status === "verified" && searchParams.get("returnTo")) {
-
-      router.replace(returnTo);
-
-    }
-
-  }, [user?.identity_status, returnTo, router, searchParams]);
 
 
 
@@ -274,10 +246,6 @@ function ClientProfileContent() {
             </Button>
 
           </div>
-
-
-
-          <ProfileAccountVerificationSection returnTo={returnTo} />
 
         </Card>
 
