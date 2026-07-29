@@ -67,7 +67,7 @@ export default function HomePage() {
               <LandingFlowStrip className="relative mt-5 sm:mt-6" />
 
               <p className="relative mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted sm:mt-6 sm:text-lg">
-                Clients post jobs. Skilled communities apply as teams. Admins assign work internally — one
+                Anyone can post a job. Skilled communities apply as teams. Admins assign work internally — one
                 contract platform for local hiring.
               </p>
 
@@ -80,11 +80,6 @@ export default function HomePage() {
                 <Link href="/auth/login">
                   <Button variant="outline" size="lg" className="rounded-full">
                     Login
-                  </Button>
-                </Link>
-                <Link href="/auth/register">
-                  <Button variant="gradient" size="lg" className="rounded-full">
-                    Register
                   </Button>
                 </Link>
               </div>
