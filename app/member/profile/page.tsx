@@ -1,22 +1,29 @@
 "use client";
 
-import Link from "next/link";
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
 import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ImageUploadControl } from "@/components/image-upload-control";
+import { LoadingState } from "@/components/page-states";
+import { ProfileIdentityVerificationSection } from "@/components/profile-identity-verification-section";
 import { DashboardPortalShell } from "@/components/portal-shell";
-import { StatusBadge } from "@/components/status-badge";
 import { UserAvatar } from "@/components/user-avatar";
 import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { Award, Wrench } from "lucide-react";
+import { useScrollToIdentitySection } from "@/lib/profile-identity-scroll";
+import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { getErrorMessage } from "@/lib/utils";
 import { createUserSkill, getSkills, getUserSkills, updateUser } from "@/services/contract";
 import { uploadUserAvatar } from "@/services/user";
 
-export default function MemberProfilePage() {
+function MemberProfileContent() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const returnTo = safeReturnPath(searchParams.get("returnTo"), MY_COMMUNITIES_RETURN);
   const { user, refreshUser, updateUser: setAuthUser } = useAuth();
+  useScrollToIdentitySection();
   const [fullName, setFullName] = useState("");
   const [location, setLocation] = useState("");
   const [bio, setBio] = useState("");
@@ -25,6 +32,12 @@ export default function MemberProfilePage() {
   const [skills, setSkills] = useState<{ id: number; name: string }[]>([]);
   const [userSkills, setUserSkills] = useState<{ id: number; skill?: { name: string }; level: string }[]>([]);
   const [newSkill, setNewSkill] = useState({ skill_id: "", level: "intermediate" });
+
+  useEffect(() => {
+    if (user?.identity_status === "verified" && searchParams.get("returnTo")) {
+      router.replace(returnTo);
+    }
+  }, [user?.identity_status, returnTo, router, searchParams]);
 
   useEffect(() => {
     getSkills().then(setSkills).catch(() => notify.error("Failed to load skills"));
@@ -96,21 +109,6 @@ export default function MemberProfilePage() {
             onUpload={handleAvatarUpload}
             fallback={<UserAvatar name={user?.full_name ?? "Member"} avatarUrl={user?.avatar_url} size="lg" className="h-24 w-24 text-lg" />}
           />
-
-          <div className="rounded-lg border border-border p-4">
-            <div className="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <p className="font-medium">Identity verification</p>
-                <p className="text-sm text-muted">Required before creating a community</p>
-              </div>
-              <StatusBadge status={user?.identity_status ?? "unverified"} kind="identity" />
-            </div>
-            {user?.identity_status !== "verified" && (
-              <Link href="/member/profile/identity-verification" className="mt-3 inline-block text-sm text-info hover:underline">
-                {user?.identity_status === "pending" ? "View verification status" : "Verify your identity"}
-              </Link>
-            )}
-          </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
@@ -188,8 +186,18 @@ export default function MemberProfilePage() {
               Add Skill
             </Button>
           </div>
+
+          <ProfileIdentityVerificationSection returnTo={returnTo} />
         </Card>
       </DashboardPortalShell>
     </AuthenticatedRoute>
+  );
+}
+
+export default function MemberProfilePage() {
+  return (
+    <Suspense fallback={<LoadingState />}>
+      <MemberProfileContent />
+    </Suspense>
   );
 }

@@ -15,7 +15,12 @@ export interface User {
   avatar_url?: string | null;
   identity_status: IdentityStatus;
   identity_rejection_reason?: string | null;
+  phone_number?: string | null;
+  email_verified_for_identity?: boolean;
+  phone_verified_for_identity?: boolean;
+  /** @deprecated legacy NIC manual review */
   nic_masked?: string | null;
+  /** @deprecated legacy NIC manual review */
   nic_document_url?: string | null;
   is_active: boolean;
   created_at: string;
