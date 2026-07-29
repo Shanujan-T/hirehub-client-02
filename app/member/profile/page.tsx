@@ -6,12 +6,11 @@ import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ImageUploadControl } from "@/components/image-upload-control";
 import { LoadingState } from "@/components/page-states";
-import { ProfileAccountVerificationSection } from "@/components/profile-account-verification-section";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { Award, Wrench } from "lucide-react";
-import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
+import { useScrollToIdentitySection } from "@/lib/profile-account-scroll";
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { getErrorMessage } from "@/lib/utils";
@@ -30,7 +29,7 @@ function MemberProfileContent() {
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get("returnTo"), MY_COMMUNITIES_RETURN);
   const { user, refreshUser, updateUser: setAuthUser } = useAuth();
-  useScrollToAccountSection();
+  useScrollToIdentitySection();
   const [fullName, setFullName] = useState("");
   const [location, setLocation] = useState("");
   const [address, setAddress] = useState<UserAddress>({});
@@ -139,7 +138,6 @@ function MemberProfileContent() {
                 setAddress((prev) => ({ ...prev, [field]: value }))
               }
             />
-            <ProfileIdentityVerificationSection />
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={user?.email ?? ""} readOnly disabled className="opacity-70" />
@@ -153,6 +151,8 @@ function MemberProfileContent() {
               {saving ? "Saving…" : "Save"}
             </Button>
           </div>
+
+          <ProfileIdentityVerificationSection />
 
           <div>
             <Label>Skills</Label>
@@ -195,8 +195,6 @@ function MemberProfileContent() {
               Add Skill
             </Button>
           </div>
-
-          <ProfileAccountVerificationSection returnTo={returnTo} />
         </Card>
       </DashboardPortalShell>
     </AuthenticatedRoute>

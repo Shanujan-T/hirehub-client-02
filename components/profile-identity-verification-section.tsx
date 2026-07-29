@@ -12,6 +12,7 @@ import { PROFILE_IDENTITY_VERIFIED_TOOLTIP } from "@/lib/identity-verified-copy"
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
+import { PROFILE_IDENTITY_SECTION_ID } from "@/lib/return-navigation";
 import { submitIdentityVerification, uploadNicDocument } from "@/services/user";
 import type { IdentityStatus } from "@/types/user";
 
@@ -111,7 +112,7 @@ export function ProfileIdentityVerificationSection() {
   const maskedNic = user?.nic_masked ?? "";
 
   return (
-    <div className="space-y-3 rounded-lg border border-border p-4">
+    <div id={PROFILE_IDENTITY_SECTION_ID} className="scroll-mt-6 space-y-3 rounded-lg border border-border p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
           <p className="flex items-center gap-1.5 text-sm font-semibold text-foreground">
