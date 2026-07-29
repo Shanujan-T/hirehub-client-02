@@ -53,14 +53,12 @@ export function UserAvatar({
 }
 
 export function roleLabel(role: string) {
-  if (role === "user") return "Member";
-  if (role === "client") return "Client";
+  if (role === "user") return "User";
   if (role === "admin") return "Admin";
   return role;
 }
 
 export function roleBadgeVariant(role: string): "info" | "active" | "completed" | "default" {
   if (role === "admin") return "completed";
-  if (role === "client") return "active";
   return "info";
 }

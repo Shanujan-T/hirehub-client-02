@@ -15,8 +15,7 @@ import type { User } from "@/types/user";
 
 const ROLE_FILTER_OPTIONS = [
   { value: "all", label: "All roles" },
-  { value: "user", label: "Member" },
-  { value: "client", label: "Client" },
+  { value: "user", label: "User" },
   { value: "admin", label: "Admin" },
 ];
 
