@@ -7,7 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { PortalShell, memberNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
 import { Button, Card, Input, Label } from "@/components/ui";
@@ -63,11 +63,11 @@ function MemberContractDetailContent() {
   };
 
   return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell
+    <AuthenticatedRoute>
+      <DashboardPortalShell
         title="Contract Task"
         subtitle="Scope only — client identity never shown"
-        navItems={memberNav}
+       
         backHref="/member/contracts"
         backLabel="Back to contracts"
       >
@@ -87,7 +87,7 @@ function MemberContractDetailContent() {
             )}
           </Card>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

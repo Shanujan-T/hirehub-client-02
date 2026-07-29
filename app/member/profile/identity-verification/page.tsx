@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { PortalShell, memberNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { identityVerificationSchema, type IdentityVerificationForm } from "@/lib/schemas";
@@ -74,11 +74,11 @@ export default function IdentityVerificationPage() {
   const status = user?.identity_status ?? "unverified";
 
   return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell
+    <AuthenticatedRoute>
+      <DashboardPortalShell
         title="Identity Verification"
         subtitle="Verify your identity before creating a community"
-        navItems={memberNav}
+       
         backHref="/member/profile"
         backLabel="Back to profile"
       >
@@ -141,7 +141,7 @@ export default function IdentityVerificationPage() {
             </Link>
           )}
         </Card>
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

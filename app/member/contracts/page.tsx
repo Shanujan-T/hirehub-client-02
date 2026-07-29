@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useCallback } from "react";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { PortalShell, memberNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
@@ -27,8 +27,8 @@ function MemberContractsContent() {
   };
 
   return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell title="Contracts" subtitle="Apply to open internal contracts — no client info shown" navItems={memberNav}>
+    <AuthenticatedRoute>
+      <DashboardPortalShell title="My Contracts" subtitle="Apply to open internal contracts — job poster details are hidden">
         {loading ? <LoadingState /> : contracts.length === 0 ? (
           <EmptyState title="No contracts" />
         ) : (
@@ -54,7 +54,7 @@ function MemberContractsContent() {
             </Card>
           ))
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { ImageUploadControl } from "@/components/image-upload-control";
-import { PortalShell, memberNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { createCommunitySchema, type CreateCommunityForm } from "@/lib/schemas";
@@ -103,10 +103,10 @@ export default function NewCommunityPage() {
 
   if (submittedCommunity) {
     return (
-      <AuthenticatedRoute allowedRoles={["user"]}>
-        <PortalShell
+      <AuthenticatedRoute>
+        <DashboardPortalShell
           title="Community Submitted"
-          navItems={memberNav}
+         
           backHref="/member/communities"
           backLabel="Back to communities"
         >
@@ -119,17 +119,17 @@ export default function NewCommunityPage() {
               View My Communities
             </Button>
           </Card>
-        </PortalShell>
+        </DashboardPortalShell>
       </AuthenticatedRoute>
     );
   }
 
   return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell
+    <AuthenticatedRoute>
+      <DashboardPortalShell
         title="Create Community"
         subtitle="Submit your community for platform admin review"
-        navItems={memberNav}
+       
         backHref="/member/communities"
         backLabel="Back to communities"
       >
@@ -279,7 +279,7 @@ export default function NewCommunityPage() {
             </p>
           </form>
         </Card>
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

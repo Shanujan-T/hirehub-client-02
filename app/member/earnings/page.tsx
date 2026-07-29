@@ -2,7 +2,7 @@
 
 import { useCallback } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { PortalShell, memberNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Card } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
@@ -12,8 +12,8 @@ export default function MemberEarningsPage() {
   const { data: payments, loading } = useAsyncList(useCallback(() => getMyEarnings(), []));
 
   return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell title="My Earnings" subtitle="Member payout history (payment)" navItems={memberNav}>
+    <AuthenticatedRoute>
+      <DashboardPortalShell title="My Earnings" subtitle="Member payout history (payment)">
         {loading ? <LoadingState /> : payments.length === 0 ? (
           <EmptyState title="No payouts yet" />
         ) : (
@@ -25,7 +25,7 @@ export default function MemberEarningsPage() {
             </Card>
           ))
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

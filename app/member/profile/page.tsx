@@ -5,7 +5,7 @@ import { useEffect, useState } from "react";
 import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ImageUploadControl } from "@/components/image-upload-control";
-import { PortalShell, memberNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { UserAvatar } from "@/components/user-avatar";
 import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
@@ -86,8 +86,8 @@ export default function MemberProfilePage() {
   };
 
   return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell title="My Profile" subtitle="Account details, bio, and skills" navItems={memberNav}>
+    <AuthenticatedRoute>
+      <DashboardPortalShell title="My Profile" subtitle="Account details, bio, and skills">
         <Card className="mx-auto max-w-lg space-y-6">
           <ImageUploadControl
             label="Profile picture"
@@ -189,7 +189,7 @@ export default function MemberProfilePage() {
             </Button>
           </div>
         </Card>
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

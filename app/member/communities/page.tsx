@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { CommunityBrowseFilters } from "@/components/community-browse-filters";
-import { PortalShell, memberNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
@@ -81,11 +81,11 @@ function MemberCommunitiesContent() {
   };
 
   return (
-    <AuthenticatedRoute allowedRoles={["user"]}>
-      <PortalShell
+    <AuthenticatedRoute>
+      <DashboardPortalShell
         title="My Communities"
         subtitle="Memberships, join requests, and new communities"
-        navItems={memberNav}
+       
         actions={<CreateCommunityAction />}
       >
         {loading ? (
@@ -152,7 +152,7 @@ function MemberCommunitiesContent() {
             )}
           </>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }
