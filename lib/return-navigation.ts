@@ -8,22 +8,33 @@ export function safeReturnPath(path: string | null | undefined, fallback: string
 
 export const MY_COMMUNITIES_RETURN = "/member/communities";
 
-/** In-page anchor on Profile for identity verification (§27 deep link). */
-export const PROFILE_IDENTITY_SECTION_ID = "identity-verification";
+/** In-page anchor on Profile for account verification (§27 deep link). */
+export const PROFILE_ACCOUNT_SECTION_ID = "account-verification";
+
+/** @deprecated Old §27/§28 hash — scroll handler still accepts this for bookmarks. */
+export const LEGACY_PROFILE_IDENTITY_SECTION_HASH = "identity-verification";
 
 const PROFILE_PATH = "/dashboard/profile";
 
 /** Landing target for §27 Verify — profile section with optional return path preserved in query. */
+export function profileAccountSectionHref(returnTo: string = MY_COMMUNITIES_RETURN): string {
+  return `${PROFILE_PATH}?returnTo=${encodeURIComponent(returnTo)}#${PROFILE_ACCOUNT_SECTION_ID}`;
+}
+
+/** @deprecated Use profileAccountSectionHref */
 export function profileIdentitySectionHref(returnTo: string = MY_COMMUNITIES_RETURN): string {
-  return `${PROFILE_PATH}?returnTo=${encodeURIComponent(returnTo)}#${PROFILE_IDENTITY_SECTION_ID}`;
+  return profileAccountSectionHref(returnTo);
 }
 
-/** @deprecated Identity verification is inline on Profile — use profileIdentitySectionHref */
+/** @deprecated Use profileAccountSectionHref */
 export function identityVerificationFlowHref(returnTo: string = MY_COMMUNITIES_RETURN): string {
-  return profileIdentitySectionHref(returnTo);
+  return profileAccountSectionHref(returnTo);
 }
 
-/** @deprecated use profileIdentitySectionHref or identityVerificationFlowHref */
+/** @deprecated Use profileAccountSectionHref */
 export function identityVerificationHref(returnTo: string = MY_COMMUNITIES_RETURN): string {
-  return profileIdentitySectionHref(returnTo);
+  return profileAccountSectionHref(returnTo);
 }
+
+/** @deprecated Use PROFILE_ACCOUNT_SECTION_ID */
+export const PROFILE_IDENTITY_SECTION_ID = PROFILE_ACCOUNT_SECTION_ID;

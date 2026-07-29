@@ -14,7 +14,13 @@ import { ImageUploadControl } from "@/components/image-upload-control";
 
 import { LoadingState } from "@/components/page-states";
 
-import { ProfileIdentityVerificationSection } from "@/components/profile-identity-verification-section";
+import { ProfileAccountVerificationSection } from "@/components/profile-account-verification-section";
+
+import {
+  addressPayloadForSave,
+  ProfileLocationAddressFields,
+  userAddressFromUser,
+} from "@/components/profile-location-address-fields";
 
 import { DashboardPortalShell } from "@/components/portal-shell";
 
@@ -22,7 +28,7 @@ import { UserAvatar } from "@/components/user-avatar";
 
 import { Button, Card, Input, Label, Textarea } from "@/components/ui";
 
-import { useScrollToIdentitySection } from "@/lib/profile-identity-scroll";
+import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
 
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 
@@ -33,6 +39,8 @@ import { getErrorMessage } from "@/lib/utils";
 import { updateUser } from "@/services/contract";
 
 import { uploadUserAvatar } from "@/services/user";
+
+import type { UserAddress } from "@/types/user";
 
 
 
@@ -46,13 +54,15 @@ function ClientProfileContent() {
 
   const { user, refreshUser, updateUser: setAuthUser } = useAuth();
 
-  useScrollToIdentitySection();
+  useScrollToAccountSection();
 
 
 
   const [fullName, setFullName] = useState("");
 
   const [location, setLocation] = useState("");
+
+  const [address, setAddress] = useState<UserAddress>({});
 
   const [bio, setBio] = useState("");
 
@@ -81,6 +91,8 @@ function ClientProfileContent() {
       setFullName(user.full_name || "");
 
       setLocation(user.location || "");
+
+      setAddress(userAddressFromUser(user));
 
       setBio(user.bio || "");
 
@@ -115,6 +127,8 @@ function ClientProfileContent() {
         location: location.trim() || null,
 
         bio,
+
+        ...addressPayloadForSave(address),
 
       });
 
@@ -226,25 +240,14 @@ function ClientProfileContent() {
 
             </div>
 
-            <div className="space-y-2">
-
-              <Label htmlFor="location">Location</Label>
-
-              <Input
-
-                id="location"
-
-                value={location}
-
-                onChange={(e) => setLocation(e.target.value)}
-
-                placeholder="City, region (optional)"
-
-                autoComplete="address-level2"
-
-              />
-
-            </div>
+            <ProfileLocationAddressFields
+              location={location}
+              onLocationChange={setLocation}
+              address={address}
+              onAddressFieldChange={(field, value) =>
+                setAddress((prev) => ({ ...prev, [field]: value }))
+              }
+            />
 
             <div className="space-y-2">
 
@@ -274,7 +277,7 @@ function ClientProfileContent() {
 
 
 
-          <ProfileIdentityVerificationSection returnTo={returnTo} />
+          <ProfileAccountVerificationSection returnTo={returnTo} />
 
         </Card>
 

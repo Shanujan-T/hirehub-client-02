@@ -43,6 +43,28 @@ export async function confirmIdentityEmailOtp(code: string): Promise<User> {
   return data.user;
 }
 
+export async function uploadNicDocument(file: File): Promise<string> {
+  const formData = new FormData();
+  formData.append("document", file);
+  const { data } = await apiClient.post<{ nic_document_url: string }>(
+    "/api/users/me/nic-document",
+    formData,
+    { headers: { "Content-Type": "multipart/form-data" } }
+  );
+  return data.nic_document_url;
+}
+
+export async function submitIdentityVerification(payload: {
+  nic_number: string;
+  nic_document_url: string;
+}): Promise<User> {
+  const { data } = await apiClient.post<{ user: User }>(
+    "/api/users/me/identity-verification",
+    payload
+  );
+  return data.user;
+}
+
 /** Legacy admin review for old NIC submissions still in pending state. */
 export async function reviewIdentityVerification(
   userId: number,

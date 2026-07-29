@@ -6,26 +6,34 @@ import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ImageUploadControl } from "@/components/image-upload-control";
 import { LoadingState } from "@/components/page-states";
-import { ProfileIdentityVerificationSection } from "@/components/profile-identity-verification-section";
+import { ProfileAccountVerificationSection } from "@/components/profile-account-verification-section";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { Award, Wrench } from "lucide-react";
-import { useScrollToIdentitySection } from "@/lib/profile-identity-scroll";
+import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { getErrorMessage } from "@/lib/utils";
 import { createUserSkill, getSkills, getUserSkills, updateUser } from "@/services/contract";
 import { uploadUserAvatar } from "@/services/user";
+import {
+  addressPayloadForSave,
+  ProfileLocationAddressFields,
+  userAddressFromUser,
+} from "@/components/profile-location-address-fields";
+import { ProfileIdentityVerificationSection } from "@/components/profile-identity-verification-section";
+import type { UserAddress } from "@/types/user";
 
 function MemberProfileContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get("returnTo"), MY_COMMUNITIES_RETURN);
   const { user, refreshUser, updateUser: setAuthUser } = useAuth();
-  useScrollToIdentitySection();
+  useScrollToAccountSection();
   const [fullName, setFullName] = useState("");
   const [location, setLocation] = useState("");
+  const [address, setAddress] = useState<UserAddress>({});
   const [bio, setBio] = useState("");
   const [saving, setSaving] = useState(false);
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
@@ -44,6 +52,7 @@ function MemberProfileContent() {
     if (user) {
       setFullName(user.full_name || "");
       setLocation(user.location || "");
+      setAddress(userAddressFromUser(user));
       setBio(user.bio || "");
       getUserSkills(user.id).then(setUserSkills).catch(() => {});
     }
@@ -62,6 +71,7 @@ function MemberProfileContent() {
         full_name: trimmedName,
         location: location.trim() || null,
         bio,
+        ...addressPayloadForSave(address),
       });
       await refreshUser();
       notify.success("Profile updated");
@@ -121,16 +131,15 @@ function MemberProfileContent() {
                 autoComplete="name"
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                placeholder="City, region (optional)"
-                autoComplete="address-level2"
-              />
-            </div>
+            <ProfileLocationAddressFields
+              location={location}
+              onLocationChange={setLocation}
+              address={address}
+              onAddressFieldChange={(field, value) =>
+                setAddress((prev) => ({ ...prev, [field]: value }))
+              }
+            />
+            <ProfileIdentityVerificationSection />
             <div className="space-y-2">
               <Label htmlFor="email">Email</Label>
               <Input id="email" value={user?.email ?? ""} readOnly disabled className="opacity-70" />
@@ -187,7 +196,7 @@ function MemberProfileContent() {
             </Button>
           </div>
 
-          <ProfileIdentityVerificationSection returnTo={returnTo} />
+          <ProfileAccountVerificationSection returnTo={returnTo} />
         </Card>
       </DashboardPortalShell>
     </AuthenticatedRoute>

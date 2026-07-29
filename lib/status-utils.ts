@@ -90,9 +90,21 @@ const IDENTITY_LABELS: Record<string, string> = {
   rejected: "Rejected",
 };
 
+/** Phone/email OTP tier (Profile) — reserved "identity" labels for future ID tier / admin legacy. */
+const ACCOUNT_LABELS: Record<string, string> = {
+  unverified: "Not verified",
+  pending: "Pending review",
+  verified: "Account verified",
+  rejected: "Not verified",
+};
+
+export function accountStatusVariant(s: string): StatusVariant {
+  return IDENTITY[s] ?? "default";
+}
+
 export function formatStatus(
   s: string,
-  kind?: "job" | "contract" | "application" | "member" | "community" | "identity"
+  kind?: "job" | "contract" | "application" | "member" | "community" | "identity" | "account"
 ) {
   if (kind === "member" && MEMBER_LABELS[s]) {
     return MEMBER_LABELS[s];
@@ -102,6 +114,9 @@ export function formatStatus(
   }
   if (kind === "identity" && IDENTITY_LABELS[s]) {
     return IDENTITY_LABELS[s];
+  }
+  if (kind === "account" && ACCOUNT_LABELS[s]) {
+    return ACCOUNT_LABELS[s];
   }
   return s.replace(/_/g, " ");
 }

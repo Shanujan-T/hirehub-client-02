@@ -131,6 +131,8 @@ export async function getUserSkills(userId?: number) {
   return data.user_skills;
 }
 
+import type { UserAddress } from "@/types/user";
+
 export async function updateUser(
   userId: number,
   payload: {
@@ -138,7 +140,7 @@ export async function updateUser(
     bio?: string;
     location?: string | null;
     avatar_url?: string | null;
-  }
+  } & Partial<UserAddress>
 ) {
   const { data } = await apiClient.put(`/api/users/${userId}`, payload);
   return data.user;

@@ -6,6 +6,7 @@ import { useCallback, useEffect, useState } from "react";
 import { BackButton } from "@/components/back-button";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { MemberCardPanel } from "@/components/member-card";
+import { VerifiedIdentityBadge } from "@/components/verified-identity-badge";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { Badge, Button, Card } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
@@ -81,6 +82,8 @@ function CommunityDetailContent() {
   if (loading) return <LoadingState />;
   if (!community) return <EmptyState title="Community not found" />;
 
+  const adminMember = community.members?.find((m) => m.role === "admin" && m.user);
+
   return (
     <div className="mx-auto max-w-6xl space-y-8 px-4 py-8">
       <BackButton fallbackHref="/communities" label="Back to communities" />
@@ -90,9 +93,12 @@ function CommunityDetailContent() {
           <div className="min-w-0 flex-1">
             <h1 className="text-3xl font-extrabold">{community.name}</h1>
             <p className="text-muted">{community.description}</p>
-            <div className="mt-3 flex flex-wrap gap-2">
+            <div className="mt-3 flex flex-wrap items-center gap-2">
               {community.location && <Badge variant="info">{community.location}</Badge>}
               <Badge variant="completed">★ {community.reputation_score.toFixed(1)} reputation</Badge>
+              {adminMember?.user?.identity_status === "verified" && (
+                <VerifiedIdentityBadge variant="compact" />
+              )}
             </div>
           </div>
         </div>

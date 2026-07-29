@@ -3,6 +3,7 @@ import type { User } from "@/types/user";
 import type { UserSkill } from "@/types/skill";
 import { Badge, Card } from "@/components/ui";
 import { UserAvatar } from "@/components/user-avatar";
+import { VerifiedIdentityBadge } from "@/components/verified-identity-badge";
 import { cn } from "@/lib/utils";
 
 const nameLinkClass =
@@ -31,17 +32,26 @@ export function MemberCard({
       <UserAvatar name={user.full_name} avatarUrl={user.avatar_url} size="md" />
       <div className="min-w-0 flex-1">
         {nameHref ? (
-          <Link href={nameHref} className={nameLinkClass}>
-            {user.full_name}
-          </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            <Link href={nameHref} className={nameLinkClass}>
+              {user.full_name}
+            </Link>
+            {user.identity_status === "verified" && <VerifiedIdentityBadge variant="compact" />}
+          </div>
         ) : onNameClick ? (
-          <button type="button" onClick={onNameClick} className={cn(nameLinkClass, "text-left")}>
-            {user.full_name}
-          </button>
+          <div className="flex flex-wrap items-center gap-2">
+            <button type="button" onClick={onNameClick} className={cn(nameLinkClass, "text-left")}>
+              {user.full_name}
+            </button>
+            {user.identity_status === "verified" && <VerifiedIdentityBadge variant="compact" />}
+          </div>
         ) : (
-          <h3 className={cn("font-bold", interactive && "group-hover:text-info group-hover:underline")}>
-            {user.full_name}
-          </h3>
+          <div className="flex flex-wrap items-center gap-2">
+            <h3 className={cn("font-bold", interactive && "group-hover:text-info group-hover:underline")}>
+              {user.full_name}
+            </h3>
+            {user.identity_status === "verified" && <VerifiedIdentityBadge variant="compact" />}
+          </div>
         )}
         {user.location && <p className="text-sm text-muted">{user.location}</p>}
         <div className="mt-1 flex flex-wrap items-center gap-2">

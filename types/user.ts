@@ -3,9 +3,19 @@ import type { UserSkill } from "./skill";
 
 export type UserRole = "admin" | "user";
 
+/** Private postal address — only returned for the account owner (and admins). */
+export interface UserAddress {
+  address_line1?: string | null;
+  address_line2?: string | null;
+  address_city?: string | null;
+  address_region?: string | null;
+  address_postal_code?: string | null;
+}
+
+/** Backing status for tier-1 account verification (phone/email OTP). UI: "Account Verification". */
 export type IdentityStatus = "unverified" | "pending" | "verified" | "rejected";
 
-export interface User {
+export interface User extends UserAddress {
   id: number;
   email: string;
   role: UserRole;

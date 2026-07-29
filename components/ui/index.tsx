@@ -117,3 +117,4 @@ export function Select({ className, children, ...props }: React.SelectHTMLAttrib
 
 export { SelectMenu, type SelectMenuOption } from "./select-menu";
 export { PasswordInput } from "./password-input";
+export { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "./tooltip";

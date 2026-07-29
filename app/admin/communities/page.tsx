@@ -12,6 +12,7 @@ import { useAsyncList } from "@/lib/hooks/use-async";
 import { getErrorMessage } from "@/lib/utils";
 import { getCommunities, getCommunity, reviewCommunity } from "@/services/community";
 import { reviewIdentityVerification } from "@/services/user";
+import { ADMIN_NIC_REVIEW_CHECKLIST_HINT } from "@/lib/identity-verified-copy";
 import type { Community } from "@/types/community";
 
 const EXPERIENCE_LABELS: Record<string, string> = {
@@ -146,7 +147,9 @@ function CommunityReviewCard({
                 </a>
               )}
               {data.admin_user.identity_status === "pending" && data.admin_user.nic_document_url && (
-                <div className="mt-3 flex flex-wrap gap-2">
+                <div className="mt-3 space-y-2">
+                  <p className="text-xs text-muted">{ADMIN_NIC_REVIEW_CHECKLIST_HINT}</p>
+                  <div className="flex flex-wrap gap-2">
                   <Button
                     type="button"
                     size="sm"
@@ -165,6 +168,7 @@ function CommunityReviewCard({
                   >
                     Reject identity
                   </Button>
+                  </div>
                 </div>
               )}
             </div>
