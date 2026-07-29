@@ -1,5 +1,5 @@
 import type { LucideIcon } from "lucide-react";
-import { Flag, Folder, LayoutDashboard, Users } from "lucide-react";
+import { Flag, Folder, LayoutDashboard, Users, Building2 } from "lucide-react";
 
 export type NavItem = { href: string; label: string };
 
@@ -31,6 +31,7 @@ export const memberNav: NavItem[] = [
 export const adminNav: NavItem[] = [
   { href: "/admin/dashboard", label: "Dashboard" },
   { href: "/admin/categories", label: "Categories" },
+  { href: "/admin/communities", label: "Communities" },
   { href: "/admin/reports", label: "Reports" },
   { href: "/admin/users", label: "Users" },
 ];
@@ -38,6 +39,7 @@ export const adminNav: NavItem[] = [
 export const ADMIN_NAV_ICONS: Record<string, LucideIcon> = {
   "/admin/dashboard": LayoutDashboard,
   "/admin/categories": Folder,
+  "/admin/communities": Building2,
   "/admin/reports": Flag,
   "/admin/users": Users,
 };
