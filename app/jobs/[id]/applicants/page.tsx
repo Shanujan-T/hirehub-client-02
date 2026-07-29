@@ -9,7 +9,7 @@ import { AuthenticatedRoute } from "@/components/auth-guard";
 import { MemberCardPanel } from "@/components/member-card";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
@@ -47,11 +47,11 @@ function JobApplicantsContent() {
   };
 
   return (
-    <AuthenticatedRoute allowedRoles={["client"]}>
-      <PortalShell
+    <AuthenticatedRoute>
+      <DashboardPortalShell
         title="Applying Communities"
         subtitle="Review community members, approve one community"
-        navItems={clientNav}
+       
         backHref={`/jobs/${jobId}`}
         backLabel="Back to job"
       >
@@ -122,7 +122,7 @@ function JobApplicantsContent() {
             ))}
           </div>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

@@ -4,7 +4,7 @@ import { useEffect, useState } from "react";
 import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ImageUploadControl } from "@/components/image-upload-control";
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { Button, Card, Input, Label, Textarea } from "@/components/ui";
 import { useAuth } from "@/providers/auth-provider";
@@ -67,8 +67,8 @@ export default function ClientProfilePage() {
   };
 
   return (
-    <AuthenticatedRoute allowedRoles={["client"]}>
-      <PortalShell title="My Profile" subtitle="Account details and profile picture" navItems={clientNav}>
+    <AuthenticatedRoute>
+      <DashboardPortalShell title="My Profile" subtitle="Account details and profile picture">
         <Card className="mx-auto max-w-lg space-y-6">
           <ImageUploadControl
             label="Profile picture"
@@ -120,7 +120,7 @@ export default function ClientProfilePage() {
             </Button>
           </div>
         </Card>
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

@@ -12,7 +12,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { AuthenticatedRoute } from "@/components/auth-guard";
 
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 
 import { StatusBadge } from "@/components/status-badge";
 
@@ -58,9 +58,9 @@ function JobDetailContent() {
 
   return (
 
-    <AuthenticatedRoute allowedRoles={["client"]}>
+    <AuthenticatedRoute>
 
-      <PortalShell title="Job Details" navItems={clientNav} backHref="/jobs" backLabel="Back to jobs">
+      <DashboardPortalShell title="Job Details" backHref="/jobs" backLabel="Back to jobs">
 
         {loading || !job ? <LoadingState /> : (
 
@@ -94,7 +94,7 @@ function JobDetailContent() {
 
         )}
 
-      </PortalShell>
+      </DashboardPortalShell>
 
     </AuthenticatedRoute>
 

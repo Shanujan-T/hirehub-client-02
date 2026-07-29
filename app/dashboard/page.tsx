@@ -5,14 +5,14 @@ import { Briefcase, CircleDollarSign, FileCheck, FileText, Plus } from "lucide-r
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { AuthenticatedRoute } from "@/components/auth-guard";
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatCard, StatCardGrid, DashboardPanel } from "@/components/stat-card";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
 import { ACTIVE_CONTRACT_STATUSES, formatCurrency } from "@/lib/dashboard-stats";
 import { getContracts, getPayments } from "@/services/contract";
-import { getJobs } from "@/services/job";
+import { getMyJobs } from "@/services/job";
 import type { Contract } from "@/types/contract";
 import type { Job } from "@/types/job";
 
@@ -26,7 +26,7 @@ export default function ClientDashboardPage() {
     setLoading(true);
     try {
       const [jobRows, contractRows, paymentRows] = await Promise.all([
-        getJobs(),
+        getMyJobs(),
         getContracts(),
         getPayments(),
       ]);
@@ -60,11 +60,10 @@ export default function ClientDashboardPage() {
   }, [contracts, jobs.length, totalSpent]);
 
   return (
-    <AuthenticatedRoute allowedRoles={["client"]}>
-      <PortalShell
-        title="Client Dashboard"
-        subtitle="Post jobs and manage community applications"
-        navItems={clientNav}
+    <AuthenticatedRoute>
+      <DashboardPortalShell
+        title="Dashboard"
+        subtitle="Post jobs, manage contracts, and track your communities"
         actions={
           <Link href="/jobs/new">
             <Button variant="gradient" size="sm" className="rounded-full">
@@ -146,7 +145,7 @@ export default function ClientDashboardPage() {
             </DashboardPanel>
           </div>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }
