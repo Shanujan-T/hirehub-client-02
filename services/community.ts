@@ -1,8 +1,10 @@
 import apiClient from "@/lib/api-client";
 import type { Community, CommunityMember, OpenCall } from "@/types/community";
 
-export async function getCommunities(): Promise<Community[]> {
-  const { data } = await apiClient.get<{ communities: Community[] }>("/api/communities");
+export async function getCommunities(options?: { status?: string }): Promise<Community[]> {
+  const { data } = await apiClient.get<{ communities: Community[] }>("/api/communities", {
+    params: options?.status ? { status: options.status } : {},
+  });
   return data.communities;
 }
 
@@ -15,8 +17,26 @@ export async function createCommunity(payload: {
   name: string;
   description?: string;
   location?: string;
+  category_id: number;
+  experience_level: string;
+  specialization?: string;
+  portfolio_links?: string[];
+  admin_bio?: string;
+  contact_phone?: string;
+  terms_accepted: boolean;
 }): Promise<Community> {
   const { data } = await apiClient.post<{ community: Community }>("/api/communities", payload);
+  return data.community;
+}
+
+export async function reviewCommunity(
+  communityId: number,
+  payload: { approve: boolean; reason?: string }
+): Promise<Community> {
+  const { data } = await apiClient.put<{ community: Community }>(
+    `/api/communities/${communityId}/review`,
+    payload
+  );
   return data.community;
 }
 

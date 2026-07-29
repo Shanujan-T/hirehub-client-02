@@ -34,6 +34,19 @@ const MEMBER: Record<string, StatusVariant> = {
   rejected: "rejected",
 };
 
+const COMMUNITY: Record<string, StatusVariant> = {
+  pending: "pending",
+  approved: "completed",
+  rejected: "rejected",
+};
+
+const IDENTITY: Record<string, StatusVariant> = {
+  unverified: "default",
+  pending: "pending",
+  verified: "completed",
+  rejected: "rejected",
+};
+
 export function jobStatusVariant(s: string): StatusVariant {
   return JOB[s] ?? "default";
 }
@@ -50,15 +63,45 @@ export function memberStatusVariant(s: string): StatusVariant {
   return MEMBER[s] ?? "default";
 }
 
+export function communityStatusVariant(s: string): StatusVariant {
+  return COMMUNITY[s] ?? "default";
+}
+
+export function identityStatusVariant(s: string): StatusVariant {
+  return IDENTITY[s] ?? "default";
+}
+
 const MEMBER_LABELS: Record<string, string> = {
   pending: "Pending",
   approved: "Active",
   rejected: "Rejected",
 };
 
-export function formatStatus(s: string, kind?: "job" | "contract" | "application" | "member") {
+const COMMUNITY_LABELS: Record<string, string> = {
+  pending: "Pending Verification",
+  approved: "Approved",
+  rejected: "Rejected",
+};
+
+const IDENTITY_LABELS: Record<string, string> = {
+  unverified: "Unverified",
+  pending: "Pending Verification",
+  verified: "Verified",
+  rejected: "Rejected",
+};
+
+export function formatStatus(
+  s: string,
+  kind?: "job" | "contract" | "application" | "member" | "community" | "identity"
+) {
   if (kind === "member" && MEMBER_LABELS[s]) {
     return MEMBER_LABELS[s];
+  }
+  if (kind === "community" && COMMUNITY_LABELS[s]) {
+    return COMMUNITY_LABELS[s];
+  }
+  if (kind === "identity" && IDENTITY_LABELS[s]) {
+    return IDENTITY_LABELS[s];
   }
   return s.replace(/_/g, " ");
 }

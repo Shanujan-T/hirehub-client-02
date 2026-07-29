@@ -16,6 +16,24 @@ export const createCommunitySchema = z.object({
   name: z.string().trim().min(1, "Community name is required"),
   description: z.string().optional(),
   location: z.string().optional(),
+  category_id: z.coerce.number().min(1, "Category is required"),
+  experience_level: z.enum(["less_than_1_year", "1_to_3_years", "3_plus_years"], {
+    required_error: "Experience level is required",
+  }),
+  specialization: z.string().optional(),
+  portfolio_links: z.array(z.string().url("Enter a valid URL")).optional(),
+  admin_bio: z.string().optional(),
+  contact_phone: z.string().optional(),
+  terms_accepted: z.boolean().refine((value) => value === true, {
+    message: "You must confirm the information is accurate",
+  }),
+});
+
+export const identityVerificationSchema = z.object({
+  nic_number: z
+    .string()
+    .trim()
+    .regex(/^(\d{9}[VvXx]|\d{12})$/, "Enter a valid Sri Lankan NIC (9 digits + V/X or 12 digits)"),
 });
 
 export const createJobSchema = z.object({
@@ -57,6 +75,7 @@ export const categorySchema = z.object({
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type CreateCommunityForm = z.infer<typeof createCommunitySchema>;
+export type IdentityVerificationForm = z.infer<typeof identityVerificationSchema>;
 export type CreateJobForm = z.infer<typeof createJobSchema>;
 export type JobBidForm = z.infer<typeof jobBidSchema>;
 export type OpenCallForm = z.infer<typeof openCallSchema>;
