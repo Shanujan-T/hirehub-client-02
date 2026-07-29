@@ -10,7 +10,9 @@ import { LoadingState } from "@/components/page-states";
 import { Badge, Button, Card } from "@/components/ui";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { buildFilteredPath } from "@/lib/navigation";
+import { getCommunity } from "@/services/community";
 import { getJob } from "@/services/job";
+import type { CommunityStatus } from "@/types/community";
 import type { Job } from "@/types/job";
 
 function formatDeadline(value: string) {
@@ -40,6 +42,7 @@ function JobDetailContent() {
   const { communityId } = useCommunityAdmin();
   const { hrefWithReturn } = useListNavigation();
   const [job, setJob] = useState<Job | null>(null);
+  const [communityStatus, setCommunityStatus] = useState<CommunityStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const jobsListFallback = buildFilteredPath("/community-admin/jobs", {});
 
@@ -49,6 +52,15 @@ function JobDetailContent() {
       .catch(() => {})
       .finally(() => setLoading(false));
   }, [jobId]);
+
+  useEffect(() => {
+    if (!communityId) return;
+    getCommunity(communityId)
+      .then((community) => setCommunityStatus(community.status))
+      .catch(() => setCommunityStatus(null));
+  }, [communityId]);
+
+  const canApply = job?.status === "open" && communityStatus === "approved";
 
   return (
     <PortalShell
@@ -79,11 +91,25 @@ function JobDetailContent() {
           })()}
           <p className="mt-4">{job.description}</p>
           {job.status === "open" && communityId && (
-            <Link href={hrefWithReturn(`/community-admin/jobs/${jobId}/apply`)} className="mt-4 inline-block">
-              <Button variant="gradient" className="rounded-full">
-                Submit Bid
-              </Button>
-            </Link>
+            canApply ? (
+              <Link href={hrefWithReturn(`/community-admin/jobs/${jobId}/apply`)} className="mt-4 inline-block">
+                <Button variant="gradient" className="rounded-full">
+                  Submit Bid
+                </Button>
+              </Link>
+            ) : (
+              <div className="mt-4 space-y-2">
+                <Button variant="gradient" className="rounded-full" disabled title="Community must be approved">
+                  Submit Bid
+                </Button>
+                <p className="text-xs text-muted">
+                  Your community must be approved before applying to jobs.
+                  {communityStatus && communityStatus !== "approved" && (
+                    <> Current status: {communityStatus.replace(/_/g, " ")}.</>
+                  )}
+                </p>
+              </div>
+            )
           )}
         </Card>
       )}
