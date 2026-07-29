@@ -22,7 +22,7 @@ export interface CategoryPricing {
 
 export interface Job {
   id: number;
-  client_id?: number;
+  posted_by_id?: number;
   category_id: number;
   title: string;
   description: string;

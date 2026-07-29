@@ -1,7 +1,7 @@
 import type { CommunityMember } from "@/types/community";
 import type { UserSkill } from "./skill";
 
-export type UserRole = "admin" | "client" | "user";
+export type UserRole = "admin" | "user";
 
 export type IdentityStatus = "unverified" | "pending" | "verified" | "rejected";
 
@@ -36,7 +36,6 @@ export interface RegisterPayload {
   email: string;
   password: string;
   full_name: string;
-  role?: "user" | "client";
 }
 
 export interface LoginPayload {
