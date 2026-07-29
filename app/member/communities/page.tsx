@@ -13,35 +13,9 @@ import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
-import { useAuth } from "@/providers/auth-provider";
+import { CreateCommunityAction } from "@/components/create-community-action";
 import { getCommunities, getMyMemberships, joinCommunity } from "@/services/community";
 import type { Community } from "@/types/community";
-
-function CreateCommunityAction() {
-  const { user } = useAuth();
-  const verified = user?.identity_status === "verified";
-
-  if (verified) {
-    return (
-      <Link href="/member/communities/new">
-        <Button variant="gradient" size="sm" className="rounded-full">
-          Create Community
-        </Button>
-      </Link>
-    );
-  }
-
-  return (
-    <div className="flex flex-col items-end gap-1">
-      <Button variant="gradient" size="sm" className="rounded-full" disabled title="Verify your identity first">
-        Create Community
-      </Button>
-      <Link href="/member/profile/identity-verification" className="text-xs text-info hover:underline">
-        Verify your identity first
-      </Link>
-    </div>
-  );
-}
 
 function MemberCommunitiesContent() {
   const { hrefWithReturn, setFilter, getFilter } = useListNavigation();
@@ -109,12 +83,7 @@ function MemberCommunitiesContent() {
                       <p className="text-xs text-destructive">{membership.community.rejection_reason}</p>
                     )}
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {membership.community?.status && (
-                      <StatusBadge status={membership.community.status} kind="community" />
-                    )}
-                    <StatusBadge status={membership.status} kind="member" />
-                  </div>
+                  <StatusBadge status={membership.status} kind="member" />
                 </Card>
               ))
             )}
