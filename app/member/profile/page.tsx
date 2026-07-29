@@ -1,10 +1,12 @@
 "use client";
 
+import Link from "next/link";
 import { useEffect, useState } from "react";
 import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ImageUploadControl } from "@/components/image-upload-control";
 import { PortalShell, memberNav } from "@/components/portal-shell";
+import { StatusBadge } from "@/components/status-badge";
 import { UserAvatar } from "@/components/user-avatar";
 import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { Award, Wrench } from "lucide-react";
@@ -94,6 +96,21 @@ export default function MemberProfilePage() {
             onUpload={handleAvatarUpload}
             fallback={<UserAvatar name={user?.full_name ?? "Member"} avatarUrl={user?.avatar_url} size="lg" className="h-24 w-24 text-lg" />}
           />
+
+          <div className="rounded-lg border border-border p-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <p className="font-medium">Identity verification</p>
+                <p className="text-sm text-muted">Required before creating a community</p>
+              </div>
+              <StatusBadge status={user?.identity_status ?? "unverified"} kind="identity" />
+            </div>
+            {user?.identity_status !== "verified" && (
+              <Link href="/member/profile/identity-verification" className="mt-3 inline-block text-sm text-info hover:underline">
+                {user?.identity_status === "pending" ? "View verification status" : "Verify your identity"}
+              </Link>
+            )}
+          </div>
 
           <div className="space-y-4">
             <div className="space-y-2">
