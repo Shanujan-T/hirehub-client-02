@@ -141,11 +141,11 @@ function IdentityVerificationContent() {
               </Button>
 
               <p className="text-center text-xs text-muted">
-                Need a faster path? Complete{" "}
-                <Link href="/dashboard/profile#account-verification" className="text-info hover:underline">
-                  account verification
-                </Link>{" "}
-                on your profile with a phone or email code.
+                You can also submit from{" "}
+                <Link href="/member/profile#identity-verification" className="text-info hover:underline">
+                  My Profile
+                </Link>
+                .
               </p>
             </form>
           )}
