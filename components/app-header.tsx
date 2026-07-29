@@ -8,7 +8,8 @@ import { ThemeToggle } from "@/components/theme-toggle";
 import { UserAvatar } from "@/components/user-avatar";
 import { Button } from "@/components/ui";
 import { getDashboardPath, useAuth } from "@/providers/auth-provider";
-import type { UserRole } from "@/types/user";
+import type { User, UserRole } from "@/types/user";
+import { userAdminsAnyCommunity } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
 
 export type HeaderNavLink = { href: string; label: string };
@@ -16,7 +17,63 @@ export type HeaderNavLink = { href: string; label: string };
 const linkClass =
   "text-sm text-muted transition hover:text-info focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/30 rounded-sm";
 
-/** Role- and route-aware top nav links (no public jobs browse for members). */
+function HeaderIntentCtas({ user, pathname }: { user: User | null; pathname: string }) {
+  if (user?.role === "admin") {
+    return null;
+  }
+
+  if (user) {
+    return null;
+  }
+
+  const isHome = pathname === "/";
+
+  if (isHome) {
+    return (
+      <>
+        <Link href="/jobs/new">
+          <Button variant="gradient" size="sm" className="rounded-full">
+            Post a Job
+          </Button>
+        </Link>
+        <Link href="/member/communities">
+          <Button variant="gradientCommunity" size="sm" className="rounded-full">
+            My Communities
+          </Button>
+        </Link>
+        <Link
+          href="/auth/login"
+          className={cn(linkClass, "text-xs sm:text-sm text-foreground dark:text-white")}
+        >
+          Log in
+        </Link>
+        <Link href="/auth/register">
+          <Button variant="default" size="sm" className="rounded-full">
+            Register
+          </Button>
+        </Link>
+      </>
+    );
+  }
+
+  return (
+    <>
+      <Link
+        href="/auth/login"
+        className={cn(linkClass, "text-xs sm:text-sm text-foreground dark:text-white")}
+      >
+        Log in
+      </Link>
+      <Link href="/auth/register">
+        <Button variant="default" size="sm" className="rounded-full">
+          Register
+        </Button>
+      </Link>
+    </>
+  );
+}
+
+/** Route-aware top nav links for logged-in users. */
 export function getHeaderNavLinks(pathname: string, role: UserRole): HeaderNavLink[] {
   if (pathname.startsWith("/admin") || role === "admin") {
     return [
@@ -28,26 +85,15 @@ export function getHeaderNavLinks(pathname: string, role: UserRole): HeaderNavLi
   if (pathname.startsWith("/community-admin")) {
     return [
       { href: "/community-admin/dashboard", label: "Dashboard" },
-      { href: "/communities", label: "Communities" },
-    ];
-  }
-
-  if (
-    pathname.startsWith("/jobs") ||
-    pathname.startsWith("/contracts") ||
-    pathname.startsWith("/reviews") ||
-    pathname === "/dashboard" ||
-    role === "client"
-  ) {
-    return [
-      { href: "/dashboard", label: "Dashboard" },
-      { href: "/jobs", label: "My Jobs" },
+      { href: "/community-admin/jobs", label: "Browse Jobs" },
       { href: "/communities", label: "Communities" },
     ];
   }
 
   return [
-    { href: "/member/dashboard", label: "Dashboard" },
+    { href: "/dashboard", label: "Dashboard" },
+    { href: "/jobs", label: "My Jobs" },
+    { href: "/member/communities", label: "My Communities" },
     { href: "/communities", label: "Communities" },
   ];
 }
@@ -76,6 +122,11 @@ export function AppHeader({ className }: { className?: string }) {
                   {item.label}
                 </Link>
               ))}
+              {user.role !== "admin" && userAdminsAnyCommunity(user) && (
+                <Link href="/community-admin/jobs" className={linkClass}>
+                  Job marketplace
+                </Link>
+              )}
               <button
                 type="button"
                 aria-label="Notifications"
@@ -113,14 +164,7 @@ export function AppHeader({ className }: { className?: string }) {
                 Communities
               </Link>
               <ThemeToggle />
-              <Link href="/auth/login" className={linkClass}>
-                Login
-              </Link>
-              <Link href="/auth/register">
-                <Button variant="gradient" size="sm" className="rounded-full">
-                  Register
-                </Button>
-              </Link>
+              <HeaderIntentCtas user={null} pathname={pathname} />
             </>
           ) : null}
         </div>
