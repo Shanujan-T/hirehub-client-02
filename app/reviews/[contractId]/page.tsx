@@ -16,7 +16,7 @@ import { toast } from "sonner";
 
 import { AuthenticatedRoute } from "@/components/auth-guard";
 
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 
 import { Button, Card, Input, Label, Textarea } from "@/components/ui";
 
@@ -82,15 +82,15 @@ function ReviewContent() {
 
   return (
 
-    <AuthenticatedRoute allowedRoles={["client"]}>
+    <AuthenticatedRoute>
 
-      <PortalShell
+      <DashboardPortalShell
 
         title="Leave a Review"
 
         subtitle="Rate the community and optional member"
 
-        navItems={clientNav}
+       
 
         backHref={`/contracts/${contractId}`}
 
@@ -116,7 +116,7 @@ function ReviewContent() {
 
         </Card>
 
-      </PortalShell>
+      </DashboardPortalShell>
 
     </AuthenticatedRoute>
 

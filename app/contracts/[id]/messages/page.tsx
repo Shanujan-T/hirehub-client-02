@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { ContractMessagesPanel } from "@/components/contract-messages-panel";
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { LoadingState } from "@/components/page-states";
 import { useAsyncItem } from "@/lib/hooks/use-async";
 import { getContract } from "@/services/contract";
@@ -18,16 +18,16 @@ function ClientContractMessagesContent() {
   );
 
   return (
-    <AuthenticatedRoute allowedRoles={["client"]}>
-      <PortalShell
+    <AuthenticatedRoute>
+      <DashboardPortalShell
         title="Contract Messages"
         subtitle={contract?.job?.title ?? `Contract #${contractId}`}
-        navItems={clientNav}
+       
         backHref={`/contracts/${contractId}`}
         backLabel="Back to contract"
       >
         {loading ? <LoadingState /> : <ContractMessagesPanel contractId={contractId} />}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

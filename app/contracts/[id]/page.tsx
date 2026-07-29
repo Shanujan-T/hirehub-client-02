@@ -7,7 +7,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { ContractProgressBar } from "@/components/contract-progress-bar";
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
@@ -30,8 +30,8 @@ function ContractDetailContent() {
   useEffect(() => { load(); }, [load]);
 
   return (
-    <AuthenticatedRoute allowedRoles={["client"]}>
-      <PortalShell title="Contract Details" navItems={clientNav} backHref="/contracts" backLabel="Back to contracts">
+    <AuthenticatedRoute>
+      <DashboardPortalShell title="Contract Details" backHref="/contracts" backLabel="Back to contracts">
         {loading || !contract ? <LoadingState /> : (
           <Card>
             <div className="mb-4 flex items-start justify-between">
@@ -66,7 +66,7 @@ function ContractDetailContent() {
             )}
           </Card>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </AuthenticatedRoute>
   );
 }

@@ -10,7 +10,7 @@ import { toast } from "sonner";
 
 import { AuthenticatedRoute } from "@/components/auth-guard";
 
-import { PortalShell, clientNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 
 import { StatusBadge } from "@/components/status-badge";
 
@@ -24,7 +24,7 @@ import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 
 import { getErrorMessage } from "@/lib/utils";
 
-import { clientApproveDeliverable, getContracts } from "@/services/contract";
+import { posterApproveDeliverable, getContracts } from "@/services/contract";
 
 
 
@@ -40,7 +40,7 @@ function ContractsListContent() {
 
     try {
 
-      await clientApproveDeliverable(contractId);
+      await posterApproveDeliverable(contractId);
 
       toast.success("Deliverable approved. Payment released.");
 
@@ -58,9 +58,9 @@ function ContractsListContent() {
 
   return (
 
-    <AuthenticatedRoute allowedRoles={["client"]}>
+    <AuthenticatedRoute>
 
-      <PortalShell title="My Contracts" subtitle="Review deliverables and release payment" navItems={clientNav}>
+      <DashboardPortalShell title="My Contracts" subtitle="Review deliverables and release payment">
 
         {loading ? <LoadingState /> : contracts.length === 0 ? (
 
@@ -124,7 +124,7 @@ function ContractsListContent() {
 
         )}
 
-      </PortalShell>
+      </DashboardPortalShell>
 
     </AuthenticatedRoute>
 
