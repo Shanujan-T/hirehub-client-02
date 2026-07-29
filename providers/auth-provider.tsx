@@ -93,8 +93,7 @@ export function useAuth() {
 
 export function getDashboardPath(user: User | null, isCommunityAdmin = false): string {
   if (!user) return "/auth/login";
-  if (user.role === "client") return "/dashboard";
   if (user.role === "admin") return "/admin/dashboard";
-  if (isCommunityAdmin) return "/community-admin/dashboard";
-  return "/member/dashboard";
+  void isCommunityAdmin;
+  return "/dashboard";
 }

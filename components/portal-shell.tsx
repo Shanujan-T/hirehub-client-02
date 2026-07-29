@@ -6,18 +6,59 @@ import { AdminSidebar } from "@/components/admin-sidebar";
 import { AppHeader } from "@/components/app-header";
 import { BackButton } from "@/components/back-button";
 import { PortalSidebar } from "@/components/portal-sidebar";
-import {  adminCommunityNav,
+import { useDashboardNav } from "@/lib/hooks/use-dashboard-nav";
+import {
+  adminCommunityNav,
   adminNav,
   communityAdminNav,
-  clientNav,
-  memberNav,
-  platformNav,
   type NavItem,
 } from "@/lib/portal-nav";
+import { dashboardNav } from "@/lib/dashboard-nav";
 import { cn } from "@/lib/utils";
 
 export type { NavItem };
-export { adminCommunityNav, adminNav, communityAdminNav, clientNav, memberNav, platformNav };
+export {
+  adminCommunityNav,
+  adminNav,
+  communityAdminNav,
+  dashboardNav,
+  adminNav as platformNav,
+};
+
+/** @deprecated use dashboardNav or useDashboardNav */
+export const clientNav = dashboardNav;
+/** @deprecated use dashboardNav or useDashboardNav */
+export const memberNav = dashboardNav;
+
+export function DashboardPortalShell({
+  title,
+  subtitle,
+  children,
+  actions,
+  backHref,
+  backLabel,
+}: {
+  title: string;
+  subtitle?: string;
+  children: React.ReactNode;
+  actions?: React.ReactNode;
+  backHref?: string;
+  backLabel?: string;
+}) {
+  const navItems = useDashboardNav();
+  return (
+    <PortalShell
+      title={title}
+      subtitle={subtitle}
+      navItems={navItems}
+      actions={actions}
+      backHref={backHref}
+      backLabel={backLabel}
+    >
+      {children}
+    </PortalShell>
+  );
+}
 
 export function PortalShell({
   title,
