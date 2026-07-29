@@ -70,11 +70,16 @@ export async function adminApproveDeliverable(contractId: number): Promise<Contr
   return data.contract;
 }
 
-export async function clientApproveDeliverable(contractId: number) {
+export async function posterApproveDeliverable(contractId: number) {
   const { data } = await apiClient.post(
-    `/api/contracts/${contractId}/client-approve-deliverable`
+    `/api/contracts/${contractId}/poster-approve-deliverable`
   );
   return data;
+}
+
+/** @deprecated use posterApproveDeliverable */
+export async function clientApproveDeliverable(contractId: number) {
+  return posterApproveDeliverable(contractId);
 }
 
 export async function getMyEarnings(): Promise<Payment[]> {

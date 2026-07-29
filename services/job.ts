@@ -6,9 +6,21 @@ export interface PricingSuggestion {
   sample_size: number;
 }
 
-export async function getJobs(): Promise<Job[]> {
+export async function getMyJobs(): Promise<Job[]> {
   const { data } = await apiClient.get<{ jobs: Job[] }>("/api/jobs");
   return data.jobs;
+}
+
+export async function getMarketplaceJobs(): Promise<Job[]> {
+  const { data } = await apiClient.get<{ jobs: Job[] }>("/api/jobs", {
+    params: { marketplace: true },
+  });
+  return data.jobs;
+}
+
+/** @deprecated use getMyJobs */
+export async function getJobs(): Promise<Job[]> {
+  return getMyJobs();
 }
 
 export async function getJob(id: number): Promise<Job> {
