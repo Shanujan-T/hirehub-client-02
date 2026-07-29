@@ -19,7 +19,7 @@ function isPublicStandalone(path: string) {
 
 function isPortal(path: string) {
   return (
-    path === "/dashboard" ||
+    path.startsWith("/dashboard") ||
     path.startsWith("/jobs") ||
     path.startsWith("/contracts") ||
     path.startsWith("/reviews") ||

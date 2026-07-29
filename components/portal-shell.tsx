@@ -1,11 +1,12 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AppHeader } from "@/components/app-header";
 import { BackButton } from "@/components/back-button";
-import { PortalSidebar } from "@/components/portal-sidebar";
+import { PortalMobileDrawer, PortalSidebar } from "@/components/portal-sidebar";
+import { PortalNavProvider } from "@/components/portal-nav-context";
 import { useDashboardNav } from "@/lib/hooks/use-dashboard-nav";
 import {
   adminCommunityNav,
@@ -79,7 +80,26 @@ export function PortalShell({
 }) {
   const pathname = usePathname();
   const isAdminPortal = pathname.startsWith("/admin");
-  return (
+  const [mobileNavOpen, setMobileNavOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileNavOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (!mobileNavOpen) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileNavOpen(false);
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [mobileNavOpen]);
+
+  const shell = (
     <div className="flex min-h-screen flex-col">
       <AppHeader />
 
@@ -119,5 +139,16 @@ export function PortalShell({
         </div>
       </div>
     </div>
+  );
+
+  if (isAdminPortal) {
+    return shell;
+  }
+
+  return (
+    <PortalNavProvider navItems={navItems} mobileOpen={mobileNavOpen} setMobileOpen={setMobileNavOpen}>
+      {shell}
+      <PortalMobileDrawer open={mobileNavOpen} onClose={() => setMobileNavOpen(false)} navItems={navItems} />
+    </PortalNavProvider>
   );
 }
