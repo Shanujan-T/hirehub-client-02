@@ -6,20 +6,20 @@ import {
   PROFILE_IDENTITY_SECTION_ID,
 } from "@/lib/return-navigation";
 
-function hashTargetsIdentitySection(hash: string): boolean {
+function hashTargetsAccountSection(hash: string): boolean {
   return (
-    hash === `#${PROFILE_IDENTITY_SECTION_ID}` ||
-    hash === `#${PROFILE_ACCOUNT_SECTION_ID}`
+    hash === `#${PROFILE_ACCOUNT_SECTION_ID}` ||
+    hash === `#${PROFILE_IDENTITY_SECTION_ID}`
   );
 }
 
-/** Scroll to the identity verification section when the URL hash targets it (e.g. from Create Community modal). */
-export function useScrollToIdentitySection() {
+/** Scroll to account verification when the URL hash targets it (e.g. from Create Community modal). */
+export function useScrollToAccountSection() {
   useEffect(() => {
     if (typeof window === "undefined") return;
-    if (!hashTargetsIdentitySection(window.location.hash)) return;
+    if (!hashTargetsAccountSection(window.location.hash)) return;
 
-    const el = document.getElementById(PROFILE_IDENTITY_SECTION_ID);
+    const el = document.getElementById(PROFILE_ACCOUNT_SECTION_ID);
     if (!el) return;
 
     const frame = requestAnimationFrame(() => {
@@ -29,7 +29,7 @@ export function useScrollToIdentitySection() {
   }, []);
 }
 
-/** @deprecated Use useScrollToIdentitySection */
-export function useScrollToAccountSection() {
-  useScrollToIdentitySection();
+/** @deprecated Use useScrollToAccountSection */
+export function useScrollToIdentitySection() {
+  useScrollToAccountSection();
 }

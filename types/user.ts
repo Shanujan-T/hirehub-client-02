@@ -12,7 +12,7 @@ export interface UserAddress {
   address_postal_code?: string | null;
 }
 
-/** NIC document review status — gates community creation when verified. */
+/** Phone/email OTP account verification — gates community creation when verified. */
 export type IdentityStatus = "unverified" | "pending" | "verified" | "rejected";
 
 export interface User extends UserAddress {
@@ -28,10 +28,6 @@ export interface User extends UserAddress {
   phone_number?: string | null;
   email_verified_for_identity?: boolean;
   phone_verified_for_identity?: boolean;
-  /** @deprecated legacy NIC manual review */
-  nic_masked?: string | null;
-  /** @deprecated legacy NIC manual review */
-  nic_document_url?: string | null;
   is_active: boolean;
   created_at: string;
   completed_project_count?: number;

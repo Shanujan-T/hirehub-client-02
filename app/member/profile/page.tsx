@@ -10,7 +10,7 @@ import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { Award, Wrench } from "lucide-react";
-import { useScrollToIdentitySection } from "@/lib/profile-account-scroll";
+import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { getErrorMessage } from "@/lib/utils";
@@ -21,7 +21,7 @@ import {
   ProfileLocationAddressFields,
   userAddressFromUser,
 } from "@/components/profile-location-address-fields";
-import { ProfileIdentityVerificationSection } from "@/components/profile-identity-verification-section";
+import { ProfileAccountVerificationSection } from "@/components/profile-account-verification-section";
 import type { UserAddress } from "@/types/user";
 
 function MemberProfileContent() {
@@ -29,7 +29,7 @@ function MemberProfileContent() {
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get("returnTo"), MY_COMMUNITIES_RETURN);
   const { user, refreshUser, updateUser: setAuthUser } = useAuth();
-  useScrollToIdentitySection();
+  useScrollToAccountSection();
   const [fullName, setFullName] = useState("");
   const [location, setLocation] = useState("");
   const [address, setAddress] = useState<UserAddress>({});
@@ -152,7 +152,7 @@ function MemberProfileContent() {
             </Button>
           </div>
 
-          <ProfileIdentityVerificationSection />
+          <ProfileAccountVerificationSection returnTo={returnTo} />
 
           <div>
             <Label>Skills</Label>

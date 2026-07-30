@@ -6,10 +6,10 @@ import { Lock } from "lucide-react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button } from "@/components/ui";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
-import { MY_COMMUNITIES_RETURN, profileIdentitySectionHref } from "@/lib/return-navigation";
+import { MY_COMMUNITIES_RETURN, profileAccountSectionHref } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
 
-/** Header action: create community, gated on NIC identity verification (admin-reviewed). */
+/** Header action: create community, gated on phone/email OTP account verification (§31). */
 export function CreateCommunityAction() {
   const router = useRouter();
   const { user } = useAuth();
@@ -40,7 +40,7 @@ export function CreateCommunityAction() {
       ) : (
         <Tooltip>
           <TooltipTrigger>{trigger}</TooltipTrigger>
-          <TooltipContent>Complete identity verification to create a community.</TooltipContent>
+          <TooltipContent>Complete account verification to create a community.</TooltipContent>
         </Tooltip>
       )}
       <ConfirmDialog
@@ -48,15 +48,15 @@ export function CreateCommunityAction() {
         onClose={() => setVerifyModalOpen(false)}
         onConfirm={() => {
           setVerifyModalOpen(false);
-          router.push(profileIdentitySectionHref(MY_COMMUNITIES_RETURN));
+          router.push(profileAccountSectionHref(MY_COMMUNITIES_RETURN));
         }}
-        title="Verify your identity to create a community"
-        description="Submit your NIC for manual review on your profile. Identity document verification is required before you can submit a new community."
-        confirmLabel="Go to identity verification"
+        title="Verify your account to create a community"
+        description="Confirm your phone or email with a one-time code on your profile. No ID documents or manual review required."
+        confirmLabel="Go to account verification"
         confirmVariant="gradient"
-        titleId="verify-identity-dialog-title"
-        descId="verify-identity-dialog-desc"
-        dismissLabel="Dismiss identity verification dialog"
+        titleId="verify-account-dialog-title"
+        descId="verify-account-dialog-desc"
+        dismissLabel="Dismiss account verification dialog"
       />
     </>
   );

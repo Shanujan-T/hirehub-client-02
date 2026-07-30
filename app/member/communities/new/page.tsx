@@ -13,7 +13,7 @@ import { StatusBadge } from "@/components/status-badge";
 import { Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { createCommunitySchema, type CreateCommunityForm } from "@/lib/schemas";
 import { notify } from "@/lib/notify";
-import { profileIdentitySectionHref } from "@/lib/return-navigation";
+import { profileAccountSectionHref } from "@/lib/return-navigation";
 import { getErrorMessage } from "@/lib/utils";
 import { createCommunity, uploadCommunityImage } from "@/services/community";
 import { getCategories } from "@/services/job";
@@ -273,8 +273,8 @@ export default function NewCommunityPage() {
             </Button>
 
             <p className="text-center text-xs text-muted">
-              <Link href={profileIdentitySectionHref()} className="text-info hover:underline">
-                Identity verification
+              <Link href={profileAccountSectionHref()} className="text-info hover:underline">
+                Account verification
               </Link>{" "}
               is required before submission.
             </p>

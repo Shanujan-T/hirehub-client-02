@@ -93,7 +93,7 @@ const IDENTITY_LABELS: Record<string, string> = {
 /** Phone/email OTP tier (Profile) — reserved "identity" labels for future ID tier / admin legacy. */
 const ACCOUNT_LABELS: Record<string, string> = {
   unverified: "Not verified",
-  pending: "Pending review",
+  pending: "Not verified",
   verified: "Account verified",
   rejected: "Not verified",
 };
