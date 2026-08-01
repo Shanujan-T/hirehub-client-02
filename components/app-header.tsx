@@ -2,15 +2,15 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Bell, LogOut, Menu } from "lucide-react";
+import { LogOut, Menu } from "lucide-react";
 import { BrandLogo } from "@/components/brand-logo";
 import { ThemeToggle } from "@/components/theme-toggle";
 import { UserAvatar } from "@/components/user-avatar";
+import { NotificationBell } from "@/components/notification-bell";
 import { SignOutControl } from "@/components/sign-out-confirm-dialog";
 import { Button } from "@/components/ui";
 import { usePortalNav } from "@/components/portal-nav-context";
 import { getDashboardPath, useAuth } from "@/providers/auth-provider";
-import type { User, UserRole } from "@/types/user";
 import { userAdminsAnyCommunity } from "@/lib/dashboard-nav";
 import { getHeaderNavLinks, type HeaderNavLink } from "@/lib/header-nav";
 import { cn } from "@/lib/utils";
@@ -20,52 +20,13 @@ export type { HeaderNavLink };
 const linkClass =
   "text-sm text-muted transition hover:text-info focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/30 rounded-sm";
 
-function HeaderIntentCtas({ user, pathname }: { user: User | null; pathname: string }) {
-  if (user?.role === "admin") {
-    return null;
-  }
-
-  if (user) {
-    return null;
-  }
-
-  const isHome = pathname === "/";
-
-  if (isHome) {
-    return (
-      <>
-        <Link href="/jobs/new">
-          <Button variant="gradient" size="sm" className="rounded-full">
-            Post a Job
-          </Button>
-        </Link>
-        <Link href="/member/communities">
-          <Button variant="gradientCommunity" size="sm" className="rounded-full">
-            My Communities
-          </Button>
-        </Link>
-        <Link
-          href="/auth/login"
-          className={cn(linkClass, "text-xs sm:text-sm text-foreground dark:text-white")}
-        >
-          Log in
-        </Link>
-        <Link href="/auth/register">
-          <Button variant="default" size="sm" className="rounded-full">
-            Register
-          </Button>
-        </Link>
-      </>
-    );
-  }
-
+function GuestAuthCtas() {
   return (
     <>
-      <Link
-        href="/auth/login"
-        className={cn(linkClass, "text-xs sm:text-sm text-foreground dark:text-white")}
-      >
-        Log in
+      <Link href="/auth/login">
+        <Button variant="outline" size="sm" className="rounded-full">
+          Login
+        </Button>
       </Link>
       <Link href="/auth/register">
         <Button variant="default" size="sm" className="rounded-full">
@@ -122,15 +83,7 @@ export function AppHeader({ className }: { className?: string }) {
                   </Link>
                 )}
               </div>
-              <button
-                type="button"
-                aria-label="Notifications"
-                className="flex h-9 w-9 items-center justify-center rounded-xl text-muted transition hover:bg-border/50 hover:text-info"
-                disabled
-                title="Notifications coming soon"
-              >
-                <Bell className="h-4 w-4" aria-hidden />
-              </button>
+              <NotificationBell />
               <ThemeToggle />
               <div className="hidden items-center gap-2 sm:flex">
                 <UserAvatar
@@ -154,7 +107,7 @@ export function AppHeader({ className }: { className?: string }) {
                 Communities
               </Link>
               <ThemeToggle />
-              <HeaderIntentCtas user={null} pathname={pathname} />
+              <GuestAuthCtas />
             </>
           ) : null}
         </div>
