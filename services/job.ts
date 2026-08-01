@@ -1,9 +1,41 @@
 import apiClient from "@/lib/api-client";
 import type { Category, CommunityApplication, Job } from "@/types/job";
+import type { Community } from "@/types/community";
 
 export interface PricingSuggestion {
   average_price: number | null;
   sample_size: number;
+}
+
+export interface MatchRecommendationBase {
+  match_score: number;
+  skill_score: number;
+  location_match: boolean;
+  category_match: boolean;
+  skill_summary: string;
+  ai_blurb: string | null;
+  ai_available: boolean;
+}
+
+export interface CommunityMatchRecommendation extends MatchRecommendationBase {
+  community: Community;
+}
+
+export interface JobMatchRecommendation extends MatchRecommendationBase {
+  job: Job;
+}
+
+export interface BidSuggestion {
+  suggested_cost: number;
+  suggested_days: number;
+  reasoning: string;
+}
+
+export interface JobDescriptionSuggestion {
+  title: string;
+  description: string;
+  suggested_category: string;
+  category_id: number | null;
 }
 
 export async function getMyJobs(): Promise<Job[]> {
@@ -95,4 +127,51 @@ export async function getMyJobApplications(): Promise<CommunityApplication[]> {
     "/api/community-applications/my"
   );
   return data.community_applications;
+}
+
+export async function getRecommendedCommunities(
+  jobId: number
+): Promise<CommunityMatchRecommendation[]> {
+  const { data } = await apiClient.get<{ recommendations: CommunityMatchRecommendation[] }>(
+    `/api/jobs/${jobId}/recommended-communities`
+  );
+  return data.recommendations;
+}
+
+export async function getRecommendedJobs(
+  communityId: number
+): Promise<JobMatchRecommendation[]> {
+  const { data } = await apiClient.get<{ recommendations: JobMatchRecommendation[] }>(
+    `/api/communities/${communityId}/recommended-jobs`
+  );
+  return data.recommendations;
+}
+
+export async function suggestBid(
+  jobId: number,
+  communityId: number
+): Promise<BidSuggestion | null> {
+  try {
+    const { data } = await apiClient.post<{ suggestion: BidSuggestion | null }>(
+      `/api/jobs/${jobId}/suggest-bid`,
+      { community_id: communityId }
+    );
+    return data.suggestion ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export async function generateJobDescription(
+  prompt: string
+): Promise<JobDescriptionSuggestion | null> {
+  try {
+    const { data } = await apiClient.post<{ suggestion: JobDescriptionSuggestion | null }>(
+      "/api/jobs/generate-description",
+      { prompt }
+    );
+    return data.suggestion ?? null;
+  } catch {
+    return null;
+  }
 }
