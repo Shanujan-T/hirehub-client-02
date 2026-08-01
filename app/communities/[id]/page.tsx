@@ -5,7 +5,8 @@ import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 import { BackButton } from "@/components/back-button";
 import { CommunityAvatar } from "@/components/community-avatar";
-import { MemberCardPanel } from "@/components/member-card";
+import { MemberCardPanel, sortMembersAdminFirst } from "@/components/member-card";
+import { StatusBadge } from "@/components/status-badge";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { Badge, Button, Card } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
@@ -16,6 +17,7 @@ import { getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import { getCommunity, getMyMemberships, getOpenCalls, joinCommunity } from "@/services/community";
 import type { CommunityMember, OpenCall } from "@/types/community";
+import { AlertTriangle } from "lucide-react";
 
 function CommunityDetailContent() {
   const params = useParams();
@@ -78,6 +80,13 @@ function CommunityDetailContent() {
     (!user || user.role === "user") &&
     (!membership || membership.status === "pending");
 
+  const isCommunityAdmin =
+    membership?.role === "admin" && membership?.status === "approved";
+
+  const verificationStatus =
+    community?.verification_status ??
+    (community?.status === "approved" ? "verified" : community?.status);
+
   if (loading) return <LoadingState />;
   if (!community) return <EmptyState title="Community not found" />;
 
@@ -93,6 +102,10 @@ function CommunityDetailContent() {
             <div className="mt-3 flex flex-wrap items-center gap-2">
               {community.location && <Badge variant="info">{community.location}</Badge>}
               <Badge variant="completed">★ {community.reputation_score.toFixed(1)} reputation</Badge>
+              <StatusBadge
+                status={verificationStatus === "verified" ? "approved" : verificationStatus || "pending"}
+                kind="community"
+              />
             </div>
           </div>
         </div>
@@ -113,16 +126,49 @@ function CommunityDetailContent() {
         )}
       </div>
 
+      {isCommunityAdmin && verificationStatus === "rejected" && (
+        <Card className="border-destructive/30 bg-destructive/10 p-4">
+          <div className="flex gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-destructive" aria-hidden />
+            <div className="space-y-1 text-sm">
+              <p className="font-bold text-foreground">Community verification rejected</p>
+              {community.rejection_reason?.trim() ? (
+                <p className="text-muted">{community.rejection_reason}</p>
+              ) : (
+                <p className="text-muted">No rejection reason was provided.</p>
+              )}
+              <p className="text-muted">
+                Your community must be verified by a platform admin before it can browse or apply to
+                jobs.
+              </p>
+            </div>
+          </div>
+        </Card>
+      )}
+
+      {isCommunityAdmin && verificationStatus === "pending" && (
+        <Card className="border-amber-500/30 bg-amber-500/10 p-4">
+          <div className="flex gap-3">
+            <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+            <p className="text-sm text-foreground">
+              Your community must be verified by a platform admin before it can browse or apply to
+              jobs.
+            </p>
+          </div>
+        </Card>
+      )}
+
       <div>
         <h2 className="mb-4 text-xl font-bold">Members</h2>
         {community.members && community.members.length > 0 ? (
           <div className="grid gap-4 md:grid-cols-2">
-            {community.members.map((m) =>
+            {sortMembersAdminFirst(community.members).map((m) =>
               m.user ? (
                 <MemberCardPanel
                   key={m.id}
                   user={m.user}
                   skills={m.user.user_skills}
+                  role={m.role}
                   detailHref={communityMemberDetailPath(id, m.id, "public")}
                 />
               ) : null
