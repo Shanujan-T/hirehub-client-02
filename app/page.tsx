@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { LandingFlowStrip } from "@/components/landing-flow-strip";
 import { AccountTypeSection } from "@/sections/home/account-type-cards";
+import { AiMatchingFeatureSection } from "@/sections/home/ai-matching-feature";
 import { CtaBannerSection } from "@/sections/home/cta-banner";
 import { Button } from "@/components/ui";
 import { getPublicStats, type PublicStats } from "@/services/platform";
@@ -92,6 +93,7 @@ export default function HomePage() {
         </section>
 
         <AccountTypeSection />
+        <AiMatchingFeatureSection />
         <CtaBannerSection />
       </main>
     </div>
