@@ -4,14 +4,19 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { useForm, Controller } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { FolderOpen, Info } from "lucide-react";
+import { FolderOpen, Info, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
 import { createJobSchema, type CreateJobForm } from "@/lib/schemas";
 import { getErrorMessage } from "@/lib/utils";
-import { createJob, getCategories, getPricingSuggestion } from "@/services/job";
+import {
+  createJob,
+  generateJobDescription,
+  getCategories,
+  getPricingSuggestion,
+} from "@/services/job";
 import type { Category } from "@/types/job";
 
 export default function NewJobPage() {
@@ -19,6 +24,9 @@ export default function NewJobPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [suggested, setSuggested] = useState<number | null>(null);
   const [sampleSize, setSampleSize] = useState(0);
+  const [aiPrompt, setAiPrompt] = useState("");
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiUnavailable, setAiUnavailable] = useState(false);
   const { register, control, handleSubmit, watch, setValue, formState: { errors, isSubmitting } } = useForm<CreateJobForm>({
     resolver: zodResolver(createJobSchema),
   });
@@ -39,6 +47,30 @@ export default function NewJobPage() {
     }
   }, [categoryId, location, setValue]);
 
+  const handleGenerate = async () => {
+    if (!aiPrompt.trim() || aiLoading) return;
+    setAiLoading(true);
+    setAiUnavailable(false);
+    try {
+      const suggestion = await generateJobDescription(aiPrompt.trim());
+      if (!suggestion) {
+        setAiUnavailable(true);
+        return;
+      }
+      setValue("title", suggestion.title, { shouldValidate: true });
+      setValue("description", suggestion.description, { shouldValidate: true });
+      if (suggestion.category_id) {
+        setValue("category_id", suggestion.category_id, { shouldValidate: true });
+      }
+      toast.success("AI draft applied — review and edit before posting");
+    } catch (err) {
+      setAiUnavailable(true);
+      toast.error(getErrorMessage(err, "AI suggestion unavailable"));
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const onSubmit = async (data: CreateJobForm) => {
     try {
       await createJob(data);
@@ -53,6 +85,32 @@ export default function NewJobPage() {
     <AuthenticatedRoute>
       <DashboardPortalShell title="Post a Job" subtitle="Communities apply as teams — not individuals">
         <Card className="mx-auto max-w-lg">
+          <div className="mb-6 space-y-3 rounded-xl border border-border/70 bg-background/40 p-4">
+            <Label htmlFor="ai-rough" className="flex items-center gap-2">
+              <Sparkles className="h-4 w-4" aria-hidden />
+              Draft with AI (optional)
+            </Label>
+            <Textarea
+              id="ai-rough"
+              rows={3}
+              placeholder='e.g. "need someone to fix my kitchen sink"'
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+            />
+            <Button
+              type="button"
+              variant="outline"
+              className="rounded-full"
+              disabled={aiLoading || !aiPrompt.trim()}
+              onClick={handleGenerate}
+            >
+              {aiLoading ? "Generating…" : "Generate with AI"}
+            </Button>
+            {aiUnavailable && (
+              <p className="text-xs text-muted">AI suggestion unavailable — fill the form manually.</p>
+            )}
+          </div>
+
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="job-category">Category</Label>
