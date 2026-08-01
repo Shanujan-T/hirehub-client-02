@@ -79,7 +79,7 @@ export function AppHeader({ className }: { className?: string }) {
                 ))}
                 {user.role !== "admin" && userAdminsAnyCommunity(user) && (
                   <Link href="/community-admin/jobs" className={linkClass}>
-                    Job marketplace
+                    Browse Jobs
                   </Link>
                 )}
               </div>
