@@ -15,6 +15,9 @@
   --color-destructive: #dc2626;
   --color-success: #16a34a;
   --color-surface-dark: #0b0f1a;
+  --color-portal-sidebar: #ffffff;
+  --color-portal-sidebar-muted: #64748b;
+  --color-portal-sidebar-hover: #f1f5f9;
   --radius-xl: 0.75rem;
   --radius-2xl: 1rem;
   --radius: 0.75rem;
@@ -28,6 +31,9 @@
   --color-border: #1e293b;
   --color-card: #0f1729;
   --color-card-foreground: #f1f5f9;
+  --color-portal-sidebar: #0b0f1a;
+  --color-portal-sidebar-muted: #94a3b8;
+  --color-portal-sidebar-hover: color-mix(in srgb, white 10%, transparent);
 }
 
 @utility bg-brand-gradient {
