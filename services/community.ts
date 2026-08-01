@@ -29,6 +29,18 @@ export async function createCommunity(payload: {
   return data.community;
 }
 
+export async function verifyCommunity(
+  communityId: number,
+  payload: { verification_status: "verified" | "rejected"; reason?: string }
+): Promise<Community> {
+  const { data } = await apiClient.patch<{ community: Community }>(
+    `/api/communities/${communityId}/verify`,
+    payload
+  );
+  return data.community;
+}
+
+/** @deprecated Use verifyCommunity instead */
 export async function reviewCommunity(
   communityId: number,
   payload: { approve: boolean; reason?: string }
