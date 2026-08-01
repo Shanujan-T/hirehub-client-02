@@ -70,6 +70,17 @@ export async function adminApproveDeliverable(contractId: number): Promise<Contr
   return data.contract;
 }
 
+export async function aiReviewDeliverable(contractId: number): Promise<string | null> {
+  try {
+    const { data } = await apiClient.post<{ review: string | null }>(
+      `/api/contracts/${contractId}/ai-review-deliverable`
+    );
+    return data.review ?? null;
+  } catch {
+    return null;
+  }
+}
+
 export async function posterApproveDeliverable(contractId: number) {
   const { data } = await apiClient.post(
     `/api/contracts/${contractId}/poster-approve-deliverable`
