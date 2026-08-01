@@ -4,6 +4,7 @@ export type StatusVariant =
   | "active"
   | "completed"
   | "rejected"
+  | "info"
   | "default";
 
 const JOB: Record<string, StatusVariant> = {
@@ -16,7 +17,7 @@ const CONTRACT: Record<string, StatusVariant> = {
   pending_assignment: "pending",
   open_internally: "open",
   active: "active",
-  submitted: "open",
+  submitted: "info",
   completed: "completed",
   disputed: "rejected",
 };
@@ -37,6 +38,7 @@ const MEMBER: Record<string, StatusVariant> = {
 const COMMUNITY: Record<string, StatusVariant> = {
   pending: "pending",
   approved: "completed",
+  verified: "completed",
   rejected: "rejected",
 };
 
@@ -71,6 +73,15 @@ export function identityStatusVariant(s: string): StatusVariant {
   return IDENTITY[s] ?? "default";
 }
 
+const CONTRACT_LABELS: Record<string, string> = {
+  pending_assignment: "Pending assignment",
+  open_internally: "Open for requests",
+  active: "In progress",
+  submitted: "Deliverable submitted",
+  completed: "Completed",
+  disputed: "Disputed",
+};
+
 const MEMBER_LABELS: Record<string, string> = {
   pending: "Pending",
   approved: "Active",
@@ -79,7 +90,8 @@ const MEMBER_LABELS: Record<string, string> = {
 
 const COMMUNITY_LABELS: Record<string, string> = {
   pending: "Pending Verification",
-  approved: "Approved",
+  approved: "Verified",
+  verified: "Verified",
   rejected: "Rejected",
 };
 
@@ -106,6 +118,9 @@ export function formatStatus(
   s: string,
   kind?: "job" | "contract" | "application" | "member" | "community" | "identity" | "account"
 ) {
+  if (kind === "contract" && CONTRACT_LABELS[s]) {
+    return CONTRACT_LABELS[s];
+  }
   if (kind === "member" && MEMBER_LABELS[s]) {
     return MEMBER_LABELS[s];
   }
