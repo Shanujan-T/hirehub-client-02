@@ -135,7 +135,7 @@ export function PortalShell({
               {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
             </div>
           </div>
-          <div className="relative z-10 flex-1 p-4 lg:p-8">{children}</div>
+          <div className="relative z-10 flex-1 bg-background p-4 lg:p-8">{children}</div>
         </div>
       </div>
     </div>
