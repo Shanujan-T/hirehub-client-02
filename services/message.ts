@@ -15,3 +15,14 @@ export async function sendContractMessage(contractId: number, content: string): 
   );
   return data.message;
 }
+
+export async function deleteMessageForMe(messageId: number): Promise<void> {
+  await apiClient.delete(`/api/messages/${messageId}/delete-for-me`);
+}
+
+export async function deleteMessageForEveryone(messageId: number): Promise<Message> {
+  const { data } = await apiClient.delete<{ message: Message }>(
+    `/api/messages/${messageId}/delete-for-everyone`
+  );
+  return data.message;
+}
