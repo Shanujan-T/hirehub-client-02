@@ -2,11 +2,11 @@
 
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
-import { AlertTriangle } from "lucide-react";
+import { AlertTriangle, Sparkles } from "lucide-react";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { ImageUploadControl } from "@/components/image-upload-control";
-import { MemberCard } from "@/components/member-card";
+import { MemberCard, sortMembersAdminFirst } from "@/components/member-card";
 import { PortalShell, communityAdminNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge, Button, Card } from "@/components/ui";
@@ -14,16 +14,100 @@ import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { buildFilteredPath } from "@/lib/navigation";
 import { notify } from "@/lib/notify";
-import { getErrorMessage } from "@/lib/utils";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import {
+  analyzeJoinRequestFit,
   getCommunity,
   getCommunityMembers,
   MIN_COMMUNITY_MEMBERS,
   removeCommunityMember,
   uploadCommunityImage,
+  type JoinRequestFitAnalysis,
 } from "@/services/community";
 import type { Community, CommunityMember } from "@/types/community";
+
+function PendingFitPanel({
+  communityId,
+  membership,
+}: {
+  communityId: number;
+  membership: CommunityMember;
+}) {
+  const [loading, setLoading] = useState(false);
+  const [analysis, setAnalysis] = useState<JoinRequestFitAnalysis | null>(null);
+  const [unavailable, setUnavailable] = useState(false);
+  const [opened, setOpened] = useState(false);
+
+  const handleAnalyze = async () => {
+    if (loading) return;
+    setLoading(true);
+    setUnavailable(false);
+    try {
+      const result = await analyzeJoinRequestFit(communityId, membership.user_id);
+      if (!result.available || !result.analysis) {
+        setUnavailable(true);
+        setAnalysis(null);
+      } else {
+        setAnalysis(result.analysis);
+        setOpened(true);
+      }
+    } catch {
+      setUnavailable(true);
+      setAnalysis(null);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <div className="mt-3 space-y-2 border-t border-border/60 pt-3">
+      <Button
+        type="button"
+        variant="outline"
+        size="sm"
+        className="rounded-full"
+        disabled={loading}
+        onClick={() => void handleAnalyze()}
+      >
+        <Sparkles className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+        {loading ? "Analyzing…" : analysis ? "Refresh Fit Analysis" : "Analyze Fit"}
+      </Button>
+
+      {unavailable && (
+        <p className="text-xs text-muted">AI suggestion unavailable — approve or reject as usual.</p>
+      )}
+
+      {opened && analysis && (
+        <div className="space-y-2 rounded-xl border border-secondary/20 bg-secondary/[0.04] p-3 dark:bg-secondary/10">
+          <p className="text-xs font-bold uppercase tracking-wide text-secondary">AI Fit Analysis</p>
+          <p className="text-sm leading-relaxed text-foreground">{analysis.fit_summary}</p>
+          {analysis.new_skills_added.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold text-success">Adds:</span>
+              {analysis.new_skills_added.map((skill) => (
+                <Badge key={`new-${skill}`} variant="completed" className="normal-case">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          )}
+          {analysis.overlap_skills.length > 0 && (
+            <div className="flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold text-info">Overlaps:</span>
+              {analysis.overlap_skills.map((skill) => (
+                <Badge key={`overlap-${skill}`} variant="info" className="normal-case">
+                  {skill}
+                </Badge>
+              ))}
+            </div>
+          )}
+          <p className="text-[11px] text-muted">Assistive only — your Approve/Reject decision is final.</p>
+        </div>
+      )}
+    </div>
+  );
+}
 
 function MyCommunityContent() {
   const { user } = useAuth();
@@ -132,31 +216,49 @@ function MyCommunityContent() {
             <p className="text-muted">No pending join requests.</p>
           ) : (
             pending.map((m) => (
-              <Card key={m.id} className="mb-2 flex flex-wrap items-center justify-between gap-2 p-4">
-                <span>{m.user?.full_name ?? `User #${m.user_id}`}</span>
-                <div className="flex items-center gap-2">
-                  <StatusBadge status="pending" kind="member" />
-                  <Link href={hrefWithReturn(`/community-admin/my-community/pending/${m.id}`)}>
-                    <Button variant="outline" size="sm">
-                      Review Request
-                    </Button>
-                  </Link>
+              <Card key={m.id} className="mb-3 p-4">
+                <div className="flex flex-wrap items-start justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    {m.user ? (
+                      <MemberCard user={m.user} skills={m.user.user_skills} />
+                    ) : (
+                      <span className="font-bold">{`User #${m.user_id}`}</span>
+                    )}
+                  </div>
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    <StatusBadge status="pending" kind="member" />
+                    <Link href={hrefWithReturn(`/community-admin/my-community/pending/${m.id}`)}>
+                      <Button variant="outline" size="sm">
+                        Review Request
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
+                {communityId && <PendingFitPanel communityId={communityId} membership={m} />}
               </Card>
             ))
           )
         ) : members.length === 0 ? (
           <p className="text-muted">No approved members yet.</p>
         ) : (
-          members.map((m) => {
+          sortMembersAdminFirst(members).map((m) => {
             const isSelf = m.user_id === user?.id;
+            const isAdmin = m.role === "admin";
             return (
-              <Card key={m.id} className="mb-3 p-4">
+              <Card
+                key={m.id}
+                className={cn(
+                  "mb-3 p-4",
+                  isAdmin &&
+                    "border-secondary/40 bg-secondary/[0.04] dark:border-secondary/50 dark:bg-secondary/10"
+                )}
+              >
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     {m.user ? (
                       <MemberCard
                         user={m.user}
+                        role={m.role}
                         nameHref={hrefWithReturn(
                           communityMemberDetailPath(communityId!, m.id, "admin")
                         )}
@@ -166,11 +268,7 @@ function MyCommunityContent() {
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
-                    {m.role === "admin" ? (
-                      <Badge variant="active">Admin</Badge>
-                    ) : (
-                      <StatusBadge status="approved" kind="member" />
-                    )}
+                    {isAdmin ? null : <StatusBadge status="approved" kind="member" />}
                     {!isSelf && (
                       <Button
                         variant="outline"

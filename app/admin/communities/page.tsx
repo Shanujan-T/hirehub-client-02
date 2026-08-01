@@ -7,10 +7,10 @@ import { AuthenticatedRoute } from "@/components/auth-guard";
 import { PortalShell, adminNav } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
-import { MemberCard } from "@/components/member-card";
+import { MemberCard, sortMembersAdminFirst } from "@/components/member-card";
+import { cn, getErrorMessage } from "@/lib/utils";
 import { Button, Card, Label, Textarea } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
-import { getErrorMessage } from "@/lib/utils";
 import { getCommunities, getCommunity, verifyCommunity } from "@/services/community";
 import type { Community } from "@/types/community";
 
@@ -125,10 +125,17 @@ function CommunityReviewCard({
             <p className="font-medium">{memberCountLabel(memberCount)}</p>
             {data.members && data.members.length > 0 ? (
               <div className="space-y-2">
-                {data.members.map((membership) =>
+                {sortMembersAdminFirst(data.members).map((membership) =>
                   membership.user ? (
-                    <Card key={membership.id} className="p-3">
-                      <MemberCard user={membership.user} />
+                    <Card
+                      key={membership.id}
+                      className={cn(
+                        "p-3",
+                        membership.role === "admin" &&
+                          "border-secondary/40 bg-secondary/[0.04] dark:border-secondary/50 dark:bg-secondary/10"
+                      )}
+                    >
+                      <MemberCard user={membership.user} role={membership.role} />
                     </Card>
                   ) : (
                     <Card key={membership.id} className="p-3">
