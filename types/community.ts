@@ -3,7 +3,6 @@ import type { Skill } from "./job";
 import type { User } from "./user";
 
 export type CommunityStatus = "pending" | "approved" | "rejected";
-export type CommunityVerificationStatus = "pending" | "verified" | "rejected";
 export type ExperienceLevel = "less_than_1_year" | "1_to_3_years" | "3_plus_years";
 
 export interface Community {
@@ -19,8 +18,6 @@ export interface Community {
   admin_bio?: string | null;
   contact_phone?: string | null;
   status: CommunityStatus;
-  /** Alias of status in verification terms: pending | verified | rejected */
-  verification_status?: CommunityVerificationStatus;
   rejection_reason?: string | null;
   reputation_score: number;
   created_at: string;
@@ -40,7 +37,14 @@ export interface CommunityMember {
   user?: User;
   community?: Pick<
     Community,
-    "id" | "name" | "status" | "rejection_reason" | "category" | "experience_level"
+    | "id"
+    | "name"
+    | "status"
+    | "rejection_reason"
+    | "category"
+    | "experience_level"
+    | "location"
+    | "image_url"
   >;
 }
 
