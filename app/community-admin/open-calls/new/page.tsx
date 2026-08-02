@@ -6,7 +6,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { openCallSchema, type OpenCallForm } from "@/lib/schemas";
 import { getErrorMessage } from "@/lib/utils";
@@ -46,9 +46,8 @@ export default function NewOpenCallPage() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell
+      <DashboardPortalShell
         title="New Open Call"
-        navItems={communityAdminNav}
         backHref="/community-admin/open-calls"
         backLabel="Back to open calls"
       >
@@ -76,7 +75,7 @@ export default function NewOpenCallPage() {
             <Button type="submit" variant="gradient" disabled={isSubmitting} className="rounded-full">Create Open Call</Button>
           </form>
         </Card>
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
