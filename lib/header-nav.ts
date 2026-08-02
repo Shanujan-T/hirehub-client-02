@@ -13,7 +13,7 @@ export type NavDuplicateFlag = {
   note: string;
 };
 
-/** Logged-in main portal header (lg+). My Jobs and My Communities live in the sidebar only. */
+/** Logged-in main portal header (lg+). Shared across /dashboard and /community-admin. My Jobs and My Communities live in the sidebar only. */
 export const MAIN_PORTAL_HEADER_NAV: HeaderNavLink[] = [
   { href: "/dashboard", label: "Dashboard" },
   { href: "/communities", label: "Communities" },
