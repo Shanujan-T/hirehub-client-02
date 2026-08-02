@@ -5,7 +5,6 @@ import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { DashboardPortalShell } from "@/components/portal-shell";
@@ -14,7 +13,7 @@ import { Button, Card, Input, Label, Textarea } from "@/components/ui";
 import { jobBidSchema, type JobBidForm } from "@/lib/schemas";
 import { buildFilteredPath } from "@/lib/navigation";
 import { getErrorMessage } from "@/lib/utils";
-import { applyToJob, getJob, suggestBid } from "@/services/job";
+import { applyToJob, getJob } from "@/services/job";
 import type { Job } from "@/types/job";
 
 function ApplyToJobContent() {
@@ -24,9 +23,6 @@ function ApplyToJobContent() {
   const { communityId } = useCommunityAdmin();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
-  const [aiLoading, setAiLoading] = useState(false);
-  const [aiReasoning, setAiReasoning] = useState<string | null>(null);
-  const [aiUnavailable, setAiUnavailable] = useState(false);
 
   const jobDetailHref = `/community-admin/jobs/${jobId}`;
   const jobsListHref = buildFilteredPath("/community-admin/jobs", {});
@@ -34,7 +30,6 @@ function ApplyToJobContent() {
   const {
     register,
     handleSubmit,
-    setValue,
     formState: { errors, isSubmitting },
   } = useForm<JobBidForm>({
     resolver: zodResolver(jobBidSchema),
@@ -46,29 +41,6 @@ function ApplyToJobContent() {
       .catch(() => toast.error("Failed to load job"))
       .finally(() => setLoading(false));
   }, [jobId]);
-
-  const handleSuggest = async () => {
-    if (!communityId || aiLoading) return;
-    setAiLoading(true);
-    setAiUnavailable(false);
-    try {
-      const suggestion = await suggestBid(jobId, communityId);
-      if (!suggestion) {
-        setAiUnavailable(true);
-        setAiReasoning(null);
-        return;
-      }
-      setValue("proposed_cost", suggestion.suggested_cost, { shouldValidate: true });
-      setValue("proposed_days", suggestion.suggested_days, { shouldValidate: true });
-      setAiReasoning(suggestion.reasoning);
-      toast.success("AI suggestion applied — adjust before submitting");
-    } catch (err) {
-      setAiUnavailable(true);
-      toast.error(getErrorMessage(err, "AI suggestion unavailable"));
-    } finally {
-      setAiLoading(false);
-    }
-  };
 
   const onSubmit = async (data: JobBidForm) => {
     if (!communityId) return;
@@ -104,25 +76,6 @@ function ApplyToJobContent() {
             <p className="mt-2 text-sm text-muted">
               Client asking price: <span className="font-semibold text-foreground">${job.final_price}</span>
             </p>
-          </div>
-
-          <div className="rounded-xl border border-border/70 bg-background/40 p-3">
-            <Button
-              type="button"
-              variant="outline"
-              className="rounded-full"
-              disabled={aiLoading || !communityId}
-              onClick={handleSuggest}
-            >
-              <Sparkles className="mr-2 h-4 w-4" aria-hidden />
-              {aiLoading ? "Suggesting…" : "Suggest with AI"}
-            </Button>
-            {aiReasoning && (
-              <p className="mt-2 text-sm text-muted">{aiReasoning}</p>
-            )}
-            {aiUnavailable && (
-              <p className="mt-2 text-xs text-muted">AI suggestion unavailable — enter your bid manually.</p>
-            )}
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
