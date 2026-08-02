@@ -4,7 +4,7 @@ import { Suspense } from "react";
 import { useParams } from "next/navigation";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { CommunityMemberDetailView } from "@/components/community-member-detail-view";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { LoadingState } from "@/components/page-states";
 import { buildFilteredPath } from "@/lib/navigation";
 
@@ -16,10 +16,9 @@ function MemberDetailContent() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell
+      <DashboardPortalShell
         title="Member Profile"
         subtitle="Community member details"
-        navItems={communityAdminNav}
         backHref={membersListHref}
         backLabel="Back to members"
       >
@@ -32,7 +31,7 @@ function MemberDetailContent() {
         ) : (
           <LoadingState />
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
