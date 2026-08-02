@@ -6,7 +6,7 @@ import { useCallback } from "react";
 import { toast } from "sonner";
 import { CommunityAdminRoute } from "@/components/community-admin-route";
 import { MemberCard } from "@/components/member-card";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
@@ -47,10 +47,9 @@ function SelectMemberContent() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell
+      <DashboardPortalShell
         title="Select Member"
         subtitle="contract_application → one member"
-        navItems={communityAdminNav}
         backHref={`/community-admin/contracts/${contractId}`}
         backLabel="Back to contract"
       >
@@ -91,7 +90,7 @@ function SelectMemberContent() {
             </div>
           ))
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
