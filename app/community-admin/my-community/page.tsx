@@ -2,115 +2,44 @@
 
 import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
-import { AlertTriangle, Sparkles } from "lucide-react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { AlertTriangle, Pencil, X } from "lucide-react";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { ImageUploadControl } from "@/components/image-upload-control";
-import { MemberCard, sortMembersAdminFirst } from "@/components/member-card";
+import { MemberCard } from "@/components/member-card";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button, Card, Input, Label, Textarea } from "@/components/ui";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { buildFilteredPath } from "@/lib/navigation";
 import { notify } from "@/lib/notify";
-import { cn, getErrorMessage } from "@/lib/utils";
+import { editCommunitySchema, type EditCommunityForm } from "@/lib/schemas";
+import { getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import {
-  analyzeJoinRequestFit,
   getCommunity,
   getCommunityMembers,
   MIN_COMMUNITY_MEMBERS,
   removeCommunityMember,
+  updateCommunity,
   uploadCommunityImage,
-  type JoinRequestFitAnalysis,
 } from "@/services/community";
 import type { Community, CommunityMember } from "@/types/community";
 
-function PendingFitPanel({
-  communityId,
-  membership,
-}: {
-  communityId: number;
-  membership: CommunityMember;
-}) {
-  const [loading, setLoading] = useState(false);
-  const [analysis, setAnalysis] = useState<JoinRequestFitAnalysis | null>(null);
-  const [unavailable, setUnavailable] = useState(false);
-  const [opened, setOpened] = useState(false);
-
-  const handleAnalyze = async () => {
-    if (loading) return;
-    setLoading(true);
-    setUnavailable(false);
-    try {
-      const result = await analyzeJoinRequestFit(communityId, membership.user_id);
-      if (!result.available || !result.analysis) {
-        setUnavailable(true);
-        setAnalysis(null);
-      } else {
-        setAnalysis(result.analysis);
-        setOpened(true);
-      }
-    } catch {
-      setUnavailable(true);
-      setAnalysis(null);
-    } finally {
-      setLoading(false);
-    }
-  };
-
+function DetailField({ label, value }: { label: string; value: string }) {
   return (
-    <div className="mt-3 space-y-2 border-t border-border/60 pt-3">
-      <Button
-        type="button"
-        variant="outline"
-        size="sm"
-        className="rounded-full"
-        disabled={loading}
-        onClick={() => void handleAnalyze()}
-      >
-        <Sparkles className="mr-1.5 h-3.5 w-3.5" aria-hidden />
-        {loading ? "Analyzing…" : analysis ? "Refresh Fit Analysis" : "Analyze Fit"}
-      </Button>
-
-      {unavailable && (
-        <p className="text-xs text-muted">AI suggestion unavailable — approve or reject as usual.</p>
-      )}
-
-      {opened && analysis && (
-        <div className="space-y-2 rounded-xl border border-secondary/20 bg-secondary/[0.04] p-3 dark:bg-secondary/10">
-          <p className="text-xs font-bold uppercase tracking-wide text-secondary">AI Fit Analysis</p>
-          <p className="text-sm leading-relaxed text-foreground">{analysis.fit_summary}</p>
-          {analysis.new_skills_added.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-semibold text-success">Adds:</span>
-              {analysis.new_skills_added.map((skill) => (
-                <Badge key={`new-${skill}`} variant="completed" className="normal-case">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          )}
-          {analysis.overlap_skills.length > 0 && (
-            <div className="flex flex-wrap items-center gap-1.5">
-              <span className="text-xs font-semibold text-info">Overlaps:</span>
-              {analysis.overlap_skills.map((skill) => (
-                <Badge key={`overlap-${skill}`} variant="info" className="normal-case">
-                  {skill}
-                </Badge>
-              ))}
-            </div>
-          )}
-          <p className="text-[11px] text-muted">Assistive only — your Approve/Reject decision is final.</p>
-        </div>
-      )}
+    <div className="space-y-1">
+      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
+      <p className="whitespace-pre-wrap text-sm text-foreground">{value}</p>
     </div>
   );
 }
 
 function MyCommunityContent() {
-  const { user } = useAuth();
+  const { user, updateUser, refreshUser } = useAuth();
   const { communityId } = useCommunityAdmin();
   const { hrefWithReturn, getFilter } = useListNavigation();
   const tab = getFilter("tab", "members");
@@ -118,10 +47,35 @@ function MyCommunityContent() {
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [pending, setPending] = useState<CommunityMember[]>([]);
   const [removingId, setRemovingId] = useState<number | null>(null);
+  const [editingDetails, setEditingDetails] = useState(true);
   const [uploadingImage, setUploadingImage] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  const {
+    register,
+    handleSubmit,
+    reset,
+    formState: { errors, isDirty },
+  } = useForm<EditCommunityForm>({
+    resolver: zodResolver(editCommunitySchema),
+    defaultValues: {
+      name: "",
+      description: "",
+      location: "",
+    },
+  });
+
+  const formValuesFromCommunity = (next: Community): EditCommunityForm => ({
+    name: next.name,
+    description: next.description ?? "",
+    location: next.location ?? "",
+  });
 
   const reload = async (cid: number) => {
-    setCommunity(await getCommunity(cid));
+    const next = await getCommunity(cid);
+    setCommunity(next);
+    reset(formValuesFromCommunity(next));
+    setEditingDetails(false);
     setMembers(await getCommunityMembers(cid, "approved"));
     setPending(await getCommunityMembers(cid, "pending"));
   };
@@ -129,6 +83,34 @@ function MyCommunityContent() {
   useEffect(() => {
     if (communityId) reload(communityId).catch(() => notify.error("Failed to load members"));
   }, [communityId]);
+
+  const syncAuthCommunity = (updated: Community) => {
+    if (!user?.community_memberships) return;
+    updateUser({
+      ...user,
+      community_memberships: user.community_memberships.map((membership) => {
+        if (membership.community_id !== updated.id) return membership;
+        return {
+          ...membership,
+          community: {
+            ...(membership.community ?? {
+              id: updated.id,
+              name: updated.name,
+              status: updated.status,
+            }),
+            id: updated.id,
+            name: updated.name,
+            status: updated.status,
+            rejection_reason: updated.rejection_reason,
+            category: updated.category,
+            experience_level: updated.experience_level,
+            location: updated.location,
+            image_url: updated.image_url,
+          },
+        };
+      }),
+    });
+  };
 
   const handleRemove = async (member: CommunityMember) => {
     const name = member.user?.full_name ?? `User #${member.user_id}`;
@@ -146,8 +128,40 @@ function MyCommunityContent() {
     }
   };
 
-  const pendingListHref = buildFilteredPath("/community-admin/my-community", { tab: "pending" });
-  const belowMinimum = tab === "members" && members.length < MIN_COMMUNITY_MEMBERS;
+  const startEditing = () => {
+    if (!community) return;
+    reset(formValuesFromCommunity(community));
+    setEditingDetails(true);
+  };
+
+  const cancelEditing = () => {
+    if (!community) return;
+    reset(formValuesFromCommunity(community));
+    setEditingDetails(false);
+  };
+
+  const onSaveDetails = async (data: EditCommunityForm) => {
+    if (!communityId) return;
+    setSaving(true);
+    try {
+      const updated = await updateCommunity(communityId, {
+        name: data.name.trim(),
+        description: data.description?.trim() || null,
+        location: data.location.trim(),
+      });
+
+      setCommunity(updated);
+      reset(formValuesFromCommunity(updated));
+      setEditingDetails(false);
+      syncAuthCommunity(updated);
+      void refreshUser();
+      notify.success("Community details saved");
+    } catch (err) {
+      notify.error(getErrorMessage(err, "Failed to save community details"));
+    } finally {
+      setSaving(false);
+    }
+  };
 
   const handleCommunityImageUpload = async (file: File) => {
     if (!communityId) return;
@@ -155,6 +169,8 @@ function MyCommunityContent() {
     try {
       const updated = await uploadCommunityImage(communityId, file);
       setCommunity(updated);
+      syncAuthCommunity(updated);
+      void refreshUser();
       notify.success("Community image updated");
     } catch (err) {
       notify.error(getErrorMessage(err, "Failed to upload community image"));
@@ -164,11 +180,112 @@ function MyCommunityContent() {
     }
   };
 
+  const pendingListHref = buildFilteredPath("/community-admin/my-community", { tab: "pending" });
+  const belowMinimum = tab === "members" && members.length < MIN_COMMUNITY_MEMBERS;
+
   return (
     <CommunityAdminRoute>
       <DashboardPortalShell title="My Community" subtitle="Approve or reject join requests">
         {community && (
-          <Card className="mb-6">
+          <Card className="mb-6 space-y-5">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="text-lg font-bold text-foreground">Community Details</h2>
+                <p className="text-sm text-muted">
+                  {editingDetails
+                    ? "Edit how your community appears and where it matches jobs."
+                    : "How your community appears and where it matches jobs."}
+                </p>
+              </div>
+              <div className="flex shrink-0 items-center gap-2">
+                {community.status && <StatusBadge status={community.status} kind="community" />}
+                {editingDetails ? (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    aria-label="Cancel editing"
+                    onClick={cancelEditing}
+                    disabled={saving}
+                  >
+                    <X className="h-4 w-4" aria-hidden />
+                    <span className="ml-1.5">Cancel</span>
+                  </Button>
+                ) : (
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    aria-label="Edit community details"
+                    onClick={startEditing}
+                  >
+                    <Pencil className="h-4 w-4" aria-hidden />
+                  </Button>
+                )}
+              </div>
+            </div>
+
+            {editingDetails ? (
+              <form onSubmit={handleSubmit(onSaveDetails)} className="space-y-5">
+                <div className="space-y-2">
+                  <Label htmlFor="community-name">Name</Label>
+                  <Input id="community-name" {...register("name")} autoComplete="organization" />
+                  {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="community-description">Description</Label>
+                  <Textarea
+                    id="community-description"
+                    rows={4}
+                    placeholder="Optional — what your community does best"
+                    {...register("description")}
+                  />
+                  {errors.description && (
+                    <p className="text-xs text-destructive">{errors.description.message}</p>
+                  )}
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="community-location">Location</Label>
+                  <Input
+                    id="community-location"
+                    placeholder="City or region"
+                    {...register("location")}
+                  />
+                  {errors.location && (
+                    <p className="text-xs text-destructive">{errors.location.message}</p>
+                  )}
+                  <p className="text-xs text-muted">
+                    Changing location may affect which jobs your community is matched to.
+                  </p>
+                </div>
+
+                <Button
+                  type="submit"
+                  variant="gradient"
+                  className="rounded-full"
+                  disabled={saving || !isDirty}
+                >
+                  {saving ? "Saving…" : "Save Changes"}
+                </Button>
+              </form>
+            ) : (
+              <div className="space-y-4">
+                <DetailField label="Name" value={community.name} />
+                <DetailField
+                  label="Description"
+                  value={community.description?.trim() || "No description yet."}
+                />
+                <DetailField
+                  label="Location"
+                  value={community.location?.trim() || "No location set."}
+                />
+              </div>
+            )}
+
             <ImageUploadControl
               label="Community image"
               shape="rounded"
@@ -216,49 +333,31 @@ function MyCommunityContent() {
             <p className="text-muted">No pending join requests.</p>
           ) : (
             pending.map((m) => (
-              <Card key={m.id} className="mb-3 p-4">
-                <div className="flex flex-wrap items-start justify-between gap-3">
-                  <div className="min-w-0 flex-1">
-                    {m.user ? (
-                      <MemberCard user={m.user} skills={m.user.user_skills} />
-                    ) : (
-                      <span className="font-bold">{`User #${m.user_id}`}</span>
-                    )}
-                  </div>
-                  <div className="flex shrink-0 flex-wrap items-center gap-2">
-                    <StatusBadge status="pending" kind="member" />
-                    <Link href={hrefWithReturn(`/community-admin/my-community/pending/${m.id}`)}>
-                      <Button variant="outline" size="sm">
-                        Review Request
-                      </Button>
-                    </Link>
-                  </div>
+              <Card key={m.id} className="mb-2 flex flex-wrap items-center justify-between gap-2 p-4">
+                <span>{m.user?.full_name ?? `User #${m.user_id}`}</span>
+                <div className="flex items-center gap-2">
+                  <StatusBadge status="pending" kind="member" />
+                  <Link href={hrefWithReturn(`/community-admin/my-community/pending/${m.id}`)}>
+                    <Button variant="outline" size="sm">
+                      Review Request
+                    </Button>
+                  </Link>
                 </div>
-                {communityId && <PendingFitPanel communityId={communityId} membership={m} />}
               </Card>
             ))
           )
         ) : members.length === 0 ? (
           <p className="text-muted">No approved members yet.</p>
         ) : (
-          sortMembersAdminFirst(members).map((m) => {
+          members.map((m) => {
             const isSelf = m.user_id === user?.id;
-            const isAdmin = m.role === "admin";
             return (
-              <Card
-                key={m.id}
-                className={cn(
-                  "mb-3 p-4",
-                  isAdmin &&
-                    "border-secondary/40 bg-secondary/[0.04] dark:border-secondary/50 dark:bg-secondary/10"
-                )}
-              >
+              <Card key={m.id} className="mb-3 p-4">
                 <div className="flex flex-wrap items-start justify-between gap-4">
                   <div className="min-w-0 flex-1">
                     {m.user ? (
                       <MemberCard
                         user={m.user}
-                        role={m.role}
                         nameHref={hrefWithReturn(
                           communityMemberDetailPath(communityId!, m.id, "admin")
                         )}
@@ -268,7 +367,11 @@ function MyCommunityContent() {
                     )}
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-2">
-                    {isAdmin ? null : <StatusBadge status="approved" kind="member" />}
+                    {m.role === "admin" ? (
+                      <Badge variant="active">Admin</Badge>
+                    ) : (
+                      <StatusBadge status="approved" kind="member" />
+                    )}
                     {!isSelf && (
                       <Button
                         variant="outline"
