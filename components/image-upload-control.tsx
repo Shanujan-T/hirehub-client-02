@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -23,13 +23,17 @@ export function ImageUploadControl({
   previewUrl,
   fallback,
   onUpload,
+  onSelect,
   uploading = false,
   shape = "circle",
 }: {
   label: string;
   previewUrl?: string | null;
   fallback: React.ReactNode;
-  onUpload: (file: File) => Promise<void>;
+  /** Immediate upload (existing behavior). Ignored when `onSelect` is provided. */
+  onUpload?: (file: File) => Promise<void>;
+  /** Deferred select — keeps a local preview; parent submits later. */
+  onSelect?: (file: File) => void;
   uploading?: boolean;
   shape?: "circle" | "rounded";
 }) {
@@ -37,6 +41,19 @@ export function ImageUploadControl({
   const [dragOver, setDragOver] = useState(false);
   const [localPreview, setLocalPreview] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    setLocalPreview((prev) => {
+      if (prev) URL.revokeObjectURL(prev);
+      return null;
+    });
+  }, [previewUrl]);
+
+  useEffect(() => {
+    return () => {
+      if (localPreview) URL.revokeObjectURL(localPreview);
+    };
+  }, [localPreview]);
 
   const displayUrl = localPreview ?? previewUrl ?? null;
 
@@ -51,6 +68,13 @@ export function ImageUploadControl({
     setError(null);
     const objectUrl = URL.createObjectURL(file);
     setLocalPreview(objectUrl);
+
+    if (onSelect) {
+      onSelect(file);
+      return;
+    }
+
+    if (!onUpload) return;
     try {
       await onUpload(file);
     } finally {
