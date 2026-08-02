@@ -28,6 +28,12 @@ export const createCommunitySchema = z.object({
   }),
 });
 
+export const editCommunitySchema = z.object({
+  name: z.string().trim().min(1, "Community name is required"),
+  description: z.string().optional(),
+  location: z.string().trim().min(1, "Location is required"),
+});
+
 export const createJobSchema = z.object({
   category_id: z.coerce.number().min(1, "Category required"),
   title: z.string().min(3),
@@ -67,6 +73,7 @@ export const categorySchema = z.object({
 export type LoginForm = z.infer<typeof loginSchema>;
 export type RegisterForm = z.infer<typeof registerSchema>;
 export type CreateCommunityForm = z.infer<typeof createCommunitySchema>;
+export type EditCommunityForm = z.infer<typeof editCommunitySchema>;
 export type CreateJobForm = z.infer<typeof createJobSchema>;
 export type JobBidForm = z.infer<typeof jobBidSchema>;
 export type OpenCallForm = z.infer<typeof openCallSchema>;
