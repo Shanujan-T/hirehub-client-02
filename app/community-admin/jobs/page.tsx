@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { AlertTriangle } from "lucide-react";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Badge, Button, Card, Input, Label } from "@/components/ui";
@@ -131,7 +131,7 @@ function JobsBrowseContent() {
   const loading = eligibilityLoading || (!blockReason && jobsLoading);
 
   return (
-    <PortalShell title="Browse Jobs" subtitle="Submit a bid for open jobs" navItems={communityAdminNav}>
+    <DashboardPortalShell title="Browse Jobs" subtitle="Submit a bid for open jobs">
       {community && (
         <p className="mb-4 text-sm text-muted">
           Browsing as <span className="font-semibold text-foreground">{community.name}</span>
@@ -284,7 +284,7 @@ function JobsBrowseContent() {
           )}
         </>
       )}
-    </PortalShell>
+    </DashboardPortalShell>
   );
 }
 
