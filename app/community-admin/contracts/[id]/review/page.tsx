@@ -5,7 +5,7 @@ import { useParams } from "next/navigation";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { CommunityAdminRoute } from "@/components/community-admin-route";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
 import { useAsyncItem } from "@/lib/hooks/use-async";
@@ -57,10 +57,9 @@ function ReviewDeliverableContent() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell
+      <DashboardPortalShell
         title="Review Deliverable"
         subtitle="QA before client sees it"
-        navItems={communityAdminNav}
         backHref={`/community-admin/contracts/${contractId}`}
         backLabel="Back to contract"
       >
@@ -127,7 +126,7 @@ function ReviewDeliverableContent() {
             )}
           </div>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
