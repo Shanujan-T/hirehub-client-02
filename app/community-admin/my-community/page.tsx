@@ -7,6 +7,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Pencil, X } from "lucide-react";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { CommunityAvatar } from "@/components/community-avatar";
+import { CommunityDetailField } from "@/components/community-detail-field";
 import { ImageUploadControl } from "@/components/image-upload-control";
 import { MemberCard } from "@/components/member-card";
 import { DashboardPortalShell } from "@/components/portal-shell";
@@ -28,15 +29,6 @@ import {
   uploadCommunityImage,
 } from "@/services/community";
 import type { Community, CommunityMember } from "@/types/community";
-
-function DetailField({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="space-y-1">
-      <p className="text-xs font-semibold uppercase tracking-wide text-muted">{label}</p>
-      <p className="whitespace-pre-wrap text-sm text-foreground">{value}</p>
-    </div>
-  );
-}
 
 function MyCommunityContent() {
   const { user, updateUser, refreshUser } = useAuth();
@@ -274,12 +266,12 @@ function MyCommunityContent() {
               </form>
             ) : (
               <div className="space-y-4">
-                <DetailField label="Name" value={community.name} />
-                <DetailField
+                <CommunityDetailField label="Name" value={community.name} />
+                <CommunityDetailField
                   label="Description"
                   value={community.description?.trim() || "No description yet."}
                 />
-                <DetailField
+                <CommunityDetailField
                   label="Location"
                   value={community.location?.trim() || "No location set."}
                 />
