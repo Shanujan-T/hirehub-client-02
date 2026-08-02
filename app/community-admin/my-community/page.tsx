@@ -7,7 +7,7 @@ import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-a
 import { CommunityAvatar } from "@/components/community-avatar";
 import { ImageUploadControl } from "@/components/image-upload-control";
 import { MemberCard, sortMembersAdminFirst } from "@/components/member-card";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge, Button, Card } from "@/components/ui";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
@@ -166,7 +166,7 @@ function MyCommunityContent() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell title="My Community" subtitle="Approve or reject join requests" navItems={communityAdminNav}>
+      <DashboardPortalShell title="My Community" subtitle="Approve or reject join requests">
         {community && (
           <Card className="mb-6">
             <ImageUploadControl
@@ -286,7 +286,7 @@ function MyCommunityContent() {
             );
           })
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
