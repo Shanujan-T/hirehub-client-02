@@ -24,14 +24,14 @@ export const MAIN_PORTAL_HEADER_NAV: HeaderNavLink[] = [
  * Update when changing either nav; do not assume header is always trimmed.
  */
 export function getHeaderSidebarDuplicates(context: "main" | "community-admin" | "admin"): NavDuplicateFlag[] {
-  if (context === "main") {
+  if (context === "main" || context === "community-admin") {
     return [
       {
         href: "/dashboard",
         headerLabel: "Dashboard",
         sidebarLabel: "Dashboard",
         resolution: "keep-both",
-        note: "Intentional: header for quick wayfinding, sidebar for full IA and mobile drawer.",
+        note: "Intentional: header for quick wayfinding, sidebar for full IA and mobile drawer. Same header on /dashboard and /community-admin/*.",
       },
       {
         href: "/member/communities",
@@ -49,27 +49,8 @@ export function getHeaderSidebarDuplicates(context: "main" | "community-admin" |
         href: "/community-admin/jobs",
         headerLabel: "Job marketplace",
         sidebarLabel: "Browse Jobs",
-        resolution: "review",
-        note: "Same destination when user admins a community; header link is conditional, sidebar uses community-admin section.",
-      },
-    ];
-  }
-
-  if (context === "community-admin") {
-    return [
-      {
-        href: "/community-admin/dashboard",
-        headerLabel: "Dashboard",
-        sidebarLabel: "Dashboard",
-        resolution: "review",
-        note: "Community-admin pages use communityAdminNav in the sidebar; header repeats key destinations.",
-      },
-      {
-        href: "/community-admin/jobs",
-        headerLabel: "Browse Jobs",
-        sidebarLabel: "Browse Jobs",
-        resolution: "review",
-        note: "Same label and href in header and sidebar on community-admin routes.",
+        resolution: "keep-both",
+        note: "Same destination; header uses Job marketplace, sidebar uses Browse Jobs. Shown when user admins a community.",
       },
     ];
   }
@@ -103,13 +84,6 @@ export function getHeaderNavLinks(pathname: string, role: UserRole): HeaderNavLi
     ];
   }
 
-  if (pathname.startsWith("/community-admin")) {
-    return [
-      { href: "/community-admin/dashboard", label: "Dashboard" },
-      { href: "/community-admin/jobs", label: "Browse Jobs" },
-      { href: "/communities", label: "Communities" },
-    ];
-  }
-
+  // /dashboard and /community-admin/* share the same top nav
   return MAIN_PORTAL_HEADER_NAV;
 }
