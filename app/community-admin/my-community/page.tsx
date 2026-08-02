@@ -47,7 +47,7 @@ function MyCommunityContent() {
   const [members, setMembers] = useState<CommunityMember[]>([]);
   const [pending, setPending] = useState<CommunityMember[]>([]);
   const [removingId, setRemovingId] = useState<number | null>(null);
-  const [editingDetails, setEditingDetails] = useState(true);
+  const [editingDetails, setEditingDetails] = useState(false);
   const [uploadingImage, setUploadingImage] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -260,7 +260,6 @@ function MyCommunityContent() {
                   )}
                   <p className="text-xs text-muted">
                     Changing location may affect which jobs your community is matched to.
-
                   </p>
                 </div>
 
