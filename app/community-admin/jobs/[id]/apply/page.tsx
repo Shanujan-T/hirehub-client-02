@@ -8,7 +8,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { LoadingState } from "@/components/page-states";
 import { Button, Card, Input, Label, Textarea } from "@/components/ui";
 import { jobBidSchema, type JobBidForm } from "@/lib/schemas";
@@ -88,10 +88,9 @@ function ApplyToJobContent() {
   };
 
   return (
-    <PortalShell
+    <DashboardPortalShell
       title="Submit Bid"
       subtitle={job?.title ?? "Community job application"}
-      navItems={communityAdminNav}
       backHref={jobDetailHref}
       backLabel="Back to job"
     >
@@ -180,7 +179,7 @@ function ApplyToJobContent() {
           </form>
         </Card>
       )}
-    </PortalShell>
+    </DashboardPortalShell>
   );
 }
 
