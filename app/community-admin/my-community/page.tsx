@@ -260,6 +260,7 @@ function MyCommunityContent() {
                   )}
                   <p className="text-xs text-muted">
                     Changing location may affect which jobs your community is matched to.
+
                   </p>
                 </div>
 
