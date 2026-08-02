@@ -7,7 +7,7 @@ import { useCallback } from "react";
 import { CommunityAdminRoute } from "@/components/community-admin-route";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { ContractProgressBar } from "@/components/contract-progress-bar";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
@@ -23,9 +23,8 @@ function ContractDetailContent() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell
+      <DashboardPortalShell
         title="Contract Details"
-        navItems={communityAdminNav}
         backHref="/community-admin/contracts"
         backLabel="Back to contracts"
       >
@@ -72,7 +71,7 @@ function ContractDetailContent() {
             </div>
           </Card>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
