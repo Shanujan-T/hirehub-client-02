@@ -79,7 +79,7 @@ export function Badge({
 }) {
   const variants = {
     default: "bg-border/60 text-foreground",
-    pending: "bg-amber-500/15 font-bold text-amber-800 dark:bg-amber-400/15 dark:text-amber-300",
+    pending: "bg-gray-500/10 font-bold text-gray-600 dark:text-gray-400",
     open: "bg-info/10 font-bold text-info",
     active: "bg-secondary/10 font-bold text-secondary",
     completed: "bg-success/10 font-bold text-success",
