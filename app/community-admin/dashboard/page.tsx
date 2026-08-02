@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Card } from "@/components/ui";
 import { getCommunity } from "@/services/community";
@@ -31,7 +31,7 @@ export default function CommunityAdminDashboardPage() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell title="Community Admin" subtitle="Manage jobs, contracts, and members" navItems={communityAdminNav}>
+      <DashboardPortalShell title="Community Admin" subtitle="Manage jobs, contracts, and members">
         {community && (
           <Card className="mb-6 border-secondary/20 bg-secondary/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
@@ -74,7 +74,7 @@ export default function CommunityAdminDashboardPage() {
             ))}
           </div>
         </div>
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
