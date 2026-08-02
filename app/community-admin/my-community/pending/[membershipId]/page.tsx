@@ -7,7 +7,7 @@ import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { MemberCard } from "@/components/member-card";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { LoadingState } from "@/components/page-states";
 import { Badge, Button, Card } from "@/components/ui";
 import { buildFilteredPath } from "@/lib/navigation";
@@ -84,10 +84,9 @@ function MembershipReviewContent() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell
+      <DashboardPortalShell
         title="Review Join Request"
         subtitle="Verify applicant skills before approving membership"
-        navItems={communityAdminNav}
         backHref={pendingListHref}
         backLabel="Back to pending requests"
       >
@@ -158,7 +157,7 @@ function MembershipReviewContent() {
             </div>
           </Card>
         )}
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
