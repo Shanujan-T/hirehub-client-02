@@ -3,6 +3,7 @@
 import { Suspense } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { ApplyOpenCallDialog } from "@/components/apply-open-call-dialog";
 import { BackButton } from "@/components/back-button";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { MemberCardPanel, sortMembersAdminFirst } from "@/components/member-card";
@@ -15,7 +16,13 @@ import { appendReturnTo } from "@/lib/navigation";
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
-import { getCommunity, getMyMemberships, getOpenCalls, joinCommunity } from "@/services/community";
+import {
+  applyToOpenCall,
+  getCommunity,
+  getMyMemberships,
+  getOpenCalls,
+  joinCommunity,
+} from "@/services/community";
 import type { CommunityMember, OpenCall } from "@/types/community";
 import { AlertTriangle } from "lucide-react";
 
@@ -29,9 +36,16 @@ function CommunityDetailContent() {
   const [membership, setMembership] = useState<CommunityMember | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinSent, setJoinSent] = useState(false);
+  const [applyTarget, setApplyTarget] = useState<OpenCall | null>(null);
+  const [applySubmitting, setApplySubmitting] = useState(false);
+  const [appliedOpenCallIds, setAppliedOpenCallIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
-    if (id) getOpenCalls(id).then(setOpenCalls).catch(() => {});
+    if (id) {
+      getOpenCalls(id, { status: "open" })
+        .then(setOpenCalls)
+        .catch(() => {});
+    }
   }, [id]);
 
   useEffect(() => {
@@ -44,6 +58,9 @@ function CommunityDetailContent() {
         const match = memberships.find((m) => m.community_id === id) ?? null;
         setMembership(match);
         if (match?.status === "pending") setJoinSent(true);
+        if (match?.open_call_id) {
+          setAppliedOpenCallIds((prev) => new Set(prev).add(match.open_call_id!));
+        }
       })
       .catch(() => {});
   }, [user, id]);
@@ -75,10 +92,48 @@ function CommunityDetailContent() {
     }
   };
 
+  const handleApplyOpenCall = async (note: string) => {
+    if (!applyTarget) return;
+    if (!user) {
+      router.push(appendReturnTo("/auth/login", `/communities/${id}`));
+      return;
+    }
+    if (user.role !== "user") {
+      notify.info("Only individual members can apply to open calls.");
+      return;
+    }
+    setApplySubmitting(true);
+    try {
+      await applyToOpenCall(applyTarget.id, { note: note.trim() || undefined });
+      setAppliedOpenCallIds((prev) => new Set(prev).add(applyTarget.id));
+      setJoinSent(true);
+      setMembership((prev) =>
+        prev ??
+        ({
+          id: 0,
+          community_id: id,
+          user_id: user.id,
+          role: "member",
+          status: "pending",
+          open_call_id: applyTarget.id,
+        } satisfies CommunityMember)
+      );
+      notify.success("Application sent");
+      setApplyTarget(null);
+    } catch (err) {
+      notify.error(getErrorMessage(err));
+    } finally {
+      setApplySubmitting(false);
+    }
+  };
+
+  const isApprovedMember = membership?.status === "approved";
+  const hasPendingRequest = membership?.status === "pending" || joinSent;
+
   const showJoinButton =
     !authLoading &&
     (!user || user.role === "user") &&
-    (!membership || membership.status === "pending");
+    !isApprovedMember;
 
   const isCommunityAdmin =
     membership?.role === "admin" && membership?.status === "approved";
@@ -114,14 +169,10 @@ function CommunityDetailContent() {
             variant="gradient"
             size="sm"
             className="shrink-0 rounded-full"
-            disabled={joinSent || joinLoading || membership?.status === "pending"}
+            disabled={hasPendingRequest || joinLoading}
             onClick={handleRequestJoin}
           >
-            {joinSent || membership?.status === "pending"
-              ? "Request Sent"
-              : user
-                ? "Request to Join"
-                : "Sign in to Join"}
+            {hasPendingRequest ? "Request Sent" : user ? "Request to Join" : "Sign in to Join"}
           </Button>
         )}
       </div>
@@ -184,30 +235,63 @@ function CommunityDetailContent() {
         {openCalls.length === 0 ? (
           <EmptyState title="No open calls" />
         ) : (
-          openCalls.map((oc) => (
-            <Card key={oc.id} className="mb-2">
-              <p className="font-bold">{oc.title}</p>
-              <div className="mt-2 flex flex-wrap gap-1.5">
-                {oc.skills && oc.skills.length > 0 ? (
-                  oc.skills.map(
-                    (s) =>
-                      s.skill?.name && (
-                        <Badge key={s.id} variant="info">
-                          {s.skill.name}
-                        </Badge>
+          openCalls.map((oc) => {
+            const applied =
+              appliedOpenCallIds.has(oc.id) || hasPendingRequest;
+            const showApply = (!user || user.role === "user") && !isApprovedMember;
+
+            return (
+              <Card key={oc.id} className="mb-2 flex flex-wrap items-start justify-between gap-3">
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold">{oc.title}</p>
+                  <div className="mt-2 flex flex-wrap gap-1.5">
+                    {oc.skills && oc.skills.length > 0 ? (
+                      oc.skills.map(
+                        (s) =>
+                          s.skill?.name && (
+                            <Badge key={s.id} variant="info">
+                              {s.skill.name}
+                            </Badge>
+                          )
                       )
-                  )
-                ) : (
-                  <span className="text-sm text-muted">Open recruitment</span>
+                    ) : (
+                      <span className="text-sm text-muted">Open recruitment</span>
+                    )}
+                  </div>
+                  <Badge variant="open" className="mt-2">
+                    {oc.status}
+                  </Badge>
+                </div>
+                {showApply && (
+                  <Button
+                    variant={applied ? "outline" : "gradient"}
+                    size="sm"
+                    className="shrink-0 rounded-full"
+                    disabled={applied || applySubmitting}
+                    onClick={() => {
+                      if (!user) {
+                        router.push(appendReturnTo("/auth/login", `/communities/${id}`));
+                        return;
+                      }
+                      setApplyTarget(oc);
+                    }}
+                  >
+                    {applied ? "Applied" : user ? "Apply" : "Sign in to Apply"}
+                  </Button>
                 )}
-              </div>
-              <Badge variant="open" className="mt-2">
-                {oc.status}
-              </Badge>
-            </Card>
-          ))
+              </Card>
+            );
+          })
         )}
       </div>
+
+      <ApplyOpenCallDialog
+        open={Boolean(applyTarget)}
+        title={applyTarget?.title ?? ""}
+        submitting={applySubmitting}
+        onClose={() => !applySubmitting && setApplyTarget(null)}
+        onSubmit={handleApplyOpenCall}
+      />
     </div>
   );
 }
