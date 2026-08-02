@@ -52,6 +52,21 @@ export async function reviewCommunity(
   return data.community;
 }
 
+export async function updateCommunity(
+  communityId: number,
+  payload: {
+    name: string;
+    description?: string | null;
+    location: string;
+  }
+): Promise<Community> {
+  const { data } = await apiClient.patch<{ community: Community }>(
+    `/api/communities/${communityId}`,
+    payload
+  );
+  return data.community;
+}
+
 export async function uploadCommunityImage(communityId: number, file: File): Promise<Community> {
   const formData = new FormData();
   formData.append("image", file);
@@ -104,30 +119,6 @@ export async function getCommunityMembers(
 
 export async function removeCommunityMember(membershipId: number): Promise<void> {
   await apiClient.delete(`/api/community-members/${membershipId}`);
-}
-
-export interface JoinRequestFitAnalysis {
-  fit_summary: string;
-  overlap_skills: string[];
-  new_skills_added: string[];
-}
-
-export async function analyzeJoinRequestFit(
-  communityId: number,
-  userId: number
-): Promise<{ available: boolean; analysis: JoinRequestFitAnalysis | null }> {
-  try {
-    const { data } = await apiClient.post<{
-      available?: boolean;
-      analysis?: JoinRequestFitAnalysis | null;
-    }>(`/api/communities/${communityId}/join-requests/${userId}/fit-analysis`);
-    if (data.available && data.analysis) {
-      return { available: true, analysis: data.analysis };
-    }
-    return { available: false, analysis: null };
-  } catch {
-    return { available: false, analysis: null };
-  }
 }
 
 /** Matches API MIN_COMMUNITY_MEMBERS — used for listing eligibility warnings. */
