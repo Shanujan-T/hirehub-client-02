@@ -32,7 +32,7 @@ export function ImageUploadControl({
   fallback: React.ReactNode;
   /** Immediate upload (existing behavior). Ignored when `onSelect` is provided. */
   onUpload?: (file: File) => Promise<void>;
-  /** Deferred select — keeps a local preview; parent submits later. */
+  /** Deferred select keeps a local preview until the parent form submits. */
   onSelect?: (file: File) => void;
   uploading?: boolean;
   shape?: "circle" | "rounded";
