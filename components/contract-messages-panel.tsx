@@ -1,11 +1,10 @@
 "use client";
 
-import { useCallback, useEffect, useLayoutEffect, useRef, useState } from "react";
-import { MoreVertical } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { ConfirmDialog } from "@/components/confirm-dialog";
 import { Button, Card, Input } from "@/components/ui";
 import { createSocket, joinConversation, leaveConversation } from "@/lib/socket";
-import { cn, getErrorMessage } from "@/lib/utils";
+import { getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import {
   deleteMessageForEveryone,
@@ -49,27 +48,28 @@ function MessageBubble({
   onDeleteForEveryone: (message: Message) => void;
 }) {
   const [menuOpen, setMenuOpen] = useState(false);
-  const [menuShiftX, setMenuShiftX] = useState(0);
+  const [menuPos, setMenuPos] = useState({ x: 0, y: 0 });
   const longPressRef = useRef<number | null>(null);
-  const rootRef = useRef<HTMLDivElement | null>(null);
-  const menuRef = useRef<HTMLDivElement | null>(null);
+  const bubbleRef = useRef<HTMLDivElement | null>(null);
 
   const isDeleted = message.is_deleted || message.deleted_for_everyone || message.message_type === "deleted";
 
-  const closeMenu = useCallback(() => {
-    setMenuOpen(false);
-    setMenuShiftX(0);
-  }, []);
-
-  const openMenu = useCallback(() => {
+  const openMenu = (clientX: number, clientY: number) => {
     if (isDeleted) return;
+    setMenuPos({ x: clientX, y: clientY });
     setMenuOpen(true);
-  }, [isDeleted]);
+  };
 
-  const handleTouchStart = () => {
+  const handleContextMenu = (event: React.MouseEvent) => {
+    event.preventDefault();
+    openMenu(event.clientX, event.clientY);
+  };
+
+  const handleTouchStart = (event: React.TouchEvent) => {
     if (isDeleted) return;
+    const touch = event.touches[0];
     longPressRef.current = window.setTimeout(() => {
-      openMenu();
+      openMenu(touch.clientX, touch.clientY);
     }, 500);
   };
 
@@ -82,143 +82,77 @@ function MessageBubble({
 
   useEffect(() => {
     if (!menuOpen) return;
-    const onPointerDown = (event: MouseEvent | TouchEvent) => {
-      const target = event.target as Node;
-      if (rootRef.current?.contains(target)) return;
-      closeMenu();
-    };
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") closeMenu();
-    };
-    document.addEventListener("mousedown", onPointerDown);
-    document.addEventListener("touchstart", onPointerDown);
-    document.addEventListener("keydown", onKeyDown);
-    document.addEventListener("scroll", closeMenu, true);
+    const close = () => setMenuOpen(false);
+    document.addEventListener("click", close);
+    document.addEventListener("scroll", close, true);
     return () => {
-      document.removeEventListener("mousedown", onPointerDown);
-      document.removeEventListener("touchstart", onPointerDown);
-      document.removeEventListener("keydown", onKeyDown);
-      document.removeEventListener("scroll", closeMenu, true);
+      document.removeEventListener("click", close);
+      document.removeEventListener("scroll", close, true);
     };
-  }, [menuOpen, closeMenu]);
-
-  // Keep menu fully on-screen: sent bubbles open left-aligned (align=end),
-  // received open right-aligned (align=start), then clamp any residual overflow.
-  useLayoutEffect(() => {
-    if (!menuOpen || !menuRef.current) return;
-    const rect = menuRef.current.getBoundingClientRect();
-    const padding = 8;
-    let shift = 0;
-    if (rect.right > window.innerWidth - padding) {
-      shift = window.innerWidth - padding - rect.right;
-    } else if (rect.left < padding) {
-      shift = padding - rect.left;
-    }
-    setMenuShiftX(shift);
-  }, [menuOpen, isMine]);
+  }, [menuOpen]);
 
   return (
-    <div className={`group flex ${isMine ? "justify-end" : "justify-start"}`}>
-      <div
-        ref={rootRef}
-        className={cn("relative max-w-[80%]", isMine ? "items-end" : "items-start")}
-        onContextMenu={(event) => {
-          event.preventDefault();
-          openMenu();
-        }}
-        onTouchStart={handleTouchStart}
-        onTouchEnd={handleTouchEnd}
-        onTouchMove={handleTouchEnd}
-      >
+    <>
+      <div className={`flex ${isMine ? "justify-end" : "justify-start"}`}>
         <div
-          className={cn(
-            "rounded-2xl px-3 py-2 text-sm",
+          ref={bubbleRef}
+          onContextMenu={handleContextMenu}
+          onTouchStart={handleTouchStart}
+          onTouchEnd={handleTouchEnd}
+          onTouchMove={handleTouchEnd}
+          className={`max-w-[80%] rounded-2xl px-3 py-2 text-sm ${
             isDeleted
               ? "border border-dashed border-border bg-muted/20 italic text-muted"
               : isMine
                 ? "bg-brand-gradient text-white"
                 : "border border-border bg-background/60 text-foreground"
-          )}
+          }`}
         >
-          <div className="flex items-start gap-1">
-            <div className="min-w-0 flex-1">
-              {!isDeleted && (
-                <p className="text-xs font-semibold opacity-80">
-                  {isMine ? "You" : message.sender?.full_name ?? "Participant"}
-                </p>
-              )}
-              <p className={cn("mt-1 whitespace-pre-wrap", isDeleted && "text-xs")}>
-                {isDeleted ? "This message was deleted" : message.content}
-              </p>
-              <p className={cn("mt-1 text-[10px]", isDeleted ? "opacity-60" : "opacity-70")}>
-                {formatTimestamp(message.created_at)}
-              </p>
-            </div>
-
-            {!isDeleted && (
-              <button
-                type="button"
-                aria-label="Message actions"
-                aria-haspopup="menu"
-                aria-expanded={menuOpen}
-                className={cn(
-                  "mt-0.5 shrink-0 rounded-md p-1 opacity-100 transition sm:opacity-0 sm:group-hover:opacity-100 sm:focus-visible:opacity-100",
-                  isMine
-                    ? "text-white/80 hover:bg-white/15 hover:text-white"
-                    : "text-muted hover:bg-border/60 hover:text-foreground",
-                  menuOpen && "opacity-100"
-                )}
-                onClick={(event) => {
-                  event.stopPropagation();
-                  setMenuOpen((open) => !open);
-                }}
-              >
-                <MoreVertical className="h-4 w-4" aria-hidden />
-              </button>
-            )}
-          </div>
+          {!isDeleted && (
+            <p className="text-xs font-semibold opacity-80">
+              {isMine ? "You" : message.sender?.full_name ?? "Participant"}
+            </p>
+          )}
+          <p className={`mt-1 whitespace-pre-wrap ${isDeleted ? "text-xs" : ""}`}>
+            {isDeleted ? "This message was deleted" : message.content}
+          </p>
+          <p className={`mt-1 text-[10px] ${isDeleted ? "opacity-60" : "opacity-70"}`}>
+            {formatTimestamp(message.created_at)}
+          </p>
         </div>
+      </div>
 
-        {menuOpen && (
-          <div
-            ref={menuRef}
-            role="menu"
-            className={cn(
-              "absolute z-50 mt-1 min-w-[160px] overflow-hidden rounded-lg border border-border bg-card py-1 text-card-foreground shadow-lg shadow-secondary/10 dark:shadow-black/40",
-              // Sent (right) → align end so menu opens leftward; received → open rightward
-              isMine ? "right-0" : "left-0"
-            )}
-            style={menuShiftX ? { transform: `translateX(${menuShiftX}px)` } : undefined}
-            onClick={(event) => event.stopPropagation()}
+      {menuOpen && (
+        <div
+          className="fixed z-[300] min-w-[11rem] overflow-hidden rounded-xl border border-border bg-card py-1 shadow-lg"
+          style={{ left: menuPos.x, top: menuPos.y }}
+          onClick={(event) => event.stopPropagation()}
+        >
+          <button
+            type="button"
+            className="block w-full px-3 py-2 text-left text-sm hover:bg-border/40"
+            onClick={() => {
+              setMenuOpen(false);
+              onDeleteForMe(message);
+            }}
           >
+            Delete for me
+          </button>
+          {isMine && (
             <button
               type="button"
-              role="menuitem"
-              className="block w-full px-3 py-2 text-left text-sm text-foreground hover:bg-info/10"
+              className="block w-full px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
               onClick={() => {
-                closeMenu();
-                onDeleteForMe(message);
+                setMenuOpen(false);
+                onDeleteForEveryone(message);
               }}
             >
-              Delete for me
+              Delete for everyone
             </button>
-            {isMine && (
-              <button
-                type="button"
-                role="menuitem"
-                className="block w-full px-3 py-2 text-left text-sm text-destructive hover:bg-destructive/10"
-                onClick={() => {
-                  closeMenu();
-                  onDeleteForEveryone(message);
-                }}
-              >
-                Delete for everyone
-              </button>
-            )}
-          </div>
-        )}
-      </div>
-    </div>
+          )}
+        </div>
+      )}
+    </>
   );
 }
 
