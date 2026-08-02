@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Suspense, useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
 import { Badge, Button, Card } from "@/components/ui";
@@ -63,9 +63,8 @@ function JobDetailContent() {
   const canApply = job?.status === "open" && communityStatus === "approved";
 
   return (
-    <PortalShell
+    <DashboardPortalShell
       title="Job Details"
-      navItems={communityAdminNav}
       backHref={jobsListFallback}
       backLabel="Back to jobs"
     >
@@ -113,7 +112,7 @@ function JobDetailContent() {
           )}
         </Card>
       )}
-    </PortalShell>
+    </DashboardPortalShell>
   );
 }
 
