@@ -4,7 +4,7 @@ import { Suspense, useCallback } from "react";
 import { useParams } from "next/navigation";
 import { CommunityAdminRoute } from "@/components/community-admin-route";
 import { ContractMessagesPanel } from "@/components/contract-messages-panel";
-import { PortalShell, communityAdminNav } from "@/components/portal-shell";
+import { DashboardPortalShell } from "@/components/portal-shell";
 import { LoadingState } from "@/components/page-states";
 import { useAsyncItem } from "@/lib/hooks/use-async";
 import { getContract } from "@/services/contract";
@@ -18,15 +18,14 @@ function CommunityAdminContractMessagesContent() {
 
   return (
     <CommunityAdminRoute>
-      <PortalShell
+      <DashboardPortalShell
         title="Contract Messages"
         subtitle={contract?.job?.title ?? `Contract #${contractId}`}
-        navItems={communityAdminNav}
         backHref={`/community-admin/contracts/${contractId}`}
         backLabel="Back to contract"
       >
         {loading ? <LoadingState /> : <ContractMessagesPanel contractId={contractId} />}
-      </PortalShell>
+      </DashboardPortalShell>
     </CommunityAdminRoute>
   );
 }
