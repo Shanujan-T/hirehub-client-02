@@ -8,6 +8,7 @@ import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
 import { Badge, Button, Card } from "@/components/ui";
+import { JobScopeDisplay } from "@/components/job-scope-display";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { buildFilteredPath } from "@/lib/navigation";
 import { getCommunity } from "@/services/community";
@@ -88,6 +89,7 @@ function JobDetailContent() {
             const postedAgo = formatPostedAgo(job.created_at);
             return postedAgo ? <p className="text-xs text-muted">{postedAgo}</p> : null;
           })()}
+          <JobScopeDisplay rows={job.scope_display} />
           <p className="mt-4">{job.description}</p>
           {job.status === "open" && communityId && (
             canApply ? (
