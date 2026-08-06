@@ -1,13 +1,14 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense } from "react";
+import { Suspense, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { useCallback } from "react";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { MemberCardPanel } from "@/components/member-card";
 import { CommunityAvatar } from "@/components/community-avatar";
+import { MatchScoreBadge } from "@/components/match-score-badge";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
@@ -16,7 +17,12 @@ import { Button, Card } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { getErrorMessage } from "@/lib/utils";
-import { approveCommunity, getJobApplicants, rejectCommunity } from "@/services/job";
+import {
+  approveCommunity,
+  getJobApplicants,
+  getRecommendedCommunities,
+  rejectCommunity,
+} from "@/services/job";
 
 function JobApplicantsContent() {
   const params = useParams();
@@ -24,6 +30,20 @@ function JobApplicantsContent() {
   const { hrefWithReturn } = useListNavigation();
   const { data: applications, loading, reload } = useAsyncList(
     useCallback(() => getJobApplicants(jobId), [jobId])
+  );
+  const {
+    data: recommendations,
+    loading: recLoading,
+  } = useAsyncList(
+    useCallback(async () => {
+      try {
+        return await getRecommendedCommunities(jobId);
+      } catch {
+        // Matching is assistive — never block applicants list
+        return [];
+      }
+    }, [jobId]),
+    "Failed to load recommendations"
   );
 
   const handleApprove = async (applicationId: number) => {
@@ -46,19 +66,78 @@ function JobApplicantsContent() {
     }
   };
 
+  const topMatches = recommendations.slice(0, 6);
+
   return (
     <AuthenticatedRoute>
       <DashboardPortalShell
         title="Applying Communities"
         subtitle="Review community members, approve one community"
-       
         backHref={`/jobs/${jobId}`}
         backLabel="Back to job"
       >
-        {loading ? <LoadingState /> : applications.length === 0 ? (
-          <EmptyState title="No applications yet" description="Communities can apply to this open job." />
+        {!recLoading && topMatches.length > 0 && (
+          <section className="mb-8">
+            <div className="mb-4 flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-secondary" aria-hidden />
+              <h2 className="text-lg font-extrabold text-foreground">
+                ✨ AI Matched — Recommended Communities
+              </h2>
+            </div>
+            <p className="mb-4 text-sm text-muted">
+              Ranked by member skill overlap and location fit. AI blurbs appear for top matches when available.
+            </p>
+            <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-3">
+              {topMatches.map((rec) => (
+                <Card key={rec.community.id} className="flex gap-3 !p-4">
+                  <MatchScoreBadge score={rec.match_score} />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center gap-2">
+                      <CommunityAvatar
+                        name={rec.community.name}
+                        imageUrl={rec.community.image_url}
+                        size="sm"
+                      />
+                      <Link
+                        href={hrefWithReturn(`/communities/${rec.community.id}`)}
+                        className="truncate font-bold hover:text-info"
+                      >
+                        {rec.community.name}
+                      </Link>
+                    </div>
+                    {rec.ai_blurb ? (
+                      <p className="mt-2 text-sm text-foreground">{rec.ai_blurb}</p>
+                    ) : (
+                      <p className="mt-2 text-sm text-muted">
+                        {rec.skill_summary || "Strong skill overlap with this job."}
+                        {rec.location_match ? " Location match." : ""}
+                      </p>
+                    )}
+                    <div className="mt-2 flex flex-wrap gap-1.5 text-[11px] text-muted">
+                      {rec.location_match && (
+                        <span className="rounded-full bg-background px-2 py-0.5">Location</span>
+                      )}
+                      {rec.category_match && (
+                        <span className="rounded-full bg-background px-2 py-0.5">Category</span>
+                      )}
+                    </div>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </section>
+        )}
+
+        {loading ? (
+          <LoadingState />
+        ) : applications.length === 0 ? (
+          <EmptyState
+            title="No applications yet"
+            description="Communities can apply to this open job."
+          />
         ) : (
           <div className="grid gap-4">
+            <h2 className="text-base font-bold text-foreground">Applicants</h2>
             {applications.map((app) => (
               <Card key={app.id}>
                 <div className="mb-4 flex flex-wrap items-center justify-between gap-2">
@@ -112,10 +191,16 @@ function JobApplicantsContent() {
                 </div>
                 {app.status === "applied" && (
                   <div className="mt-4 flex gap-2">
-                    <Button variant="gradient" className="rounded-full" onClick={() => handleApprove(app.id)}>
+                    <Button
+                      variant="gradient"
+                      className="rounded-full"
+                      onClick={() => handleApprove(app.id)}
+                    >
                       Approve Community
                     </Button>
-                    <Button variant="destructive" onClick={() => handleReject(app.id)}>Reject</Button>
+                    <Button variant="destructive" onClick={() => handleReject(app.id)}>
+                      Reject
+                    </Button>
                   </div>
                 )}
               </Card>
