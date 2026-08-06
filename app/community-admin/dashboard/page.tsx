@@ -3,6 +3,7 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
+import { NeedsAttentionBanner } from "@/components/needs-attention-banner";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Card } from "@/components/ui";
@@ -32,6 +33,7 @@ export default function CommunityAdminDashboardPage() {
   return (
     <CommunityAdminRoute>
       <DashboardPortalShell title="Community Admin" subtitle="Manage jobs, contracts, and members">
+        <NeedsAttentionBanner contractsHref="/community-admin/contracts" />
         {community && (
           <Card className="mb-6 border-secondary/20 bg-secondary/5">
             <div className="flex flex-wrap items-center justify-between gap-3">
