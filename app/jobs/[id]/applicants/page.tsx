@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { Suspense, useCallback } from "react";
 import { useParams } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { MemberCardPanel } from "@/components/member-card";
@@ -13,7 +13,7 @@ import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
-import { Button, Card } from "@/components/ui";
+import { Badge, Button, Card } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { getErrorMessage } from "@/lib/utils";
@@ -156,7 +156,15 @@ function JobApplicantsContent() {
                       {app.community?.name}
                     </Link>
                   </div>
-                  <StatusBadge status={app.status} kind="application" />
+                  <div className="flex flex-wrap items-center gap-2">
+                    {app.source === "invited" && (
+                      <Badge variant="active" className="normal-case">
+                        <Mail className="mr-1 h-3 w-3" aria-hidden />
+                        Invited by you
+                      </Badge>
+                    )}
+                    <StatusBadge status={app.status} kind="application" />
+                  </div>
                 </div>
                 <div className="mb-4 grid gap-3 rounded-xl border border-border/70 bg-background/40 p-3 sm:grid-cols-3">
                   <div>
@@ -189,7 +197,7 @@ function JobApplicantsContent() {
                       )
                   )}
                 </div>
-                {app.status === "applied" && (
+                {app.status === "applied" && app.source !== "invited" && (
                   <div className="mt-4 flex gap-2">
                     <Button
                       variant="gradient"
@@ -202,6 +210,11 @@ function JobApplicantsContent() {
                       Reject
                     </Button>
                   </div>
+                )}
+                {app.status === "applied" && app.source === "invited" && (
+                  <p className="mt-4 text-sm text-muted">
+                    Waiting for the community admin to accept or decline this invitation.
+                  </p>
                 )}
               </Card>
             ))}
