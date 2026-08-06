@@ -10,14 +10,24 @@ export interface PricingSuggestion {
     | "historical_average"
     | "posted_jobs_average"
     | "baseline_estimate"
+    | "seeded_district_estimate"
     | "flat_average"
     | "insufficient_data"
     | string;
   note?: string | null;
+  is_seeded_estimate?: boolean;
 }
 
-export async function getMyJobs(): Promise<Job[]> {
-  const { data } = await apiClient.get<{ jobs: Job[] }>("/api/jobs");
+export async function getMyJobs(options?: {
+  category_id?: number;
+  status?: "open" | "assigned" | "closed";
+}): Promise<Job[]> {
+  const { data } = await apiClient.get<{ jobs: Job[] }>("/api/jobs", {
+    params: {
+      ...(options?.category_id ? { category_id: options.category_id } : {}),
+      ...(options?.status ? { status: options.status } : {}),
+    },
+  });
   return data.jobs;
 }
 
@@ -72,15 +82,15 @@ export async function requestCategory(payload: {
 export async function getPricingSuggestion(
   categoryId: number,
   location: string,
-  scopeData?: import("@/types/job").ScopeData | null
+  scopeValues?: import("@/types/job").ScopeData | null
 ): Promise<PricingSuggestion> {
   const { data } = await apiClient.get<PricingSuggestion>(
     `/api/categories/${categoryId}/pricing-suggestion`,
     {
       params: {
         location,
-        ...(scopeData && Object.keys(scopeData).length
-          ? { scope_data: JSON.stringify(scopeData) }
+        ...(scopeValues && Object.keys(scopeValues).length
+          ? { scope_values: JSON.stringify(scopeValues) }
           : {}),
       },
     }
@@ -189,4 +199,15 @@ export async function getMyJobApplications(): Promise<CommunityApplication[]> {
     "/api/community-applications/my"
   );
   return data.community_applications;
+}
+
+export async function inviteCommunityToJob(
+  jobId: number,
+  communityId: number
+): Promise<CommunityApplication> {
+  const { data } = await apiClient.post<{ community_application: CommunityApplication }>(
+    `/api/jobs/${jobId}/invite`,
+    { community_id: communityId }
+  );
+  return data.community_application;
 }

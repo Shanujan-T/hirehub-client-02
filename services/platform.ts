@@ -66,7 +66,7 @@ export async function createCategory(payload: {
   name: string;
   scope_schema?: import("@/types/job").ScopeFieldDefinition[] | null;
   baseline_price?: number | null;
-  baseline_unit?: "per_job" | "per_sqft" | null;
+  baseline_unit?: "per_job" | "per_sqft" | "per_word" | "per_hour" | null;
 }): Promise<Category> {
   const { data } = await apiClient.post<{ category: Category }>("/api/categories", payload);
   return data.category;
@@ -78,7 +78,7 @@ export async function updateCategory(
     name?: string;
     scope_schema?: import("@/types/job").ScopeFieldDefinition[] | null;
     baseline_price?: number | null;
-    baseline_unit?: "per_job" | "per_sqft" | null;
+    baseline_unit?: "per_job" | "per_sqft" | "per_word" | "per_hour" | null;
   }
 ): Promise<Category> {
   const { data } = await apiClient.put<{ category: Category }>(
@@ -112,9 +112,27 @@ export async function rejectCategory(
 
 export async function seedCategoryPricing(
   categoryId: number,
-  payload: { location: string; average_price: number; sample_size?: number }
+  payload: { location: string; average_price: number; sample_size?: number; force?: boolean }
 ) {
   const { data } = await apiClient.post(`/api/categories/${categoryId}/seed-pricing`, payload);
+  return data;
+}
+
+export async function seedDistrictPricing(categoryId?: number): Promise<{
+  message: string;
+  stats?: { created: number; updated: number; skipped: number };
+}> {
+  if (categoryId != null) {
+    const { data } = await apiClient.post<{
+      message: string;
+      stats?: { created: number; updated: number; skipped: number };
+    }>(`/api/categories/${categoryId}/seed-district-pricing`);
+    return data;
+  }
+  const { data } = await apiClient.post<{
+    message: string;
+    stats?: { created: number; updated: number; skipped: number };
+  }>("/api/categories/seed-district-pricing");
   return data;
 }
 
