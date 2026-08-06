@@ -39,6 +39,7 @@ export default function NewJobPage() {
   const [sampleSize, setSampleSize] = useState(0);
   const [priceMethod, setPriceMethod] = useState<string | null>(null);
   const [priceNote, setPriceNote] = useState<string | null>(null);
+  const [isSeededEstimate, setIsSeededEstimate] = useState(false);
   const [aiLoading, setAiLoading] = useState(false);
   const [aiUnavailable, setAiUnavailable] = useState(false);
   const [roughPrompt, setRoughPrompt] = useState("");
@@ -65,7 +66,8 @@ export default function NewJobPage() {
     () => categories.find((c) => c.id === Number(categoryId)) ?? null,
     [categories, categoryId]
   );
-  const scopeSchema = selectedCategory?.scope_schema ?? [];
+  const scopeSchema =
+    selectedCategory?.scope_fields ?? selectedCategory?.scope_schema ?? [];
 
   useEffect(() => {
     getCategories().then(setCategories).catch(() => toast.error("Failed to load categories"));
@@ -76,6 +78,8 @@ export default function NewJobPage() {
   }, [categoryId]);
 
   const locationTrimmed = (location ?? "").trim();
+  // Stable serialization so scope edits (word_count, etc.) always retrigger pricing.
+  const scopeDataKey = JSON.stringify(cleanScopeData(scopeData));
 
   useEffect(() => {
     if (!categoryId) {
@@ -83,6 +87,7 @@ export default function NewJobPage() {
       setSampleSize(0);
       setPriceMethod(null);
       setPriceNote(null);
+      setIsSeededEstimate(false);
       return;
     }
     if (!locationTrimmed) {
@@ -90,9 +95,11 @@ export default function NewJobPage() {
       setSampleSize(0);
       setPriceMethod(null);
       setPriceNote(null);
+      setIsSeededEstimate(false);
       return;
     }
     const cleaned = cleanScopeData(scopeData);
+    // Debounce so number inputs (e.g. word_count) don't fire on every keystroke.
     const handle = window.setTimeout(() => {
       getPricingSuggestion(Number(categoryId), locationTrimmed, cleaned)
         .then((p) => {
@@ -101,6 +108,7 @@ export default function NewJobPage() {
           setSampleSize(p.sample_size ?? 0);
           setPriceMethod(p.method ?? null);
           setPriceNote(p.note ?? null);
+          setIsSeededEstimate(Boolean(p.is_seeded_estimate));
           if (price != null) setValue("final_price", price);
         })
         .catch((err) => {
@@ -108,10 +116,13 @@ export default function NewJobPage() {
           setSampleSize(0);
           setPriceMethod(null);
           setPriceNote(getErrorMessage(err) || "Could not load price suggestion.");
+          setIsSeededEstimate(false);
         });
-    }, 300);
+    }, 400);
     return () => window.clearTimeout(handle);
-  }, [categoryId, locationTrimmed, scopeData, setValue]);
+    // scopeDataKey tracks cleaned scope field changes; scopeData read inside is current.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: debounce on serialized scope
+  }, [categoryId, locationTrimmed, scopeDataKey, setValue]);
 
   const handleGenerate = async () => {
     const prompt = roughPrompt.trim() || watch("title") || watch("description") || "";
@@ -351,15 +362,20 @@ export default function NewJobPage() {
                     )}
                   </p>
                   <p className="mt-1 text-xs text-muted">
-                    {priceMethod === "baseline_estimate"
-                      ? "Estimated (no local data yet)"
-                      : priceMethod === "posted_jobs_average"
+                    {sampleSize > 0 && !isSeededEstimate
+                      ? priceNote || "Estimated from local completed contracts"
+                      : isSeededEstimate
                         ? priceNote ||
-                          `Based on ${sampleSize} similar job posting${sampleSize === 1 ? "" : "s"} (asking prices, not yet completed)`
-                        : priceMethod === "historical_average" || priceMethod === "scope_adjusted"
+                          (priceMethod === "seeded_district_estimate"
+                            ? "Estimated (regional baseline — no completed contracts yet)"
+                            : "Estimated (no local data yet)")
+                        : priceMethod === "posted_jobs_average"
                           ? priceNote ||
-                            `Based on ${sampleSize} completed job${sampleSize === 1 ? "" : "s"} in this area`
-                          : priceNote || "Suggested price"}
+                            `Based on ${sampleSize} similar job posting${sampleSize === 1 ? "" : "s"} (asking prices, not yet completed)`
+                          : priceMethod === "historical_average" || priceMethod === "scope_adjusted"
+                            ? priceNote ||
+                              `Based on ${sampleSize} completed job${sampleSize === 1 ? "" : "s"} in this area`
+                            : priceNote || "Suggested price"}
                   </p>
                 </>
               ) : (
