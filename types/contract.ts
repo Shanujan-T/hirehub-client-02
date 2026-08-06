@@ -19,6 +19,10 @@ export interface Contract {
     | "completed"
     | "disputed";
   deliverable_url?: string | null;
+  risk_level?: "none" | "low" | "high";
+  risk_reason?: string | null;
+  risk_flags?: string[];
+  risk_checked_at?: string | null;
   created_at: string;
   job?: Job;
   community?: Community;
