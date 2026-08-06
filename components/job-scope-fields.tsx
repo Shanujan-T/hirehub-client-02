@@ -52,7 +52,22 @@ export function JobScopeFields({
                     e.target.value === "" ? ("" as unknown as number) : Number(e.target.value)
                   )
                 }
-                placeholder={field.unit ? `e.g. 500` : undefined}
+                placeholder={
+                  field.affects_price && field.unit_size
+                    ? `e.g. ${field.unit_size}`
+                    : field.unit
+                      ? `e.g. 500`
+                      : undefined
+                }
+                aria-labelledby={labelId}
+              />
+            )}
+            {field.type === "text" && (
+              <Input
+                id={`scope-${field.key}`}
+                type="text"
+                value={typeof value[field.key] === "string" ? (value[field.key] as string) : ""}
+                onChange={(e) => setField(field.key, e.target.value)}
                 aria-labelledby={labelId}
               />
             )}

@@ -7,6 +7,7 @@ const TYPE_OPTIONS: { value: ScopeFieldType; label: string }[] = [
   { value: "number", label: "Number" },
   { value: "select", label: "Select" },
   { value: "multiselect", label: "Multiselect" },
+  { value: "text", label: "Text" },
 ];
 
 function emptyField(): ScopeFieldDefinition {
@@ -15,6 +16,8 @@ function emptyField(): ScopeFieldDefinition {
     label: "",
     type: "number",
     required: true,
+    affects_price: false,
+    unit_size: 1,
     options: [],
   };
 }
@@ -47,7 +50,8 @@ export function ScopeSchemaBuilder({
       </div>
       {value.length === 0 ? (
         <p className="text-xs text-muted">
-          Optional. Add fields like area (sq ft) or feature lists for this category.
+          Optional. Add fields like area (sq ft) or word count. Mark number fields as
+          &quot;Affects price&quot; to drive Suggested Price scaling.
         </p>
       ) : (
         value.map((field, index) => (
@@ -86,9 +90,14 @@ export function ScopeSchemaBuilder({
                 <select
                   className="flex h-10 w-full rounded-xl border border-border bg-background px-3 text-sm"
                   value={field.type}
-                  onChange={(e) =>
-                    update(index, { type: e.target.value as ScopeFieldType })
-                  }
+                  onChange={(e) => {
+                    const type = e.target.value as ScopeFieldType;
+                    update(index, {
+                      type,
+                      affects_price: type === "number" ? Boolean(field.affects_price) : false,
+                      unit_size: type === "number" ? field.unit_size ?? 1 : undefined,
+                    });
+                  }}
                 >
                   {TYPE_OPTIONS.map((opt) => (
                     <option key={opt.value} value={opt.value}>
@@ -116,6 +125,37 @@ export function ScopeSchemaBuilder({
                 </label>
               </div>
             </div>
+            {field.type === "number" && (
+              <div className="grid gap-2 rounded-lg border border-border/60 bg-background/50 p-2 sm:grid-cols-2">
+                <label className="flex items-center gap-2 text-sm text-foreground">
+                  <input
+                    type="checkbox"
+                    checked={Boolean(field.affects_price)}
+                    onChange={(e) => update(index, { affects_price: e.target.checked })}
+                  />
+                  Affects price?
+                </label>
+                <div className="space-y-1">
+                  <Label>Unit size</Label>
+                  <Input
+                    type="number"
+                    min="0.0001"
+                    step="any"
+                    disabled={!field.affects_price}
+                    value={field.unit_size ?? 1}
+                    onChange={(e) =>
+                      update(index, {
+                        unit_size: e.target.value === "" ? 1 : Number(e.target.value),
+                      })
+                    }
+                    placeholder="e.g. 100"
+                  />
+                  <p className="text-[11px] text-muted">
+                    Price scales by value ÷ unit size (e.g. 1000 words ÷ 100 = 10×).
+                  </p>
+                </div>
+              </div>
+            )}
             {(field.type === "select" || field.type === "multiselect") && (
               <div className="space-y-1">
                 <Label>Options (comma-separated)</Label>
