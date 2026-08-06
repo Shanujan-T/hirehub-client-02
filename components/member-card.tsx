@@ -102,6 +102,11 @@ export function MemberCard({
                 <Badge variant="default" className="px-1.5 py-0 text-[10px] normal-case">
                   {s.level}
                 </Badge>
+                {s.ai_reviewed && (
+                  <Badge variant="completed" className="px-1.5 py-0 text-[10px] normal-case">
+                    AI-reviewed
+                  </Badge>
+                )}
               </span>
             ))
           ) : (
