@@ -59,6 +59,7 @@ export interface OpenCall {
   id: number;
   community_id: number;
   title: string;
+  description?: string | null;
   status: "open" | "closed";
   created_at: string;
   skills?: OpenCallSkill[];
