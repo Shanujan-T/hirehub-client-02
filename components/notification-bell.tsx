@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
-import { Bell } from "lucide-react";
+import { Bell, Sparkles } from "lucide-react";
 import { useNotifications } from "@/providers/notification-provider";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
@@ -30,14 +30,22 @@ function NotificationItem({
   onOpen: (notification: Notification) => void;
 }) {
   const unread = !notification.read_at && notification.is_read !== true;
+  const isWeeklyDigest = notification.type === "weekly_digest";
   const content = (
     <>
       <div className="flex items-start gap-2">
-        {unread && (
+        {isWeeklyDigest ? (
+          <Sparkles
+            className="mt-0.5 h-4 w-4 shrink-0 text-secondary"
+            aria-hidden
+          />
+        ) : unread ? (
           <span
             className="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-info"
             aria-hidden
           />
+        ) : (
+          <span className="mt-1.5 h-2 w-2 shrink-0" aria-hidden />
         )}
         <div className="min-w-0 flex-1">
           <p className={cn("text-sm", unread ? "font-semibold text-foreground" : "text-foreground")}>
