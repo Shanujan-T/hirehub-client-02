@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Flag } from "lucide-react";
 import { notify } from "@/lib/notify";
@@ -106,7 +107,9 @@ function ReportCard({
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0 space-y-1">
           <div className="flex flex-wrap items-center gap-2">
-            <p className="font-bold text-foreground">Report #{report.id}</p>
+            <Link href={`/admin/reports/${report.id}`} className="font-bold text-foreground hover:text-info">
+              Report #{report.id}
+            </Link>
             <StatusBadge status={report.status} kind="contract" />
           </div>
           <p className="text-sm text-muted">
@@ -115,11 +118,18 @@ function ReportCard({
           <p className="text-sm leading-relaxed text-foreground">{report.reason}</p>
           <p className="text-xs text-muted">{formatReportDate(report.created_at)}</p>
         </div>
-        {report.status === "open" && (
-          <Button variant="outline" size="sm" onClick={() => onResolve(report.id)}>
-            Resolve
-          </Button>
-        )}
+        <div className="flex shrink-0 flex-wrap gap-2">
+          <Link href={`/admin/reports/${report.id}`}>
+            <Button variant="outline" size="sm">
+              Open
+            </Button>
+          </Link>
+          {report.status === "open" && (
+            <Button variant="outline" size="sm" onClick={() => onResolve(report.id)}>
+              Resolve
+            </Button>
+          )}
+        </div>
       </div>
     </Card>
   );
