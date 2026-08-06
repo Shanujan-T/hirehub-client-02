@@ -1,4 +1,4 @@
-export type ScopeFieldType = "number" | "select" | "multiselect";
+export type ScopeFieldType = "number" | "select" | "multiselect" | "text";
 
 export interface ScopeFieldDefinition {
   key: string;
@@ -7,6 +7,10 @@ export interface ScopeFieldDefinition {
   required?: boolean;
   unit?: string;
   options?: string[];
+  /** When true (number fields only), value ÷ unit_size scales Suggested Price. */
+  affects_price?: boolean;
+  /** Divisor for price scaling (e.g. 100 for "per 100 words"). Default 1. */
+  unit_size?: number;
 }
 
 export type ScopeData = Record<string, number | string | string[]>;
@@ -21,13 +25,17 @@ export interface Category {
   id: number;
   name: string;
   scope_schema?: ScopeFieldDefinition[] | null;
+  /** Alias of scope_schema from the API. */
+  scope_fields?: ScopeFieldDefinition[] | null;
   status?: "pending" | "approved" | "rejected";
   requested_by_id?: number | null;
   request_description?: string | null;
   rejection_reason?: string | null;
   requested_by?: { id: number; full_name: string; email?: string } | null;
   baseline_price?: number | null;
-  baseline_unit?: "per_job" | "per_sqft" | null;
+  baseline_unit?: "per_job" | "per_sqft" | "per_word" | "per_hour" | null;
+  /** Derived: flat | scaled from affects_price scope fields. */
+  pricing_unit?: "flat" | "scaled" | null;
   created_at: string;
 }
 
@@ -69,6 +77,7 @@ export interface CommunityApplication {
   job_id: number;
   community_id: number;
   status: "applied" | "approved" | "rejected";
+  source?: "applied" | "invited";
   proposed_cost: number;
   proposed_days: number;
   note?: string | null;
