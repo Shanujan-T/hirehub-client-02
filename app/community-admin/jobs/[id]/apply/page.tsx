@@ -5,6 +5,7 @@ import { Suspense, useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
+import { Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { DashboardPortalShell } from "@/components/portal-shell";
@@ -13,7 +14,7 @@ import { Button, Card, Input, Label, Textarea } from "@/components/ui";
 import { jobBidSchema, type JobBidForm } from "@/lib/schemas";
 import { buildFilteredPath } from "@/lib/navigation";
 import { getErrorMessage } from "@/lib/utils";
-import { applyToJob, getJob } from "@/services/job";
+import { applyToJob, getJob, suggestBid } from "@/services/job";
 import type { Job } from "@/types/job";
 
 function ApplyToJobContent() {
@@ -23,6 +24,9 @@ function ApplyToJobContent() {
   const { communityId } = useCommunityAdmin();
   const [job, setJob] = useState<Job | null>(null);
   const [loading, setLoading] = useState(true);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiUnavailable, setAiUnavailable] = useState(false);
+  const [aiReasoning, setAiReasoning] = useState<string | null>(null);
 
   const jobDetailHref = `/community-admin/jobs/${jobId}`;
   const jobsListHref = buildFilteredPath("/community-admin/jobs", {});
@@ -30,6 +34,7 @@ function ApplyToJobContent() {
   const {
     register,
     handleSubmit,
+    setValue,
     formState: { errors, isSubmitting },
   } = useForm<JobBidForm>({
     resolver: zodResolver(jobBidSchema),
@@ -41,6 +46,28 @@ function ApplyToJobContent() {
       .catch(() => toast.error("Failed to load job"))
       .finally(() => setLoading(false));
   }, [jobId]);
+
+  const handleSuggestBid = async () => {
+    if (!communityId || aiLoading) return;
+    setAiLoading(true);
+    setAiUnavailable(false);
+    setAiReasoning(null);
+    try {
+      const suggestion = await suggestBid(jobId, communityId);
+      if (!suggestion) {
+        setAiUnavailable(true);
+        return;
+      }
+      setValue("proposed_cost", suggestion.suggested_cost);
+      setValue("proposed_days", suggestion.suggested_days);
+      setAiReasoning(suggestion.reasoning);
+    } catch (err) {
+      setAiUnavailable(true);
+      toast.error(getErrorMessage(err, "AI suggestion unavailable"));
+    } finally {
+      setAiLoading(false);
+    }
+  };
 
   const onSubmit = async (data: JobBidForm) => {
     if (!communityId) return;
@@ -74,11 +101,35 @@ function ApplyToJobContent() {
             <h2 className="text-lg font-bold">{job.title}</h2>
             <p className="text-sm text-muted">{job.location}</p>
             <p className="mt-2 text-sm text-muted">
-              Client asking price: <span className="font-semibold text-foreground">${job.final_price}</span>
+              Client asking price:{" "}
+              <span className="font-semibold text-foreground">${job.final_price}</span>
             </p>
           </div>
 
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+            <div className="flex flex-wrap items-center justify-between gap-2">
+              <p className="text-sm font-medium text-foreground">Bid details</p>
+              <Button
+                type="button"
+                variant="outline"
+                size="sm"
+                className="rounded-full"
+                disabled={aiLoading || !communityId}
+                onClick={() => void handleSuggestBid()}
+              >
+                <Sparkles className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+                {aiLoading ? "Suggesting…" : "Suggest Bid"}
+              </Button>
+            </div>
+            {aiReasoning && (
+              <p className="rounded-xl border border-border/70 bg-background/40 p-3 text-sm text-muted">
+                {aiReasoning}
+              </p>
+            )}
+            {aiUnavailable && (
+              <p className="text-xs text-muted">AI suggestion unavailable — enter your bid manually.</p>
+            )}
+
             <div className="space-y-2">
               <Label htmlFor="proposed_cost">Your proposed cost ($)</Label>
               <Input
@@ -87,6 +138,7 @@ function ApplyToJobContent() {
                 step="0.01"
                 min="0.01"
                 placeholder={`Reference: ${job.final_price}`}
+                disabled={aiLoading}
                 {...register("proposed_cost")}
               />
               {errors.proposed_cost && (
@@ -102,6 +154,7 @@ function ApplyToJobContent() {
                 min="1"
                 step="1"
                 placeholder="e.g. 14"
+                disabled={aiLoading}
                 {...register("proposed_days")}
               />
               {errors.proposed_days && (
@@ -120,7 +173,12 @@ function ApplyToJobContent() {
             </div>
 
             <div className="flex flex-wrap gap-2 pt-2">
-              <Button type="submit" variant="gradient" className="rounded-full" disabled={isSubmitting}>
+              <Button
+                type="submit"
+                variant="gradient"
+                className="rounded-full"
+                disabled={isSubmitting || aiLoading}
+              >
                 {isSubmitting ? "Submitting…" : "Submit Bid"}
               </Button>
               <Link href={jobDetailHref}>
