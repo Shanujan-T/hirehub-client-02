@@ -4,8 +4,8 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/app-header";
 import { LandingFlowStrip } from "@/components/landing-flow-strip";
+import { Sparkles } from "lucide-react";
 import { AccountTypeSection } from "@/sections/home/account-type-cards";
-import { AiMatchingFeatureSection } from "@/sections/home/ai-matching-feature";
 import { CtaBannerSection } from "@/sections/home/cta-banner";
 import { Button } from "@/components/ui";
 import { getPublicStats, type PublicStats } from "@/services/platform";
@@ -93,7 +93,22 @@ export default function HomePage() {
         </section>
 
         <AccountTypeSection />
-        <AiMatchingFeatureSection />
+        <section className="border-t border-border/60 bg-background py-10 lg:py-12">
+          <div className="mx-auto max-w-5xl px-4 lg:px-8">
+            <div className="mx-auto max-w-2xl text-center">
+              <div className="mx-auto mb-4 inline-flex h-11 w-11 items-center justify-center rounded-xl bg-brand-gradient shadow-md">
+                <Sparkles className="h-5 w-5 text-white" aria-hidden />
+              </div>
+              <h2 className="text-2xl font-extrabold text-primary dark:text-foreground sm:text-3xl">
+                AI that works in the background
+              </h2>
+              <p className="mt-2 text-sm text-muted sm:text-base">
+                HireHub uses AI to surface at-risk contracts, draft chat replies, and review work samples —
+                without getting in your way.
+              </p>
+            </div>
+          </div>
+        </section>
         <CtaBannerSection />
       </main>
     </div>
