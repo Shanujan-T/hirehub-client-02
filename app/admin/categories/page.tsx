@@ -15,11 +15,31 @@ import { cn, getErrorMessage } from "@/lib/utils";
 import {
   approveCategory,
   rejectCategory,
-  seedCategoryPricing,
+  seedDistrictPricing,
   updateCategory,
 } from "@/services/platform";
 import { getCategories } from "@/services/job";
 import type { Category, ScopeFieldDefinition } from "@/types/job";
+
+type BaselineUnit = "per_job" | "per_sqft" | "per_word" | "per_hour";
+
+function baselineUnitLabel(unit?: string | null) {
+  if (unit === "per_sqft") return "/sq ft (legacy)";
+  if (unit === "per_word") return " per 100 words (legacy)";
+  if (unit === "per_hour") return "/hour (legacy)";
+  return " (Tier-1 Colombo base)";
+}
+
+function pricingUnitLabel(category: Category) {
+  if (category.pricing_unit === "scaled") {
+    const fields = (category.scope_fields ?? category.scope_schema ?? []).filter(
+      (f) => f.type === "number" && f.affects_price
+    );
+    if (!fields.length) return " · scaled";
+    return ` · scaled (${fields.map((f) => f.label).join(", ")})`;
+  }
+  return " · flat";
+}
 
 function PendingCategoryCard({
   category,
@@ -138,13 +158,12 @@ function AdminCategoriesContent() {
   const { data: categories, loading, reload } = useAsyncList(fetcher);
 
   const [seedCategoryId, setSeedCategoryId] = useState<number | "">("");
-  const [seedLocation, setSeedLocation] = useState("Kandy");
-  const [seedPrice, setSeedPrice] = useState("45");
+  const [seedingDistricts, setSeedingDistricts] = useState(false);
   const [editingId, setEditingId] = useState<number | null>(null);
   const [editName, setEditName] = useState("");
   const [editSchema, setEditSchema] = useState<ScopeFieldDefinition[]>([]);
   const [editBaselinePrice, setEditBaselinePrice] = useState("");
-  const [editBaselineUnit, setEditBaselineUnit] = useState<"per_job" | "per_sqft" | "">("");
+  const [editBaselineUnit, setEditBaselineUnit] = useState<BaselineUnit | "">("");
   const [saving, setSaving] = useState(false);
 
   const approvedForSeed = useMemo(
@@ -172,7 +191,9 @@ function AdminCategoriesContent() {
         baseline_price: editBaselinePrice.trim() === "" ? null : Number(editBaselinePrice),
         baseline_unit: editBaselineUnit || null,
       });
-      toast.success("Category updated");
+      toast.success(
+        "Category updated — district estimate rows refreshed for seeded locations only"
+      );
       setEditingId(null);
       reload();
     } catch (err) {
@@ -182,17 +203,19 @@ function AdminCategoriesContent() {
     }
   };
 
-  const handleSeed = async () => {
+  const handleSeedDistricts = async () => {
     if (!seedCategoryId) return;
+    setSeedingDistricts(true);
     try {
-      await seedCategoryPricing(Number(seedCategoryId), {
-        location: seedLocation,
-        average_price: Number(seedPrice),
-        sample_size: 12,
-      });
-      toast.success("Pricing seeded");
+      const result = await seedDistrictPricing(Number(seedCategoryId));
+      toast.success(
+        result.message ||
+          `District estimates updated (created ${result.stats?.created ?? 0}, updated ${result.stats?.updated ?? 0})`
+      );
     } catch (err) {
       toast.error(getErrorMessage(err));
+    } finally {
+      setSeedingDistricts(false);
     }
   };
 
@@ -238,7 +261,14 @@ function AdminCategoriesContent() {
 
       {!isPending && (
         <Card className="mb-6 max-w-md space-y-3">
-          <Label>Seed Pricing</Label>
+          <Label>Seed district pricing estimates</Label>
+          <p className="text-xs text-muted">
+            Uses each category&apos;s Tier-1 (Colombo) base price × cost-of-living multipliers for
+            all 25 districts. Does not overwrite locations that already have real contract samples.
+          </p>
+          <p className="text-[11px] text-muted">
+            District cost multipliers derived from Numbeo cost-of-living data.
+          </p>
           <select
             className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             value={seedCategoryId}
@@ -248,23 +278,16 @@ function AdminCategoriesContent() {
             {approvedForSeed.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
+                {c.baseline_price != null ? ` (base LKR ${c.baseline_price})` : " — set base price first"}
               </option>
             ))}
           </select>
-          <Input
-            value={seedLocation}
-            onChange={(e) => setSeedLocation(e.target.value)}
-            placeholder="Location"
-          />
-          <Input
-            value={seedPrice}
-            onChange={(e) => setSeedPrice(e.target.value)}
-            placeholder="Average price"
-            type="number"
-            step="0.01"
-          />
-          <Button variant="outline" onClick={handleSeed}>
-            Seed Pricing
+          <Button
+            variant="outline"
+            disabled={!seedCategoryId || seedingDistricts}
+            onClick={() => void handleSeedDistricts()}
+          >
+            {seedingDistricts ? "Seeding…" : "Seed 25 district estimates"}
           </Button>
         </Card>
       )}
@@ -295,7 +318,7 @@ function AdminCategoriesContent() {
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <Label>Baseline price (LKR)</Label>
+                    <Label>Base price — Tier 1 Colombo (LKR)</Label>
                     <Input
                       type="number"
                       min="0"
@@ -304,20 +327,29 @@ function AdminCategoriesContent() {
                       onChange={(e) => setEditBaselinePrice(e.target.value)}
                       placeholder="e.g. 6000"
                     />
+                    <p className="text-[11px] text-muted">
+                      Single calibration number for this category. Saving recalculates seeded
+                      district estimates only (never real contract data). District cost multipliers
+                      derived from Numbeo cost-of-living data.
+                    </p>
                   </div>
                   <div className="space-y-2">
-                    <Label>Baseline unit</Label>
+                    <Label>Pricing unit (legacy hint)</Label>
                     <SelectMenu
                       value={editBaselineUnit}
-                      onChange={(v) =>
-                        setEditBaselineUnit(v as "per_job" | "per_sqft" | "")
-                      }
+                      onChange={(v) => setEditBaselineUnit(v as BaselineUnit | "")}
                       placeholder="None"
                       options={[
-                        { value: "per_job", label: "Per job" },
+                        { value: "per_job", label: "Flat / per job" },
                         { value: "per_sqft", label: "Per sq ft" },
+                        { value: "per_word", label: "Per 100 words" },
+                        { value: "per_hour", label: "Per hour" },
                       ]}
                     />
+                    <p className="text-[11px] text-muted">
+                      Live scaling uses Scope fields with &quot;Affects price?&quot; checked — not
+                      this legacy hint.
+                    </p>
                     <button
                       type="button"
                       className="text-xs text-muted hover:underline"
@@ -361,10 +393,12 @@ function AdminCategoriesContent() {
                     {c.baseline_price != null && (
                       <>
                         {" · "}
-                        Baseline LKR {c.baseline_price}
-                        {c.baseline_unit === "per_sqft" ? "/sq ft" : "/job"}
+                        Base LKR {c.baseline_price}
+                        {baselineUnitLabel(c.baseline_unit)}
+                        {pricingUnitLabel(c)}
                       </>
                     )}
+                    {c.baseline_price == null && pricingUnitLabel(c)}
                   </p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => startEdit(c)}>
