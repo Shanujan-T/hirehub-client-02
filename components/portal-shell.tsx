@@ -2,6 +2,7 @@
 
 import { Suspense, useEffect, useState } from "react";
 import { usePathname } from "next/navigation";
+import { AiConciergeWidget } from "@/components/ai-concierge-widget";
 import { AdminSidebar } from "@/components/admin-sidebar";
 import { AppHeader } from "@/components/app-header";
 import { BackButton } from "@/components/back-button";
@@ -138,6 +139,7 @@ export function PortalShell({
           <div className="relative z-10 flex-1 bg-background p-4 lg:p-8">{children}</div>
         </div>
       </div>
+      <AiConciergeWidget />
     </div>
   );
 
