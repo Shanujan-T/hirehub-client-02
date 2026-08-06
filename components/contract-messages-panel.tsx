@@ -11,9 +11,11 @@ import {
   deleteMessageForMe,
   getContractMessages,
   sendContractMessage,
+  suggestContractReply,
 } from "@/services/message";
 import { isMessageVisible, type Message } from "@/types/message";
 import type { Socket } from "socket.io-client";
+import { Sparkles } from "lucide-react";
 
 function formatTimestamp(value: string) {
   try {
@@ -165,6 +167,8 @@ export function ContractMessagesPanel({ contractId }: { contractId: number }) {
   const [sending, setSending] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [confirmDeleteEveryone, setConfirmDeleteEveryone] = useState<Message | null>(null);
+  const [aiLoading, setAiLoading] = useState(false);
+  const [aiUnavailable, setAiUnavailable] = useState(false);
   const socketRef = useRef<Socket | null>(null);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
@@ -257,6 +261,24 @@ export function ContractMessagesPanel({ contractId }: { contractId: number }) {
     }
   };
 
+  const handleSuggestReply = async () => {
+    if (aiLoading || !conversationId) return;
+    setAiLoading(true);
+    setAiUnavailable(false);
+    try {
+      const result = await suggestContractReply(contractId);
+      if (!result.suggestion) {
+        setAiUnavailable(true);
+        return;
+      }
+      setDraft(result.suggestion);
+    } catch {
+      setAiUnavailable(true);
+    } finally {
+      setAiLoading(false);
+    }
+  };
+
   const handleSend = async (event: React.FormEvent) => {
     event.preventDefault();
     const content = draft.trim();
@@ -309,22 +331,41 @@ export function ContractMessagesPanel({ contractId }: { contractId: number }) {
           <p className="px-4 pb-2 text-xs text-destructive">{error}</p>
         )}
 
-        <form onSubmit={(event) => void handleSend(event)} className="flex gap-2 border-t border-border p-4">
-          <Input
-            value={draft}
-            onChange={(event) => setDraft(event.target.value)}
-            placeholder="Write a message…"
-            disabled={!conversationId || sending}
-          />
-          <Button
-            type="submit"
-            variant="gradient"
-            className="rounded-full"
-            disabled={!conversationId || sending || !draft.trim()}
-          >
-            {sending ? "Sending…" : "Send"}
-          </Button>
-        </form>
+        <div className="space-y-2 border-t border-border p-4">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              disabled={!conversationId || aiLoading || visibleMessages.length === 0}
+              onClick={() => void handleSuggestReply()}
+              title={aiUnavailable ? "AI suggestion unavailable" : "Suggest a reply"}
+            >
+              <Sparkles className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+              {aiLoading ? "Suggesting…" : "Suggest Reply"}
+            </Button>
+            {aiUnavailable && (
+              <p className="text-xs text-muted">AI suggestion unavailable — write your own reply.</p>
+            )}
+          </div>
+          <form onSubmit={(event) => void handleSend(event)} className="flex gap-2">
+            <Input
+              value={draft}
+              onChange={(event) => setDraft(event.target.value)}
+              placeholder="Write a message…"
+              disabled={!conversationId || sending}
+            />
+            <Button
+              type="submit"
+              variant="gradient"
+              className="rounded-full"
+              disabled={!conversationId || sending || !draft.trim()}
+            >
+              {sending ? "Sending…" : "Send"}
+            </Button>
+          </form>
+        </div>
       </Card>
 
       <ConfirmDialog
