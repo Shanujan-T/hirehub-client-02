@@ -2,6 +2,7 @@
 
 import { Suspense, useCallback, useEffect, useState } from "react";
 import { createPortal } from "react-dom";
+import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { BackButton } from "@/components/back-button";
 import { CommunityAvatar } from "@/components/community-avatar";
@@ -22,8 +23,10 @@ import {
   getOpenCalls,
   joinCommunity,
 } from "@/services/community";
+import { getMyJobs, getJobApplicants, inviteCommunityToJob } from "@/services/job";
 import type { CommunityMember, OpenCall } from "@/types/community";
-import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
+import type { Job } from "@/types/job";
+import { AlertCircle, AlertTriangle, CheckCircle2, Mail } from "lucide-react";
 
 function ApplyOpenCallModal({
   open,
@@ -110,6 +113,137 @@ function ApplyOpenCallModal({
   );
 }
 
+function InviteToJobModal({
+  open,
+  communityName,
+  jobs,
+  loadingJobs,
+  submitting,
+  invitedJobIds,
+  selectedJobId,
+  onSelectJob,
+  onClose,
+  onConfirm,
+}: {
+  open: boolean;
+  communityName: string;
+  jobs: Job[];
+  loadingJobs: boolean;
+  submitting: boolean;
+  invitedJobIds: Set<number>;
+  selectedJobId: number | null;
+  onSelectJob: (id: number) => void;
+  onClose: () => void;
+  onConfirm: () => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !submitting) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose, submitting]);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6" role="presentation">
+      <button
+        type="button"
+        aria-label="Dismiss dialog"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[3px]"
+        onClick={onClose}
+        disabled={submitting}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="invite-to-job-title"
+        className="relative z-[1] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-xl dark:border-white/10 dark:bg-[#0f1729]"
+      >
+        <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-brand-gradient" />
+        <h2 id="invite-to-job-title" className="text-lg font-extrabold text-foreground">
+          Invite {communityName} to a job
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          Choose one of your open jobs in this community’s category. They must accept before a
+          contract is created.
+        </p>
+        <div className="mt-4 max-h-64 space-y-2 overflow-y-auto">
+          {loadingJobs ? (
+            <p className="text-sm text-muted">Loading your open jobs…</p>
+          ) : jobs.length === 0 ? (
+            <div className="rounded-xl border border-border/70 bg-background/40 p-3 text-sm">
+              <p className="text-foreground">
+                You don&apos;t have any open jobs in this community&apos;s category yet.
+              </p>
+              <Link href="/jobs/new" className="mt-2 inline-block font-semibold text-info hover:underline">
+                Post a Job
+              </Link>
+            </div>
+          ) : (
+            jobs.map((job) => {
+              const alreadyInvited = invitedJobIds.has(job.id);
+              return (
+                <button
+                  key={job.id}
+                  type="button"
+                  disabled={alreadyInvited || submitting}
+                  onClick={() => onSelectJob(job.id)}
+                  className={`flex w-full items-start justify-between gap-2 rounded-xl border px-3 py-2.5 text-left text-sm transition ${
+                    selectedJobId === job.id
+                      ? "border-info bg-info/10"
+                      : "border-border/70 bg-background/40 hover:border-info/50"
+                  } ${alreadyInvited ? "opacity-60" : ""}`}
+                >
+                  <span>
+                    <span className="font-semibold text-foreground">{job.title}</span>
+                    <span className="mt-0.5 block text-xs text-muted">
+                      {job.location} · ${job.final_price}
+                    </span>
+                  </span>
+                  {alreadyInvited && (
+                    <Badge variant="info" className="shrink-0 normal-case">
+                      Invited
+                    </Badge>
+                  )}
+                </button>
+              );
+            })
+          )}
+        </div>
+        <div className="mt-6 flex flex-wrap justify-end gap-2">
+          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={onClose} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button
+            type="button"
+            variant="gradient"
+            size="sm"
+            className="rounded-full"
+            onClick={onConfirm}
+            disabled={submitting || !selectedJobId || jobs.length === 0}
+          >
+            {submitting ? "Sending…" : "Send invitation"}
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
+
 function CommunityDetailContent() {
   const params = useParams();
   const router = useRouter();
@@ -128,6 +262,12 @@ function CommunityDetailContent() {
   const [applyNote, setApplyNote] = useState("");
   const [applySubmitting, setApplySubmitting] = useState(false);
   const [appliedOpenCallIds, setAppliedOpenCallIds] = useState<Set<number>>(new Set());
+  const [inviteOpen, setInviteOpen] = useState(false);
+  const [inviteJobs, setInviteJobs] = useState<Job[]>([]);
+  const [inviteJobsLoading, setInviteJobsLoading] = useState(false);
+  const [inviteSubmitting, setInviteSubmitting] = useState(false);
+  const [selectedInviteJobId, setSelectedInviteJobId] = useState<number | null>(null);
+  const [invitedJobIds, setInvitedJobIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (id) {
@@ -232,16 +372,72 @@ function CommunityDetailContent() {
     }
   };
 
+  const openInviteDialog = async () => {
+    if (!user) {
+      router.push(appendReturnTo("/auth/login", `/communities/${id}`));
+      return;
+    }
+    if (!community?.category_id) {
+      notify.error("This community has no category set.");
+      return;
+    }
+    setInviteOpen(true);
+    setSelectedInviteJobId(null);
+    setInviteJobsLoading(true);
+    try {
+      const jobs = await getMyJobs({ category_id: community.category_id, status: "open" });
+      setInviteJobs(jobs);
+      const invited = new Set<number>();
+      await Promise.all(
+        jobs.map(async (job) => {
+          try {
+            const apps = await getJobApplicants(job.id);
+            if (apps.some((a) => a.community_id === id)) {
+              invited.add(job.id);
+            }
+          } catch {
+            /* ignore per-job lookup failures */
+          }
+        })
+      );
+      setInvitedJobIds(invited);
+    } catch (err) {
+      notify.error(getErrorMessage(err, "Failed to load your open jobs"));
+      setInviteJobs([]);
+    } finally {
+      setInviteJobsLoading(false);
+    }
+  };
+
+  const handleInviteConfirm = async () => {
+    if (!selectedInviteJobId) return;
+    setInviteSubmitting(true);
+    try {
+      await inviteCommunityToJob(selectedInviteJobId, id);
+      setInvitedJobIds((prev) => new Set(prev).add(selectedInviteJobId));
+      notify.success("Invitation sent");
+      setInviteOpen(false);
+      setSelectedInviteJobId(null);
+    } catch (err) {
+      notify.error(getErrorMessage(err, "Failed to send invitation"));
+    } finally {
+      setInviteSubmitting(false);
+    }
+  };
+
   const isApprovedMember = membership?.status === "approved";
   const hasPendingRequest = membership?.status === "pending" || joinSent;
+  const isCommunityAdmin =
+    membership?.role === "admin" && membership?.status === "approved";
 
   const showJoinButton =
     !authLoading &&
     (!user || user.role === "user") &&
     !isApprovedMember;
 
-  const isCommunityAdmin =
-    membership?.role === "admin" && membership?.status === "approved";
+  // Job posters are platform "user" accounts; hide invite when viewing as this community's admin.
+  const showInviteButton =
+    !authLoading && Boolean(user) && user?.role === "user" && !isCommunityAdmin;
 
   const verificationStatus =
     community?.status === "approved" ? "verified" : community?.status;
@@ -313,17 +509,30 @@ function CommunityDetailContent() {
             )}
           </div>
         </div>
-        {showJoinButton && (
-          <Button
-            variant="gradient"
-            size="sm"
-            className="shrink-0 rounded-full"
-            disabled={hasPendingRequest || joinLoading}
-            onClick={handleRequestJoin}
-          >
-            {hasPendingRequest ? "Request Sent" : user ? "Request to Join" : "Sign in to Join"}
-          </Button>
-        )}
+        <div className="flex shrink-0 flex-wrap items-center gap-2">
+          {showInviteButton && (
+            <Button
+              variant="outline"
+              size="sm"
+              className="rounded-full"
+              onClick={() => void openInviteDialog()}
+            >
+              <Mail className="mr-1.5 h-3.5 w-3.5" aria-hidden />
+              Invite to a job
+            </Button>
+          )}
+          {showJoinButton && (
+            <Button
+              variant="gradient"
+              size="sm"
+              className="rounded-full"
+              disabled={hasPendingRequest || joinLoading}
+              onClick={handleRequestJoin}
+            >
+              {hasPendingRequest ? "Request Sent" : user ? "Request to Join" : "Sign in to Join"}
+            </Button>
+          )}
+        </div>
       </div>
 
       {isCommunityAdmin && verificationStatus === "rejected" && (
@@ -447,6 +656,24 @@ function CommunityDetailContent() {
           }
         }}
         onSubmit={() => void handleApplyOpenCall(applyNote)}
+      />
+
+      <InviteToJobModal
+        open={inviteOpen}
+        communityName={community.name}
+        jobs={inviteJobs}
+        loadingJobs={inviteJobsLoading}
+        submitting={inviteSubmitting}
+        invitedJobIds={invitedJobIds}
+        selectedJobId={selectedInviteJobId}
+        onSelectJob={setSelectedInviteJobId}
+        onClose={() => {
+          if (!inviteSubmitting) {
+            setInviteOpen(false);
+            setSelectedInviteJobId(null);
+          }
+        }}
+        onConfirm={() => void handleInviteConfirm()}
       />
     </div>
   );
