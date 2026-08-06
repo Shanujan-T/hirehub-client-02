@@ -16,6 +16,19 @@ export async function sendContractMessage(contractId: number, content: string): 
   return data.message;
 }
 
+export async function suggestContractReply(
+  contractId: number
+): Promise<{ suggestion: string | null; available?: boolean }> {
+  try {
+    const { data } = await apiClient.post<{ suggestion: string | null; available?: boolean }>(
+      `/api/contracts/${contractId}/messages/suggest-reply`
+    );
+    return data;
+  } catch {
+    return { suggestion: null, available: false };
+  }
+}
+
 export async function deleteMessageForMe(messageId: number): Promise<void> {
   await apiClient.delete(`/api/messages/${messageId}/delete-for-me`);
 }
