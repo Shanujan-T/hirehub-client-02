@@ -1,15 +1,14 @@
 "use client";
 
-import { Suspense } from "react";
+import { Suspense, useCallback, useEffect, useState } from "react";
+import { createPortal } from "react-dom";
 import { useParams, useRouter } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
-import { ApplyOpenCallDialog } from "@/components/apply-open-call-dialog";
 import { BackButton } from "@/components/back-button";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { MemberCardPanel, sortMembersAdminFirst } from "@/components/member-card";
 import { StatusBadge } from "@/components/status-badge";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
-import { Badge, Button, Card } from "@/components/ui";
+import { Badge, Button, Card, Label, Textarea } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { useAsyncItem } from "@/lib/hooks/use-async";
 import { appendReturnTo } from "@/lib/navigation";
@@ -17,14 +16,99 @@ import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
 import { useAuth } from "@/providers/auth-provider";
 import {
-  applyToOpenCall,
   getCommunity,
+  getCommunityReviewDigest,
   getMyMemberships,
   getOpenCalls,
   joinCommunity,
 } from "@/services/community";
 import type { CommunityMember, OpenCall } from "@/types/community";
-import { AlertTriangle } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2 } from "lucide-react";
+
+function ApplyOpenCallModal({
+  open,
+  title,
+  note,
+  submitting,
+  onNoteChange,
+  onClose,
+  onSubmit,
+}: {
+  open: boolean;
+  title: string;
+  note: string;
+  submitting: boolean;
+  onNoteChange: (value: string) => void;
+  onClose: () => void;
+  onSubmit: () => void;
+}) {
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!open) return;
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === "Escape" && !submitting) onClose();
+    };
+    document.addEventListener("keydown", onKey);
+    document.body.style.overflow = "hidden";
+    return () => {
+      document.removeEventListener("keydown", onKey);
+      document.body.style.overflow = "";
+    };
+  }, [open, onClose, submitting]);
+
+  if (!open || !mounted) return null;
+
+  return createPortal(
+    <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 sm:p-6" role="presentation">
+      <button
+        type="button"
+        aria-label="Dismiss dialog"
+        className="absolute inset-0 bg-black/60 backdrop-blur-[3px]"
+        onClick={onClose}
+        disabled={submitting}
+      />
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="apply-open-call-title"
+        className="relative z-[1] w-full max-w-md overflow-hidden rounded-2xl border border-border bg-card p-6 shadow-xl dark:border-white/10 dark:bg-[#0f1729]"
+      >
+        <div aria-hidden className="absolute inset-x-0 top-0 h-1 bg-brand-gradient" />
+        <h2 id="apply-open-call-title" className="text-lg font-extrabold text-foreground">
+          Apply to {title}
+        </h2>
+        <p className="mt-2 text-sm text-muted">
+          Add an optional note for the community admin reviewing your application.
+        </p>
+        <div className="mt-4 space-y-2">
+          <Label htmlFor="apply-open-call-note">Note (optional)</Label>
+          <Textarea
+            id="apply-open-call-note"
+            rows={4}
+            value={note}
+            onChange={(e) => onNoteChange(e.target.value)}
+            placeholder="Why you want to join this open call…"
+            disabled={submitting}
+          />
+        </div>
+        <div className="mt-6 flex flex-wrap justify-end gap-2">
+          <Button type="button" variant="outline" size="sm" className="rounded-full" onClick={onClose} disabled={submitting}>
+            Cancel
+          </Button>
+          <Button type="button" variant="gradient" size="sm" className="rounded-full" onClick={onSubmit} disabled={submitting}>
+            {submitting ? "Submitting…" : "Submit application"}
+          </Button>
+        </div>
+      </div>
+    </div>,
+    document.body
+  );
+}
 
 function CommunityDetailContent() {
   const params = useParams();
@@ -34,17 +118,37 @@ function CommunityDetailContent() {
   const { data: community, loading } = useAsyncItem(useCallback(() => getCommunity(id), [id]));
   const [openCalls, setOpenCalls] = useState<OpenCall[]>([]);
   const [membership, setMembership] = useState<CommunityMember | null>(null);
+  const [reviewDigest, setReviewDigest] = useState<{
+    praised: string[];
+    flagged: string[];
+  } | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinSent, setJoinSent] = useState(false);
   const [applyTarget, setApplyTarget] = useState<OpenCall | null>(null);
+  const [applyNote, setApplyNote] = useState("");
   const [applySubmitting, setApplySubmitting] = useState(false);
   const [appliedOpenCallIds, setAppliedOpenCallIds] = useState<Set<number>>(new Set());
 
   useEffect(() => {
     if (id) {
-      getOpenCalls(id, { status: "open" })
-        .then(setOpenCalls)
+      getOpenCalls(id)
+        .then((rows) => setOpenCalls(rows.filter((oc) => oc.status === "open")))
         .catch(() => {});
+      getCommunityReviewDigest(id)
+        .then((digest) => {
+          if (
+            digest?.available &&
+            ((digest.praised?.length ?? 0) > 0 || (digest.flagged?.length ?? 0) > 0)
+          ) {
+            setReviewDigest({
+              praised: digest.praised ?? [],
+              flagged: digest.flagged ?? [],
+            });
+          } else {
+            setReviewDigest(null);
+          }
+        })
+        .catch(() => setReviewDigest(null));
     }
   }, [id]);
 
@@ -58,9 +162,6 @@ function CommunityDetailContent() {
         const match = memberships.find((m) => m.community_id === id) ?? null;
         setMembership(match);
         if (match?.status === "pending") setJoinSent(true);
-        if (match?.open_call_id) {
-          setAppliedOpenCallIds((prev) => new Set(prev).add(match.open_call_id!));
-        }
       })
       .catch(() => {});
   }, [user, id]);
@@ -104,7 +205,7 @@ function CommunityDetailContent() {
     }
     setApplySubmitting(true);
     try {
-      await applyToOpenCall(applyTarget.id, { note: note.trim() || undefined });
+      await joinCommunity(id);
       setAppliedOpenCallIds((prev) => new Set(prev).add(applyTarget.id));
       setJoinSent(true);
       setMembership((prev) =>
@@ -115,11 +216,15 @@ function CommunityDetailContent() {
           user_id: user.id,
           role: "member",
           status: "pending",
-          open_call_id: applyTarget.id,
         } satisfies CommunityMember)
       );
-      notify.success("Application sent");
+      if (note.trim()) {
+        notify.info("Application sent — your note was not stored (join request only).");
+      } else {
+        notify.success("Application sent");
+      }
       setApplyTarget(null);
+      setApplyNote("");
     } catch (err) {
       notify.error(getErrorMessage(err));
     } finally {
@@ -139,8 +244,7 @@ function CommunityDetailContent() {
     membership?.role === "admin" && membership?.status === "approved";
 
   const verificationStatus =
-    community?.verification_status ??
-    (community?.status === "approved" ? "verified" : community?.status);
+    community?.status === "approved" ? "verified" : community?.status;
 
   if (loading) return <LoadingState />;
   if (!community) return <EmptyState title="Community not found" />;
@@ -162,6 +266,51 @@ function CommunityDetailContent() {
                 kind="community"
               />
             </div>
+            {reviewDigest && (
+              <div className="mt-4 rounded-2xl border border-border/70 bg-card/60 p-4">
+                <p className="mb-3 text-sm font-bold text-foreground">What people say</p>
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                      Commonly praised
+                    </p>
+                    <ul className="space-y-1.5">
+                      {reviewDigest.praised.map((phrase) => (
+                        <li key={phrase} className="flex items-start gap-2 text-sm text-foreground">
+                          <CheckCircle2
+                            className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600 dark:text-emerald-400"
+                            aria-hidden
+                          />
+                          <span>{phrase}</span>
+                        </li>
+                      ))}
+                      {reviewDigest.praised.length === 0 && (
+                        <li className="text-sm text-muted">No recurring praise yet.</li>
+                      )}
+                    </ul>
+                  </div>
+                  <div>
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-muted">
+                      Worth noting
+                    </p>
+                    <ul className="space-y-1.5">
+                      {reviewDigest.flagged.map((phrase) => (
+                        <li key={phrase} className="flex items-start gap-2 text-sm text-foreground">
+                          <AlertCircle
+                            className="mt-0.5 h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400"
+                            aria-hidden
+                          />
+                          <span>{phrase}</span>
+                        </li>
+                      ))}
+                      {reviewDigest.flagged.length === 0 && (
+                        <li className="text-sm text-muted">No recurring concerns noted.</li>
+                      )}
+                    </ul>
+                  </div>
+                </div>
+              </div>
+            )}
           </div>
         </div>
         {showJoinButton && (
@@ -285,12 +434,19 @@ function CommunityDetailContent() {
         )}
       </div>
 
-      <ApplyOpenCallDialog
+      <ApplyOpenCallModal
         open={Boolean(applyTarget)}
         title={applyTarget?.title ?? ""}
+        note={applyNote}
         submitting={applySubmitting}
-        onClose={() => !applySubmitting && setApplyTarget(null)}
-        onSubmit={handleApplyOpenCall}
+        onNoteChange={setApplyNote}
+        onClose={() => {
+          if (!applySubmitting) {
+            setApplyTarget(null);
+            setApplyNote("");
+          }
+        }}
+        onSubmit={() => void handleApplyOpenCall(applyNote)}
       />
     </div>
   );
