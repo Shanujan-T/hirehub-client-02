@@ -13,6 +13,64 @@ export async function getCommunity(id: number): Promise<Community> {
   return data.community;
 }
 
+export type JobMatchRecommendation = {
+  job: import("@/types/job").Job;
+  match_score: number;
+  skill_score: number;
+  location_match: boolean;
+  category_match: boolean;
+  skill_summary: string;
+  ai_blurb: string | null;
+  ai_available: boolean;
+};
+
+export async function getRecommendedJobs(communityId: number): Promise<JobMatchRecommendation[]> {
+  const { data } = await apiClient.get<{ recommendations: JobMatchRecommendation[] }>(
+    `/api/communities/${communityId}/recommended-jobs`
+  );
+  return data.recommendations ?? [];
+}
+
+export type FitAnalysis = {
+  fit_summary: string;
+  overlap_skills: string[];
+  new_skills_added: string[];
+};
+
+export async function analyzeJoinRequestFit(
+  communityId: number,
+  userId: number
+): Promise<{ available: boolean; analysis: FitAnalysis | null; error?: string }> {
+  try {
+    const { data } = await apiClient.post<{
+      available: boolean;
+      analysis?: FitAnalysis | null;
+      error?: string;
+      message?: string;
+    }>(`/api/communities/${communityId}/join-requests/${userId}/fit-analysis`);
+    return {
+      available: Boolean(data.available && data.analysis),
+      analysis: data.analysis ?? null,
+      error: data.error || data.message,
+    };
+  } catch (err: unknown) {
+    const message =
+      err && typeof err === "object" && "response" in err
+        ? String(
+            (err as { response?: { data?: { error?: string; message?: string } } }).response?.data
+              ?.error ||
+              (err as { response?: { data?: { message?: string } } }).response?.data?.message ||
+              ""
+          )
+        : "";
+    return {
+      available: false,
+      analysis: null,
+      error: message || "AI suggestion unavailable.",
+    };
+  }
+}
+
 export async function createCommunity(payload: {
   name: string;
   description?: string;
@@ -134,10 +192,50 @@ export async function getOpenCalls(communityId?: number): Promise<OpenCall[]> {
 export async function createOpenCall(payload: {
   community_id: number;
   title: string;
+  description?: string;
   skill_ids?: number[];
 }): Promise<OpenCall> {
   const { data } = await apiClient.post<{ open_call: OpenCall }>("/api/open-calls", payload);
   return data.open_call;
+}
+
+export async function generateOpenCallDescription(payload: {
+  title?: string;
+  prompt?: string;
+  required_skills?: string[];
+}): Promise<{ description: string } | null> {
+  try {
+    const { data } = await apiClient.post<{
+      suggestion?: { description?: string } | null;
+    }>("/api/open-calls/generate-description", payload);
+    const description = data.suggestion?.description?.trim();
+    return description ? { description } : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function getCommunityReviewDigest(communityId: number): Promise<{
+  available: boolean;
+  praised: string[];
+  flagged: string[];
+  review_count?: number;
+  reason?: string;
+} | null> {
+  try {
+    const { data } = await apiClient.get<{
+      digest: {
+        available: boolean;
+        praised: string[];
+        flagged: string[];
+        review_count?: number;
+        reason?: string;
+      };
+    }>(`/api/communities/${communityId}/review-digest`);
+    return data.digest;
+  } catch {
+    return null;
+  }
 }
 
 export async function getSkills() {
