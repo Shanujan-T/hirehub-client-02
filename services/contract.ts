@@ -11,6 +11,16 @@ export async function getContracts(): Promise<Contract[]> {
   return data.contracts;
 }
 
+export async function getContractsNeedingAttention(): Promise<{
+  contracts: Contract[];
+  count: number;
+}> {
+  const { data } = await apiClient.get<{ contracts: Contract[]; count: number }>(
+    "/api/contracts/needs-attention"
+  );
+  return data;
+}
+
 export async function getContract(id: number): Promise<Contract> {
   const { data } = await apiClient.get<{ contract: Contract }>(`/api/contracts/${id}`);
   return data.contract;
@@ -68,6 +78,17 @@ export async function adminApproveDeliverable(contractId: number): Promise<Contr
     `/api/contracts/${contractId}/admin-approve-deliverable`
   );
   return data.contract;
+}
+
+export async function aiReviewDeliverable(contractId: number): Promise<string | null> {
+  try {
+    const { data } = await apiClient.post<{ review?: string | null }>(
+      `/api/contracts/${contractId}/ai-review-deliverable`
+    );
+    return data.review?.trim() || null;
+  } catch {
+    return null;
+  }
 }
 
 export async function posterApproveDeliverable(contractId: number) {
@@ -129,6 +150,50 @@ export async function getUserSkills(userId?: number) {
     params: userId ? { user_id: userId } : {},
   });
   return data.user_skills;
+}
+
+export async function createWorkSample(
+  userSkillId: number,
+  payload: { sample_type: "text" | "image"; content: string }
+) {
+  const { data } = await apiClient.post(`/api/user-skills/${userSkillId}/work-samples`, payload);
+  return data as {
+    work_sample: import("@/types/skill").WorkSample;
+    user_skill: import("@/types/skill").UserSkill;
+    vision_available?: boolean | null;
+    message?: string | null;
+  };
+}
+
+export async function uploadWorkSampleImage(userSkillId: number, file: File) {
+  const form = new FormData();
+  form.append("sample_type", "image");
+  form.append("file", file);
+  const { data } = await apiClient.post(`/api/user-skills/${userSkillId}/work-samples`, form, {
+    headers: { "Content-Type": "multipart/form-data" },
+  });
+  return data as {
+    work_sample: import("@/types/skill").WorkSample;
+    user_skill: import("@/types/skill").UserSkill;
+    vision_available?: boolean | null;
+    message?: string | null;
+  };
+}
+
+export async function verifyWorkSample(sampleId: number) {
+  const { data } = await apiClient.post(`/api/work-samples/${sampleId}/verify`);
+  return data as {
+    work_sample: import("@/types/skill").WorkSample;
+    user_skill: import("@/types/skill").UserSkill;
+    available?: boolean;
+    vision_available?: boolean | null;
+    message?: string | null;
+  };
+}
+
+export async function getUserSkillWithSamples(userSkillId: number) {
+  const { data } = await apiClient.get(`/api/user-skills/${userSkillId}/work-samples`);
+  return data.user_skill as import("@/types/skill").UserSkill;
 }
 
 import type { UserAddress } from "@/types/user";
