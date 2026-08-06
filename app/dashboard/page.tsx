@@ -5,6 +5,7 @@ import { Briefcase, CircleDollarSign, FileCheck, FileText, Plus } from "lucide-r
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { AuthenticatedRoute } from "@/components/auth-guard";
+import { NeedsAttentionBanner } from "@/components/needs-attention-banner";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatCard, StatCardGrid, DashboardPanel } from "@/components/stat-card";
 import { StatusBadge } from "@/components/status-badge";
@@ -77,6 +78,7 @@ export default function ClientDashboardPage() {
           <LoadingState />
         ) : (
           <div className="space-y-8">
+            <NeedsAttentionBanner contractsHref="/contracts" />
             <StatCardGrid>
               <StatCard label="Jobs Posted" value={stats.jobsPosted} icon={Briefcase} iconClassName="bg-brand-gradient" />
               <StatCard label="Active Contracts" value={stats.activeContracts} icon={FileText} iconClassName="bg-gradient-to-br from-info to-primary" />
