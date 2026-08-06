@@ -52,6 +52,7 @@ export const jobBidSchema = z.object({
 export const openCallSchema = z.object({
   community_id: z.coerce.number(),
   title: z.string().min(3),
+  description: z.string().optional(),
   skill_ids: z.array(z.coerce.number()).optional(),
 });
 
