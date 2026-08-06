@@ -1,6 +1,33 @@
+export type ScopeFieldType = "number" | "select" | "multiselect";
+
+export interface ScopeFieldDefinition {
+  key: string;
+  label: string;
+  type: ScopeFieldType;
+  required?: boolean;
+  unit?: string;
+  options?: string[];
+}
+
+export type ScopeData = Record<string, number | string | string[]>;
+
+export interface ScopeDisplayRow {
+  key: string;
+  label: string;
+  value: string;
+}
+
 export interface Category {
   id: number;
   name: string;
+  scope_schema?: ScopeFieldDefinition[] | null;
+  status?: "pending" | "approved" | "rejected";
+  requested_by_id?: number | null;
+  request_description?: string | null;
+  rejection_reason?: string | null;
+  requested_by?: { id: number; full_name: string; email?: string } | null;
+  baseline_price?: number | null;
+  baseline_unit?: "per_job" | "per_sqft" | null;
   created_at: string;
 }
 
@@ -30,6 +57,8 @@ export interface Job {
   deadline: string;
   suggested_price?: number | null;
   final_price: number;
+  scope_data?: ScopeData | null;
+  scope_display?: ScopeDisplayRow[];
   status: "open" | "assigned" | "closed";
   created_at: string;
   category?: Category;
