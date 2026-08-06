@@ -2,18 +2,24 @@
 
 import Link from "next/link";
 import { Suspense, useCallback, useMemo } from "react";
-import { Sparkles } from "lucide-react";
+import { Mail, Sparkles } from "lucide-react";
+import { toast } from "sonner";
 import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
 import { MatchScoreBadge } from "@/components/match-score-badge";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
-import { Button, Card, Input, Label } from "@/components/ui";
+import { Badge, Button, Card, Input, Label } from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
-import { getMarketplaceJobs } from "@/services/job";
+import { getErrorMessage, cn } from "@/lib/utils";
+import {
+  approveCommunity,
+  getMarketplaceJobs,
+  getMyJobApplications,
+  rejectCommunity,
+} from "@/services/job";
 import { getRecommendedJobs } from "@/services/community";
-import { cn } from "@/lib/utils";
 
 function JobsBrowseContent() {
   const { communityId } = useCommunityAdmin();
@@ -38,6 +44,25 @@ function JobsBrowseContent() {
     }, [communityId]),
     "Failed to load recommendations"
   );
+  const {
+    data: myApplications,
+    loading: appsLoading,
+    reload: reloadApps,
+  } = useAsyncList(
+    useCallback(() => getMyJobApplications(), []),
+    "Failed to load applications"
+  );
+
+  const pendingInvites = useMemo(
+    () =>
+      myApplications.filter(
+        (app) =>
+          app.source === "invited" &&
+          app.status === "applied" &&
+          (!communityId || app.community_id === communityId)
+      ),
+    [myApplications, communityId]
+  );
 
   const filtered = useMemo(() => {
     return jobs.filter((job) => {
@@ -52,8 +77,83 @@ function JobsBrowseContent() {
     });
   }, [jobs, locationFilter, queryFilter]);
 
+  const handleAcceptInvite = async (applicationId: number) => {
+    try {
+      await approveCommunity(applicationId, 3);
+      toast.success("Invitation accepted — contract created");
+      reloadApps();
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to accept invitation"));
+    }
+  };
+
+  const handleDeclineInvite = async (applicationId: number) => {
+    try {
+      await rejectCommunity(applicationId);
+      toast.success("Invitation declined");
+      reloadApps();
+    } catch (err) {
+      toast.error(getErrorMessage(err, "Failed to decline invitation"));
+    }
+  };
+
   return (
     <DashboardPortalShell title="Browse Jobs" subtitle="Submit a bid for open jobs">
+      {!appsLoading && pendingInvites.length > 0 && (
+        <section className="mb-8">
+          <div className="mb-3 flex items-center gap-2">
+            <Mail className="h-5 w-5 text-secondary" aria-hidden />
+            <h2 className="text-lg font-extrabold text-foreground">Invitations from employers</h2>
+          </div>
+          <p className="mb-4 text-sm text-muted">
+            Employers reached out to your community. Accept to create a contract, or decline.
+          </p>
+          {pendingInvites.map((app) => (
+            <Card key={app.id} className="mb-3 border-secondary/30 bg-secondary/[0.04]">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    <Badge variant="active" className="normal-case">
+                      <Mail className="mr-1 h-3 w-3" aria-hidden />
+                      Invited by employer
+                    </Badge>
+                    <StatusBadge status={app.status} kind="application" />
+                  </div>
+                  <Link
+                    href={hrefWithReturn(`/community-admin/jobs/${app.job_id}`)}
+                    className="font-bold hover:text-info"
+                  >
+                    {app.job?.title ?? `Job #${app.job_id}`}
+                  </Link>
+                  <p className="text-sm text-muted">
+                    {app.job?.location ?? "—"} · Offered ${app.proposed_cost.toFixed(2)} ·{" "}
+                    {app.proposed_days} day{app.proposed_days === 1 ? "" : "s"}
+                  </p>
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  <Button
+                    variant="gradient"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => void handleAcceptInvite(app.id)}
+                  >
+                    Accept invitation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => void handleDeclineInvite(app.id)}
+                  >
+                    Decline
+                  </Button>
+                </div>
+              </div>
+            </Card>
+          ))}
+        </section>
+      )}
+
       <div className="mb-4 flex flex-wrap gap-2">
         <button
           type="button"
@@ -164,35 +264,68 @@ function JobsBrowseContent() {
       ) : filtered.length === 0 ? (
         <EmptyState title="No jobs available" description="Try adjusting your filters." />
       ) : (
-        filtered.map((job) => (
-          <Card key={job.id} className="mb-3">
-            <div className="flex flex-wrap items-start justify-between gap-3">
-              <div>
-                <Link
-                  href={hrefWithReturn(`/community-admin/jobs/${job.id}`)}
-                  className="font-bold hover:text-info"
-                >
-                  {job.title}
-                </Link>
-                <p className="text-sm text-muted">
-                  {job.location} · Asking price ${job.final_price}
-                </p>
+        filtered.map((job) => {
+          const inviteApp = myApplications.find(
+            (a) => a.job_id === job.id && a.source === "invited" && a.status === "applied"
+          );
+          return (
+            <Card key={job.id} className="mb-3">
+              <div className="flex flex-wrap items-start justify-between gap-3">
+                <div>
+                  <div className="mb-1 flex flex-wrap items-center gap-2">
+                    {inviteApp && (
+                      <Badge variant="active" className="normal-case">
+                        <Mail className="mr-1 h-3 w-3" aria-hidden />
+                        Invited by employer
+                      </Badge>
+                    )}
+                  </div>
+                  <Link
+                    href={hrefWithReturn(`/community-admin/jobs/${job.id}`)}
+                    className="font-bold hover:text-info"
+                  >
+                    {job.title}
+                  </Link>
+                  <p className="text-sm text-muted">
+                    {job.location} · Asking price ${job.final_price}
+                  </p>
+                </div>
+                <StatusBadge status={job.status} kind="job" />
               </div>
-              <StatusBadge status={job.status} kind="job" />
-            </div>
-            <p className="mt-2 text-sm text-muted">{job.description.slice(0, 160)}…</p>
-            {job.status === "open" && communityId && (
-              <Link
-                href={hrefWithReturn(`/community-admin/jobs/${job.id}/apply`)}
-                className="mt-3 inline-block"
-              >
-                <Button variant="gradient" className="rounded-full">
-                  Submit Bid
-                </Button>
-              </Link>
-            )}
-          </Card>
-        ))
+              <p className="mt-2 text-sm text-muted">{job.description.slice(0, 160)}…</p>
+              {job.status === "open" && communityId && !inviteApp && (
+                <Link
+                  href={hrefWithReturn(`/community-admin/jobs/${job.id}/apply`)}
+                  className="mt-3 inline-block"
+                >
+                  <Button variant="gradient" className="rounded-full">
+                    Submit Bid
+                  </Button>
+                </Link>
+              )}
+              {inviteApp && (
+                <div className="mt-3 flex flex-wrap gap-2">
+                  <Button
+                    variant="gradient"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => void handleAcceptInvite(inviteApp.id)}
+                  >
+                    Accept invitation
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    className="rounded-full"
+                    onClick={() => void handleDeclineInvite(inviteApp.id)}
+                  >
+                    Decline
+                  </Button>
+                </div>
+              )}
+            </Card>
+          );
+        })
       )}
     </DashboardPortalShell>
   );
