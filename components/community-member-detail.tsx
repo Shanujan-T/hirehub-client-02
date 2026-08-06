@@ -99,9 +99,16 @@ export function CommunityMemberDetail({
                 className="flex flex-wrap items-center justify-between gap-2 rounded-xl border border-border/70 bg-background/40 px-3 py-2 text-sm"
               >
                 <span className="font-medium text-foreground">{skill.skill?.name ?? "Skill"}</span>
-                <Badge variant="default" className="normal-case">
-                  {formatSkillLevel(skill.level)}
-                </Badge>
+                <div className="flex flex-wrap items-center gap-1.5">
+                  <Badge variant="default" className="normal-case">
+                    {formatSkillLevel(skill.level)}
+                  </Badge>
+                  {skill.ai_reviewed && (
+                    <Badge variant="completed" className="text-[10px] normal-case">
+                      AI-reviewed
+                    </Badge>
+                  )}
+                </div>
               </li>
             ))}
           </ul>
