@@ -16,11 +16,19 @@ function CommunitiesBrowseContent() {
   const { hrefWithReturn, setFilter, getFilter } = useListNavigation();
   const locationFilter = getFilter("location");
   const queryFilter = getFilter("q");
+  const categoryFilterRaw = getFilter("category_id");
+  const categoryIdFilter = categoryFilterRaw ? Number(categoryFilterRaw) : null;
   const { data: communities, loading } = useAsyncList(useCallback(() => getCommunities(), []));
 
   const filtered = useMemo(
-    () => filterCommunities(communities, queryFilter, locationFilter),
-    [communities, locationFilter, queryFilter]
+    () =>
+      filterCommunities(
+        communities,
+        queryFilter,
+        locationFilter,
+        Number.isFinite(categoryIdFilter) ? categoryIdFilter : null
+      ),
+    [communities, locationFilter, queryFilter, categoryIdFilter]
   );
 
   return (
@@ -28,7 +36,11 @@ function CommunitiesBrowseContent() {
       <BackButton fallbackHref="/" label="Back" />
       <div>
         <h1 className="text-3xl font-extrabold text-primary dark:text-foreground">Communities</h1>
-        <p className="text-muted">Browse skilled communities — only teams apply to jobs</p>
+        <p className="text-muted">
+          {categoryIdFilter
+            ? "Communities matching this job’s category — invite one to apply"
+            : "Browse skilled communities — only teams apply to jobs"}
+        </p>
       </div>
       <CommunityBrowseFilters
         queryFilter={queryFilter}

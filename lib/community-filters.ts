@@ -3,9 +3,13 @@ import type { Community } from "@/types/community";
 export function filterCommunities(
   communities: Community[],
   queryFilter: string,
-  locationFilter: string
+  locationFilter: string,
+  categoryIdFilter?: number | null
 ): Community[] {
   return communities.filter((community) => {
+    if (categoryIdFilter != null && community.category_id !== categoryIdFilter) {
+      return false;
+    }
     if (
       locationFilter &&
       !(community.location ?? "").toLowerCase().includes(locationFilter.toLowerCase())
