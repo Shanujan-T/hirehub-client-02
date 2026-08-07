@@ -1,4 +1,3 @@
-import { Briefcase } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface LogoProps {
@@ -12,22 +11,25 @@ export function Logo({ className, size = "md" }: LogoProps) {
     md: "h-9 w-9 rounded-xl", 
     lg: "h-11 w-11 rounded-xl" 
   }[size];
-  
-  const iconClass = { 
-    sm: "h-4 w-4", 
-    md: "h-5 w-5", 
-    lg: "h-6 w-6" 
-  }[size];
 
   return (
     <span
       className={cn(
-        "flex shrink-0 items-center justify-center bg-brand-gradient text-white shadow-md shadow-secondary/20",
+        "relative flex shrink-0 items-center justify-center overflow-hidden shadow-md shadow-secondary/20",
         sizeClass,
         className
       )}
     >
-      <Briefcase className={iconClass} aria-hidden />
+      <img
+        src="/logo-light.png"
+        alt="HireHub Logo"
+        className="block dark:hidden h-full w-full object-cover"
+      />
+      <img
+        src="/logo-dark.png"
+        alt="HireHub Logo"
+        className="hidden dark:block h-full w-full object-cover"
+      />
     </span>
   );
 }
