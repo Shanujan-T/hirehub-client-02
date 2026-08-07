@@ -90,23 +90,29 @@ export default function ClientDashboardPage() {
               {jobs.length === 0 && contracts.length === 0 ? (
                 <EmptyState title="No jobs yet" description="Post your first job for communities to apply." />
               ) : (
-                <div className="grid gap-4">
+                <div className="grid gap-3">
                   {jobs.slice(0, 5).map((job) => (
-                    <Card key={job.id} className="p-4 shadow-none">
+                    <Card key={job.id} className="p-3 shadow-none">
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <Link href={`/jobs/${job.id}`} className="font-bold text-primary hover:text-info dark:text-foreground">
                             {job.title}
                           </Link>
                           <p className="text-sm text-muted">
-                            {job.location} · ${job.final_price}
+                            {job.location} · {formatCurrency(job.final_price)}
+                            {" · "}
+                            {(job.application_count ?? 0) === 0
+                              ? "No communities applied"
+                              : (job.application_count ?? 0) === 1
+                                ? "1 community applied"
+                                : `${job.application_count} communities applied`}
                           </p>
                         </div>
                         <StatusBadge status={job.status} kind="job" />
                       </div>
                       {job.status === "open" && (
-                        <Link href={`/jobs/${job.id}/applicants`} className="mt-3 inline-block">
-                          <Button variant="outline" size="sm">
+                        <Link href={`/jobs/${job.id}/applicants`} className="mt-2 inline-block">
+                          <Button variant="gradient" size="sm" className="rounded-full">
                             View Applicants
                           </Button>
                         </Link>
@@ -115,7 +121,7 @@ export default function ClientDashboardPage() {
                   ))}
 
                   {contracts.slice(0, 3).map((contract) => (
-                    <Card key={contract.id} className="p-4 shadow-none">
+                    <Card key={contract.id} className="p-3 shadow-none">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3">
                           {contract.community && (

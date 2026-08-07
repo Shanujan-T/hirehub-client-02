@@ -38,11 +38,11 @@ export function aggregateContractsByStatus(contracts: Contract[]) {
 }
 
 export function formatCurrency(amount: number) {
-  return new Intl.NumberFormat(undefined, {
-    style: "currency",
-    currency: "USD",
+  const n = Number(amount) || 0;
+  return `LKR ${n.toLocaleString("en-US", {
     maximumFractionDigits: 0,
-  }).format(amount);
+    minimumFractionDigits: 0,
+  })}`;
 }
 
 export const ACTIVE_CONTRACT_STATUSES = new Set([
