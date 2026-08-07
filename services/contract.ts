@@ -62,6 +62,22 @@ export async function selectMember(
   return data.contract;
 }
 
+export async function selectMembers(
+  contractId: number,
+  selections: {
+    application_id?: number | null;
+    member_id: number;
+    payout_percent: number;
+    payout_amount: number;
+  }[]
+): Promise<Contract> {
+  const { data } = await apiClient.post<{ contract: Contract }>(
+    `/api/contracts/${contractId}/select-members`,
+    { selections }
+  );
+  return data.contract;
+}
+
 export async function submitDeliverable(
   contractId: number,
   deliverableUrl: string
