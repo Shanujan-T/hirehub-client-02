@@ -351,7 +351,7 @@ function AdminCategoriesContent() {
                        options={numericFieldOptions}
                      />
                      <p className="text-[11px] text-muted">
-                       Select which numeric scope field scales this category's baseline pricing.
+                       Select which numeric scope field scales this category&apos;s baseline pricing.
                      </p>
                      <button
                        type="button"
