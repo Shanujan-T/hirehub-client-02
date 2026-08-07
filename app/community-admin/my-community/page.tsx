@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Pencil, X } from "lucide-react";
@@ -30,6 +30,12 @@ import {
 } from "@/services/community";
 import type { Community, CommunityMember } from "@/types/community";
 
+const formValuesFromCommunity = (next: Community): EditCommunityForm => ({
+  name: next.name,
+  description: next.description ?? "",
+  location: next.location ?? "",
+});
+
 function MyCommunityContent() {
   const { user, updateUser, refreshUser } = useAuth();
   const { communityId } = useCommunityAdmin();
@@ -57,24 +63,18 @@ function MyCommunityContent() {
     },
   });
 
-  const formValuesFromCommunity = (next: Community): EditCommunityForm => ({
-    name: next.name,
-    description: next.description ?? "",
-    location: next.location ?? "",
-  });
-
-  const reload = async (cid: number) => {
+  const reload = useCallback(async (cid: number) => {
     const next = await getCommunity(cid);
     setCommunity(next);
     reset(formValuesFromCommunity(next));
     setEditingDetails(false);
     setMembers(await getCommunityMembers(cid, "approved"));
     setPending(await getCommunityMembers(cid, "pending"));
-  };
+  }, [reset]);
 
   useEffect(() => {
     if (communityId) reload(communityId).catch(() => notify.error("Failed to load members"));
-  }, [communityId]);
+  }, [communityId, reload]);
 
   const syncAuthCommunity = (updated: Community) => {
     if (!user?.community_memberships) return;
