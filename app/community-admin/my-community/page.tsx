@@ -5,7 +5,10 @@ import { Suspense, useEffect, useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { AlertTriangle, Pencil, X } from "lucide-react";
-import { CommunityAdminRoute, useCommunityAdmin } from "@/components/community-admin-route";
+import {
+  CommunityAdminRoute,
+  useCommunityAdmin,
+} from "@/components/community-admin-route";
 import { CommunityAvatar } from "@/components/community-avatar";
 import { CommunityDetailField } from "@/components/community-detail-field";
 import { ImageUploadControl } from "@/components/image-upload-control";
@@ -63,17 +66,21 @@ function MyCommunityContent() {
     },
   });
 
-  const reload = useCallback(async (cid: number) => {
-    const next = await getCommunity(cid);
-    setCommunity(next);
-    reset(formValuesFromCommunity(next));
-    setEditingDetails(false);
-    setMembers(await getCommunityMembers(cid, "approved"));
-    setPending(await getCommunityMembers(cid, "pending"));
-  }, [reset]);
+  const reload = useCallback(
+    async (cid: number) => {
+      const next = await getCommunity(cid);
+      setCommunity(next);
+      reset(formValuesFromCommunity(next));
+      setEditingDetails(false);
+      setMembers(await getCommunityMembers(cid, "approved"));
+      setPending(await getCommunityMembers(cid, "pending"));
+    },
+    [reset],
+  );
 
   useEffect(() => {
-    if (communityId) reload(communityId).catch(() => notify.error("Failed to load members"));
+    if (communityId)
+      reload(communityId).catch(() => notify.error("Failed to load members"));
   }, [communityId, reload]);
 
   const syncAuthCommunity = (updated: Community) => {
@@ -172,17 +179,25 @@ function MyCommunityContent() {
     }
   };
 
-  const pendingListHref = buildFilteredPath("/community-admin/my-community", { tab: "pending" });
-  const belowMinimum = tab === "members" && members.length < MIN_COMMUNITY_MEMBERS;
+  const pendingListHref = buildFilteredPath("/community-admin/my-community", {
+    tab: "pending",
+  });
+  const belowMinimum =
+    tab === "members" && members.length < MIN_COMMUNITY_MEMBERS;
 
   return (
     <CommunityAdminRoute>
-      <DashboardPortalShell title="My Community" subtitle="Approve or reject join requests">
+      <DashboardPortalShell
+        title="My Community"
+        subtitle="Approve or reject join requests"
+      >
         {community && (
           <Card className="mb-6 space-y-5">
             <div className="flex items-start justify-between gap-3">
               <div className="min-w-0">
-                <h2 className="text-lg font-bold text-foreground">Community Details</h2>
+                <h2 className="text-lg font-bold text-foreground">
+                  Community Details
+                </h2>
                 <p className="text-sm text-muted">
                   {editingDetails
                     ? "Edit how your community appears and where it matches jobs."
@@ -190,7 +205,9 @@ function MyCommunityContent() {
                 </p>
               </div>
               <div className="flex shrink-0 items-center gap-2">
-                {community.status && <StatusBadge status={community.status} kind="community" />}
+                {community.status && (
+                  <StatusBadge status={community.status} kind="community" />
+                )}
                 {editingDetails ? (
                   <Button
                     type="button"
@@ -220,11 +237,22 @@ function MyCommunityContent() {
             </div>
 
             {editingDetails ? (
-              <form onSubmit={handleSubmit(onSaveDetails)} className="space-y-5">
+              <form
+                onSubmit={handleSubmit(onSaveDetails)}
+                className="space-y-5"
+              >
                 <div className="space-y-2">
                   <Label htmlFor="community-name">Name</Label>
-                  <Input id="community-name" {...register("name")} autoComplete="organization" />
-                  {errors.name && <p className="text-xs text-destructive">{errors.name.message}</p>}
+                  <Input
+                    id="community-name"
+                    {...register("name")}
+                    autoComplete="organization"
+                  />
+                  {errors.name && (
+                    <p className="text-xs text-destructive">
+                      {errors.name.message}
+                    </p>
+                  )}
                 </div>
 
                 <div className="space-y-2">
@@ -236,7 +264,9 @@ function MyCommunityContent() {
                     {...register("description")}
                   />
                   {errors.description && (
-                    <p className="text-xs text-destructive">{errors.description.message}</p>
+                    <p className="text-xs text-destructive">
+                      {errors.description.message}
+                    </p>
                   )}
                 </div>
 
@@ -248,10 +278,13 @@ function MyCommunityContent() {
                     {...register("location")}
                   />
                   {errors.location && (
-                    <p className="text-xs text-destructive">{errors.location.message}</p>
+                    <p className="text-xs text-destructive">
+                      {errors.location.message}
+                    </p>
                   )}
                   <p className="text-xs text-muted">
-                    Changing location may affect which jobs your community is matched to.
+                    Changing location may affect which jobs your community is
+                    matched to.
                   </p>
                 </div>
 
@@ -296,13 +329,25 @@ function MyCommunityContent() {
           </Card>
         )}
         <div className="mb-6 flex gap-2">
-          <Link href={buildFilteredPath("/community-admin/my-community", { tab: "members" })}>
-            <Button variant={tab === "members" ? "gradient" : "outline"} size="sm" className="rounded-full">
+          <Link
+            href={buildFilteredPath("/community-admin/my-community", {
+              tab: "members",
+            })}
+          >
+            <Button
+              variant={tab === "members" ? "gradient" : "outline"}
+              size="sm"
+              className="rounded-full"
+            >
               Members ({members.length})
             </Button>
           </Link>
           <Link href={pendingListHref}>
-            <Button variant={tab === "pending" ? "gradient" : "outline"} size="sm" className="rounded-full">
+            <Button
+              variant={tab === "pending" ? "gradient" : "outline"}
+              size="sm"
+              className="rounded-full"
+            >
               Pending ({pending.length})
             </Button>
           </Link>
@@ -311,10 +356,14 @@ function MyCommunityContent() {
         {belowMinimum && (
           <Card className="mb-4 border-amber-500/30 bg-amber-500/10 p-4">
             <div className="flex gap-3">
-              <AlertTriangle className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400" aria-hidden />
+              <AlertTriangle
+                className="mt-0.5 h-5 w-5 shrink-0 text-amber-600 dark:text-amber-400"
+                aria-hidden
+              />
               <p className="text-sm text-foreground">
-                This community no longer meets the {MIN_COMMUNITY_MEMBERS}-member minimum and won&apos;t appear
-                in new job listings until it does.
+                This community no longer meets the {MIN_COMMUNITY_MEMBERS}
+                -member minimum and won&apos;t appear in new job listings until
+                it does.
               </p>
             </div>
           </Card>
@@ -325,11 +374,18 @@ function MyCommunityContent() {
             <p className="text-muted">No pending join requests.</p>
           ) : (
             pending.map((m) => (
-              <Card key={m.id} className="mb-2 flex flex-wrap items-center justify-between gap-2 p-4">
+              <Card
+                key={m.id}
+                className="mb-2 flex flex-wrap items-center justify-between gap-2 p-4"
+              >
                 <span>{m.user?.full_name ?? `User #${m.user_id}`}</span>
                 <div className="flex items-center gap-2">
                   <StatusBadge status="pending" kind="member" />
-                  <Link href={hrefWithReturn(`/community-admin/my-community/pending/${m.id}`)}>
+                  <Link
+                    href={hrefWithReturn(
+                      `/community-admin/my-community/pending/${m.id}`,
+                    )}
+                  >
                     <Button variant="outline" size="sm">
                       Review Request
                     </Button>
@@ -351,7 +407,11 @@ function MyCommunityContent() {
                       <MemberCard
                         user={m.user}
                         nameHref={hrefWithReturn(
-                          communityMemberDetailPath(communityId!, m.id, "admin")
+                          communityMemberDetailPath(
+                            communityId!,
+                            m.id,
+                            "admin",
+                          ),
                         )}
                       />
                     ) : (
