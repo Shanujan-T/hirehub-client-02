@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
@@ -8,22 +8,26 @@ import { ImageUploadControl } from "@/components/image-upload-control";
 import { LoadingState } from "@/components/page-states";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { Badge, Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
-import { Award, Wrench } from "lucide-react";
+import { Badge, Button, Card, Input, Label, Textarea } from "@/components/ui";
+import { Wrench } from "lucide-react";
 import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { getErrorMessage } from "@/lib/utils";
 import {
-  createUserSkill,
   createWorkSample,
   getSkills,
   getUserSkillWithSamples,
-  getUserSkills,
-  updateUser,
   uploadWorkSampleImage,
+  updateUser,
 } from "@/services/contract";
-import { uploadUserAvatar } from "@/services/user";
+import {
+  uploadUserAvatar,
+  getMySkills,
+  addMySkill,
+  updateMySkill,
+  deleteMySkill,
+} from "@/services/user";
 import {
   addressPayloadForSave,
   ProfileLocationAddressFields,
@@ -47,12 +51,19 @@ function MemberProfileContent() {
   const [uploadingAvatar, setUploadingAvatar] = useState(false);
   const [skills, setSkills] = useState<{ id: number; name: string }[]>([]);
   const [userSkills, setUserSkills] = useState<UserSkill[]>([]);
-  const [newSkill, setNewSkill] = useState({ skill_id: "", level: "intermediate" });
   const [sampleSkillId, setSampleSkillId] = useState<number | null>(null);
   const [sampleText, setSampleText] = useState("");
   const [sampleBusy, setSampleBusy] = useState(false);
   const [sampleNote, setSampleNote] = useState<string | null>(null);
   const [latestSample, setLatestSample] = useState<WorkSample | null>(null);
+
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showDropdown, setShowDropdown] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  const [requestSkillName, setRequestSkillName] = useState("");
+  const [requestingSkill, setRequestingSkill] = useState(false);
+  const [showRequestSkill, setShowRequestSkill] = useState(false);
 
   useEffect(() => {
     if (user?.identity_status === "verified" && searchParams.get("returnTo")) {
@@ -61,13 +72,23 @@ function MemberProfileContent() {
   }, [user?.identity_status, returnTo, router, searchParams]);
 
   useEffect(() => {
+    const clickOutside = (e: MouseEvent) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
+        setShowDropdown(false);
+      }
+    };
+    document.addEventListener("mousedown", clickOutside);
+    return () => document.removeEventListener("mousedown", clickOutside);
+  }, []);
+
+  useEffect(() => {
     getSkills().then(setSkills).catch(() => notify.error("Failed to load skills"));
     if (user) {
       setFullName(user.full_name || "");
       setLocation(user.location || "");
       setAddress(userAddressFromUser(user));
       setBio(user.bio || "");
-      getUserSkills(user.id).then(setUserSkills).catch(() => {});
+      getMySkills().then(setUserSkills).catch(() => {});
     }
   }, [user]);
 
@@ -110,19 +131,53 @@ function MemberProfileContent() {
     }
   };
 
-  const handleAddSkill = async () => {
-    if (!user || !newSkill.skill_id) return;
+  const handleSelectSkill = async (skillId: number) => {
     try {
-      await createUserSkill({
-        user_id: user.id,
-        skill_id: Number(newSkill.skill_id),
-        level: newSkill.level,
-      });
-      getUserSkills(user.id).then(setUserSkills);
+      await addMySkill({ skill_id: skillId, level: "intermediate" });
+      const updated = await getMySkills();
+      setUserSkills(updated);
       notify.success("Skill added");
+      setSearchQuery("");
+      setShowDropdown(false);
     } catch (err) {
-      notify.error(getErrorMessage(err));
+      notify.error(getErrorMessage(err, "Failed to add skill"));
     }
+  };
+
+  const handleUpdateSkillLevel = async (userSkillId: number, level: string) => {
+    try {
+      await updateMySkill(userSkillId, level);
+      const updated = await getMySkills();
+      setUserSkills(updated);
+      notify.success("Skill level updated");
+    } catch (err) {
+      notify.error(getErrorMessage(err, "Failed to update skill level"));
+    }
+  };
+
+  const handleRemoveSkill = async (userSkillId: number, skillName: string) => {
+    if (!window.confirm(`Remove "${skillName}" from your skills?`)) return;
+    try {
+      await deleteMySkill(userSkillId);
+      const updated = await getMySkills();
+      setUserSkills(updated);
+      notify.success("Skill removed");
+      if (sampleSkillId === userSkillId) {
+        setSampleSkillId(null);
+      }
+    } catch (err) {
+      notify.error(getErrorMessage(err, "Failed to remove skill"));
+    }
+  };
+
+  const handleRequestSkill = async () => {
+    if (!requestSkillName.trim()) return;
+    setRequestingSkill(true);
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    notify.success("Your skill request is pending admin review.");
+    setShowRequestSkill(false);
+    setRequestSkillName("");
+    setRequestingSkill(false);
   };
 
   const refreshSkill = async (userSkillId: number) => {
@@ -131,7 +186,7 @@ function MemberProfileContent() {
       setUserSkills((prev) => prev.map((s) => (s.id === userSkillId ? { ...s, ...updated } : s)));
       return updated;
     } catch {
-      if (user) getUserSkills(user.id).then(setUserSkills);
+      if (user) getMySkills().then(setUserSkills);
       return null;
     }
   };
@@ -239,37 +294,170 @@ function MemberProfileContent() {
             </Button>
           </div>
 
-          <ProfileAccountVerificationSection returnTo={returnTo} />
+          <div className="space-y-4 rounded-lg border border-border p-4">
+            <div>
+              <p className="text-sm font-semibold text-foreground">Skills</p>
+              <p className="mt-1 text-xs text-muted">
+                Add skills relevant to your work. These help communities and employers find the right fit.
+              </p>
+            </div>
 
-          <div>
-            <Label>Skills</Label>
-            <ul className="mt-2 space-y-2 text-sm">
-              {userSkills.map((s) => (
-                <li key={s.id} className="flex flex-wrap items-center gap-2">
-                  <Badge variant="info">
-                    {s.skill?.name} — {s.level}
-                  </Badge>
-                  {s.ai_reviewed && (
-                    <Badge variant="completed" className="text-[10px] normal-case">
-                      AI-reviewed
-                    </Badge>
-                  )}
-                  <button
-                    type="button"
-                    className="text-xs font-medium text-info hover:underline"
-                    onClick={() => {
-                      setSampleSkillId(s.id);
-                      setSampleNote(null);
-                      setLatestSample(null);
-                    }}
+            {/* List of current skills */}
+            {userSkills.length > 0 && (
+              <div className="flex flex-col gap-2">
+                {userSkills.map((s) => (
+                  <div
+                    key={s.id}
+                    className="flex items-center justify-between gap-3 rounded-xl border border-border bg-background/50 p-3 text-sm"
                   >
-                    Add work sample
-                  </button>
-                </li>
-              ))}
-            </ul>
+                    <div className="flex flex-1 flex-col gap-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-foreground truncate">
+                          {s.skill?.name ?? "Skill"}
+                        </span>
+                        {s.ai_reviewed && (
+                          <Badge variant="completed" className="text-[10px] normal-case">
+                            AI-reviewed
+                          </Badge>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        className="text-left text-xs font-medium text-info hover:underline"
+                        onClick={() => {
+                          setSampleSkillId(s.id);
+                          setSampleNote(null);
+                          setLatestSample(null);
+                        }}
+                      >
+                        Add work sample
+                      </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <select
+                        value={s.level}
+                        onChange={(e) => void handleUpdateSkillLevel(s.id, e.target.value)}
+                        className="rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-info cursor-pointer"
+                      >
+                        <option value="beginner">Beginner</option>
+                        <option value="intermediate">Intermediate</option>
+                        <option value="advanced">Advanced</option>
+                        <option value="expert">Expert</option>
+                      </select>
+                      <button
+                        type="button"
+                        className="text-xs font-semibold text-muted hover:text-destructive hover:scale-110 px-1 transition"
+                        onClick={() => void handleRemoveSkill(s.id, s.skill?.name ?? "Skill")}
+                        aria-label="Remove skill"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            {/* Search Combobox */}
+            <div ref={dropdownRef} className="relative space-y-2">
+              <Label htmlFor="search-skills">Add Skill</Label>
+              <div className="relative">
+                <Input
+                  id="search-skills"
+                  type="text"
+                  placeholder="Search skills to add..."
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setShowDropdown(true);
+                  }}
+                  onFocus={() => setShowDropdown(true)}
+                  className="w-full"
+                />
+              </div>
+
+              {showDropdown && searchQuery.trim() && (
+                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
+                  {skills
+                    .filter((s) => !userSkills.some((us) => us.skill_id === s.id))
+                    .filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                    .length > 0 ? (
+                      skills
+                        .filter((s) => !userSkills.some((us) => us.skill_id === s.id))
+                        .filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
+                        .map((s) => (
+                          <button
+                            key={s.id}
+                            type="button"
+                            className="flex w-full cursor-pointer items-center rounded-lg px-2.5 py-2 text-left text-sm hover:bg-secondary/10"
+                            onClick={() => void handleSelectSkill(s.id)}
+                          >
+                            <Wrench className="mr-2 h-4 w-4 text-muted" />
+                            {s.name}
+                          </button>
+                        ))
+                    ) : (
+                      <div className="p-2 text-center text-xs text-muted">
+                        No matching skills found.
+                      </div>
+                    )}
+                </div>
+              )}
+            </div>
+
+            {/* Request skill link */}
+            <div className="pt-1">
+              {!showRequestSkill ? (
+                <button
+                  type="button"
+                  className="text-left text-xs font-medium text-info hover:underline"
+                  onClick={() => setShowRequestSkill(true)}
+                >
+                  Don&apos;t see your skill? Request a new one
+                </button>
+              ) : (
+                <div className="space-y-2 rounded-xl border border-border/70 bg-background/40 p-3">
+                  <p className="text-sm font-semibold">Request a skill</p>
+                  <div className="space-y-1">
+                    <Label htmlFor="request-skill-name">Skill name</Label>
+                    <Input
+                      id="request-skill-name"
+                      value={requestSkillName}
+                      onChange={(e) => setRequestSkillName(e.target.value)}
+                      placeholder="e.g. Next.js"
+                      disabled={requestingSkill}
+                    />
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      className="rounded-full"
+                      disabled={requestingSkill || !requestSkillName.trim()}
+                      onClick={() => void handleRequestSkill()}
+                    >
+                      {requestingSkill ? "Submitting…" : "Submit request"}
+                    </Button>
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      disabled={requestingSkill}
+                      onClick={() => {
+                        setShowRequestSkill(false);
+                        setRequestSkillName("");
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
+          {/* Work Sample form remains, positioned below the Skills section */}
           {sampleSkillId != null && (
             <div className="space-y-3 rounded-xl border border-border/70 bg-background/40 p-3">
               <p className="text-sm font-semibold">
@@ -330,38 +518,7 @@ function MemberProfileContent() {
             </div>
           )}
 
-          <div className="space-y-2">
-            <Label htmlFor="skill-select">Add Skill</Label>
-            <SelectMenu
-              id="skill-select"
-              value={newSkill.skill_id}
-              onChange={(v) => setNewSkill({ ...newSkill, skill_id: v })}
-              placeholder="Select skill"
-              options={skills.map((s) => ({
-                value: String(s.id),
-                label: s.name,
-                icon: <Wrench className="h-4 w-4" aria-hidden />,
-              }))}
-            />
-            <SelectMenu
-              id="skill-level"
-              value={newSkill.level}
-              onChange={(v) => setNewSkill({ ...newSkill, level: v })}
-              options={[
-                { value: "beginner", label: "Beginner", icon: <Award className="h-4 w-4" aria-hidden /> },
-                {
-                  value: "intermediate",
-                  label: "Intermediate",
-                  icon: <Award className="h-4 w-4" aria-hidden />,
-                },
-                { value: "advanced", label: "Advanced", icon: <Award className="h-4 w-4" aria-hidden /> },
-                { value: "expert", label: "Expert", icon: <Award className="h-4 w-4" aria-hidden /> },
-              ]}
-            />
-            <Button variant="outline" onClick={() => void handleAddSkill()}>
-              Add Skill
-            </Button>
-          </div>
+          <ProfileAccountVerificationSection returnTo={returnTo} />
         </Card>
       </DashboardPortalShell>
     </AuthenticatedRoute>

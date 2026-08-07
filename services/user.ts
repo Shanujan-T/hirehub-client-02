@@ -1,5 +1,6 @@
 import apiClient from "@/lib/api-client";
 import type { User } from "@/types/user";
+import type { UserSkill } from "@/types/skill";
 
 export async function uploadUserAvatar(userId: number, file: File): Promise<User> {
   const formData = new FormData();
@@ -41,4 +42,23 @@ export async function confirmIdentityEmailOtp(code: string): Promise<User> {
     { code }
   );
   return data.user;
+}
+
+export async function getMySkills(): Promise<UserSkill[]> {
+  const { data } = await apiClient.get<{ user_skills: UserSkill[] }>("/api/users/me/skills");
+  return data.user_skills;
+}
+
+export async function addMySkill(payload: { skill_id: number; level: string }): Promise<UserSkill> {
+  const { data } = await apiClient.post<{ user_skill: UserSkill }>("/api/users/me/skills", payload);
+  return data.user_skill;
+}
+
+export async function updateMySkill(userSkillId: number, level: string): Promise<UserSkill> {
+  const { data } = await apiClient.put<{ user_skill: UserSkill }>(`/api/users/me/skills/${userSkillId}`, { level });
+  return data.user_skill;
+}
+
+export async function deleteMySkill(userSkillId: number): Promise<void> {
+  await apiClient.delete(`/api/users/me/skills/${userSkillId}`);
 }
