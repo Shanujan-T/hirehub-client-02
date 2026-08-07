@@ -3,7 +3,9 @@
 import Link from "next/link";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
+import { CommunityBrowseCard } from "@/components/community-browse-card";
 import { CommunityBrowseFilters } from "@/components/community-browse-filters";
+import { CreateCommunityAction } from "@/components/create-community-action";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
@@ -13,15 +15,18 @@ import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { notify } from "@/lib/notify";
 import { getErrorMessage } from "@/lib/utils";
-import { CreateCommunityAction } from "@/components/create-community-action";
 import { getCommunities, getMyMemberships, joinCommunity } from "@/services/community";
+import { useAuth } from "@/providers/auth-provider";
 import type { Community } from "@/types/community";
 
 function MemberCommunitiesContent() {
+  const { user } = useAuth();
   const { hrefWithReturn, setFilter, getFilter } = useListNavigation();
   const locationFilter = getFilter("location");
   const queryFilter = getFilter("q");
-  const { data: memberships, loading, reload } = useAsyncList(useCallback(() => getMyMemberships(), []));
+  const { data: memberships, loading, reload } = useAsyncList(
+    useCallback(() => getMyMemberships(), [])
+  );
   const [communities, setCommunities] = useState<Community[]>([]);
   const [communitiesLoading, setCommunitiesLoading] = useState(true);
 
@@ -32,7 +37,10 @@ function MemberCommunitiesContent() {
       .finally(() => setCommunitiesLoading(false));
   }, []);
 
-  const joinedIds = useMemo(() => new Set(memberships.map((m) => m.community_id)), [memberships]);
+  const joinedIds = useMemo(
+    () => new Set(memberships.map((m) => m.community_id)),
+    [memberships]
+  );
 
   const browseCommunities = useMemo(
     () => communities.filter((community) => !joinedIds.has(community.id)),
@@ -44,7 +52,10 @@ function MemberCommunitiesContent() {
     [browseCommunities, locationFilter, queryFilter]
   );
 
+  const hasSkills = user?.user_skills !== undefined ? user.user_skills.length > 0 : true;
+
   const handleJoin = async (communityId: number) => {
+    if (!hasSkills) return;
     try {
       await joinCommunity(communityId);
       notify.success("Join request sent");
@@ -59,7 +70,6 @@ function MemberCommunitiesContent() {
       <DashboardPortalShell
         title="My Communities"
         subtitle="Memberships, join requests, and new communities"
-       
         actions={<CreateCommunityAction />}
       >
         {loading ? (
@@ -71,7 +81,10 @@ function MemberCommunitiesContent() {
               <EmptyState title="No memberships" />
             ) : (
               memberships.map((membership) => (
-                <Card key={membership.id} className="mb-2 flex flex-wrap items-center justify-between gap-2">
+                <Card
+                  key={membership.id}
+                  className="mb-2 flex flex-wrap items-center justify-between gap-2 p-4"
+                >
                   <div>
                     <Link
                       href={hrefWithReturn(`/communities/${membership.community_id}`)}
@@ -79,9 +92,12 @@ function MemberCommunitiesContent() {
                     >
                       {membership.community?.name ?? `Community #${membership.community_id}`}
                     </Link>
-                    {membership.community?.rejection_reason && membership.community.status === "rejected" && (
-                      <p className="text-xs text-destructive">{membership.community.rejection_reason}</p>
-                    )}
+                    {membership.community?.rejection_reason &&
+                      membership.community.status === "rejected" && (
+                        <p className="text-xs text-destructive">
+                          {membership.community.rejection_reason}
+                        </p>
+                      )}
                   </div>
                   <StatusBadge status={membership.status} kind="member" />
                 </Card>
@@ -89,7 +105,7 @@ function MemberCommunitiesContent() {
             )}
 
             <h2 className="mb-3 mt-8 font-bold">Browse & Join</h2>
-            <div className="mb-4">
+            <div className="mb-3">
               <CommunityBrowseFilters
                 queryFilter={queryFilter}
                 locationFilter={locationFilter}
@@ -105,19 +121,36 @@ function MemberCommunitiesContent() {
             ) : filteredBrowse.length === 0 ? (
               <EmptyState title="No communities match your search" />
             ) : (
-              filteredBrowse.map((community) => (
-                <Card key={community.id} className="mb-2 flex flex-wrap items-center justify-between gap-2">
-                  <div>
-                    <Link href={hrefWithReturn(`/communities/${community.id}`)} className="font-bold hover:text-info">
-                      {community.name}
-                    </Link>
-                    <p className="text-sm text-muted">{community.location}</p>
-                  </div>
-                  <Button variant="gradient" size="sm" className="rounded-full" onClick={() => handleJoin(community.id)}>
-                    Request to Join
-                  </Button>
-                </Card>
-              ))
+              <div className="space-y-3">
+                {filteredBrowse.map((community) => (
+                  <CommunityBrowseCard
+                    key={community.id}
+                    community={community}
+                    href={hrefWithReturn(`/communities/${community.id}`)}
+                    action={
+                      <div className="flex flex-col items-end gap-1">
+                        <Button
+                          variant="gradient"
+                          size="sm"
+                          className="rounded-full"
+                          onClick={() => handleJoin(community.id)}
+                          disabled={!hasSkills}
+                        >
+                          Request to Join
+                        </Button>
+                        {!hasSkills && (
+                          <Link
+                            href="/profile"
+                            className="text-[11px] font-medium text-destructive hover:underline"
+                          >
+                            Add a skill to your profile first
+                          </Link>
+                        )}
+                      </div>
+                    }
+                  />
+                ))}
+              </div>
             )}
           </>
         )}

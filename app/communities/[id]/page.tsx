@@ -306,11 +306,14 @@ function CommunityDetailContent() {
       .catch(() => {});
   }, [user, id]);
 
+  const hasSkills = user?.user_skills !== undefined ? user.user_skills.length > 0 : true;
+
   const handleRequestJoin = async () => {
     if (!user) {
       router.push(appendReturnTo("/auth/login", `/communities/${id}`));
       return;
     }
+    if (!hasSkills) return;
     if (user.role !== "user") {
       notify.info("Only individual members can request to join communities.");
       return;
@@ -522,15 +525,25 @@ function CommunityDetailContent() {
             </Button>
           )}
           {showJoinButton && (
-            <Button
-              variant="gradient"
-              size="sm"
-              className="rounded-full"
-              disabled={hasPendingRequest || joinLoading}
-              onClick={handleRequestJoin}
-            >
-              {hasPendingRequest ? "Request Sent" : user ? "Request to Join" : "Sign in to Join"}
-            </Button>
+            <div className="flex flex-col items-end gap-1">
+              <Button
+                variant="gradient"
+                size="sm"
+                className="rounded-full"
+                disabled={hasPendingRequest || joinLoading || Boolean(user && !hasSkills)}
+                onClick={handleRequestJoin}
+              >
+                {hasPendingRequest ? "Request Sent" : user ? "Request to Join" : "Sign in to Join"}
+              </Button>
+              {user && !hasSkills && (
+                <Link
+                  href="/profile"
+                  className="text-[11px] font-medium text-destructive hover:underline"
+                >
+                  Add a skill to your profile first
+                </Link>
+              )}
+            </div>
           )}
         </div>
       </div>

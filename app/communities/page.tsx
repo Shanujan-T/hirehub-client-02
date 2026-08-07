@@ -3,9 +3,8 @@
 import Link from "next/link";
 import { Suspense, useMemo, useCallback } from "react";
 import { BackButton } from "@/components/back-button";
-import { CommunityAvatar } from "@/components/community-avatar";
+import { CommunityBrowseCard } from "@/components/community-browse-card";
 import { CommunityBrowseFilters } from "@/components/community-browse-filters";
-import { Badge, Card } from "@/components/ui";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { filterCommunities } from "@/lib/community-filters";
 import { useAsyncList } from "@/lib/hooks/use-async";
@@ -48,25 +47,18 @@ function CommunitiesBrowseContent() {
         onQueryChange={(value) => setFilter("q", value || null)}
         onLocationChange={(value) => setFilter("location", value || null)}
       />
-      {loading ? <LoadingState /> : filtered.length === 0 ? (
+      {loading ? (
+        <LoadingState />
+      ) : filtered.length === 0 ? (
         <EmptyState title="No communities yet" description="Try adjusting your filters." />
       ) : (
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid gap-3 md:grid-cols-2">
           {filtered.map((c) => (
-            <Link key={c.id} href={hrefWithReturn(`/communities/${c.id}`)}>
-              <Card className="transition hover:border-info">
-                <div className="flex items-start gap-3">
-                  <CommunityAvatar name={c.name} imageUrl={c.image_url} size="md" />
-                  <div className="min-w-0 flex-1">
-                    <h3 className="font-bold">{c.name}</h3>
-                    <p className="text-sm text-muted">{c.location}</p>
-                    <div className="mt-3 flex gap-2">
-                      <Badge variant="info">{c.member_count ?? 0} members</Badge>
-                      <Badge variant="completed">★ {c.reputation_score.toFixed(1)}</Badge>
-                    </div>
-                  </div>
-                </div>
-              </Card>
+            <Link key={c.id} href={hrefWithReturn(`/communities/${c.id}`)} className="block">
+              <CommunityBrowseCard
+                community={c}
+                className="h-full transition hover:border-info"
+              />
             </Link>
           ))}
         </div>
