@@ -10,7 +10,11 @@ import { StatusBadge } from "@/components/status-badge";
 import { LoadingState } from "@/components/page-states";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { cn, getErrorMessage } from "@/lib/utils";
-import { getContractApplicants, selectMembers, getContract } from "@/services/contract";
+import {
+  getContractApplicants,
+  selectMembers,
+  getContract,
+} from "@/services/contract";
 import { getCommunityMembers } from "@/services/community";
 import { useAuth } from "@/providers/auth-provider";
 import type { Contract, ContractApplication } from "@/types/contract";
@@ -116,7 +120,9 @@ function SelectMemberContent() {
           application_id: app ? app.id : null,
           member_id: uId,
           payout_percent: sel.payoutPercent,
-          payout_amount: Number((memberPayoutTotal * (sel.payoutPercent / 100)).toFixed(2)),
+          payout_amount: Number(
+            (memberPayoutTotal * (sel.payoutPercent / 100)).toFixed(2),
+          ),
         };
       });
 
@@ -125,9 +131,14 @@ function SelectMemberContent() {
       return;
     }
 
-    const totalPercent = selectedList.reduce((sum, item) => sum + item.payout_percent, 0);
+    const totalPercent = selectedList.reduce(
+      (sum, item) => sum + item.payout_percent,
+      0,
+    );
     if (totalPercent !== 100) {
-      toast.error(`Total payout allocation must equal 100%. Current sum: ${totalPercent}%.`);
+      toast.error(
+        `Total payout allocation must equal 100%. Current sum: ${totalPercent}%.`,
+      );
       return;
     }
 
@@ -146,7 +157,6 @@ function SelectMemberContent() {
   // Helper lists
   const applicantUserIds = new Set(applications.map((app) => app.member_id));
 
-
   // Sum up percentages of selected items
   const currentTotalPercent = Object.values(selections)
     .filter((sel) => sel.selected)
@@ -155,7 +165,10 @@ function SelectMemberContent() {
   if (loading) {
     return (
       <CommunityAdminRoute>
-        <DashboardPortalShell title="Finalize Assignment" subtitle="Assign contract work to community members">
+        <DashboardPortalShell
+          title="Finalize Assignment"
+          subtitle="Assign contract work to community members"
+        >
           <LoadingState />
         </DashboardPortalShell>
       </CommunityAdminRoute>
@@ -173,28 +186,40 @@ function SelectMemberContent() {
         {/* Top Info Panel */}
         <div className="mb-6 grid gap-4 md:grid-cols-2">
           <Card className="bg-card/50 backdrop-blur-md">
-            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Contract Budget</h3>
+            <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
+              Contract Budget
+            </h3>
             <div className="mt-2 flex flex-col gap-1">
               <div className="flex justify-between text-sm">
                 <span>Total Amount:</span>
-                <span className="font-bold text-foreground">${totalAmount.toFixed(2)}</span>
+                <span className="font-bold text-foreground">
+                  ${totalAmount.toFixed(2)}
+                </span>
               </div>
               <div className="flex justify-between text-sm">
                 <span>Commission ({commissionPct}%):</span>
-                <span className="font-bold text-destructive">-${(totalAmount * (commissionPct / 100)).toFixed(2)}</span>
+                <span className="font-bold text-destructive">
+                  -${(totalAmount * (commissionPct / 100)).toFixed(2)}
+                </span>
               </div>
               <div className="border-t border-border my-1" />
               <div className="flex justify-between text-base font-bold">
                 <span className="text-info">Member Pool Payout:</span>
-                <span className="text-success">${memberPayoutTotal.toFixed(2)}</span>
+                <span className="text-success">
+                  ${memberPayoutTotal.toFixed(2)}
+                </span>
               </div>
             </div>
           </Card>
 
           <Card className="flex flex-col justify-between bg-card/50 backdrop-blur-md">
             <div>
-              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">Assignment Shortcuts</h3>
-              <p className="text-xs text-muted mt-1">Pre-select yourself as the assignee to fast-track work delivery.</p>
+              <h3 className="text-sm font-semibold uppercase tracking-wider text-muted">
+                Assignment Shortcuts
+              </h3>
+              <p className="text-xs text-muted mt-1">
+                Pre-select yourself as the assignee to fast-track work delivery.
+              </p>
             </div>
             <Button
               variant="outline"
@@ -210,7 +235,9 @@ function SelectMemberContent() {
         {/* Section 1: Internal Applicants */}
         <div className="mb-8">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground">Internal Applicants</h2>
+            <h2 className="text-lg font-bold text-foreground">
+              Internal Applicants
+            </h2>
             <span className="rounded-full bg-accent/30 px-3 py-1 text-xs text-secondary-foreground font-semibold">
               {applications.length} applied
             </span>
@@ -218,7 +245,8 @@ function SelectMemberContent() {
 
           {applications.length === 0 ? (
             <Card className="py-8 text-center text-muted">
-              No applications submitted yet. Use the roster below to assign directly.
+              No applications submitted yet. Use the roster below to assign
+              directly.
             </Card>
           ) : (
             <div className="space-y-3">
@@ -233,7 +261,8 @@ function SelectMemberContent() {
                     key={app.id}
                     className={cn(
                       "transition border-border/80 hover:border-info/30",
-                      isSelected && "border-info ring-2 ring-info/5 bg-info/[0.01]"
+                      isSelected &&
+                        "border-info ring-2 ring-info/5 bg-info/[0.01]",
                     )}
                   >
                     <div className="flex items-start gap-4">
@@ -242,7 +271,12 @@ function SelectMemberContent() {
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={(e) => handleCheckboxChange(app.member_id, e.target.checked)}
+                          onChange={(e) =>
+                            handleCheckboxChange(
+                              app.member_id,
+                              e.target.checked,
+                            )
+                          }
                           className="h-5 w-5 rounded border-border text-info focus:ring-info/20 cursor-pointer"
                         />
                       </div>
@@ -263,17 +297,26 @@ function SelectMemberContent() {
                         {isSelected && (
                           <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-border/40 pt-4">
                             <div className="flex items-center gap-2">
-                              <Label className="text-xs text-muted-foreground">Payout share:</Label>
+                              <Label className="text-xs text-muted-foreground">
+                                Payout share:
+                              </Label>
                               <div className="relative flex items-center">
                                 <Input
                                   type="number"
                                   min={0}
                                   max={100}
                                   value={percent || ""}
-                                  onChange={(e) => handlePercentChange(app.member_id, Number(e.target.value))}
+                                  onChange={(e) =>
+                                    handlePercentChange(
+                                      app.member_id,
+                                      Number(e.target.value),
+                                    )
+                                  }
                                   className="w-20 pr-6 text-right h-8 rounded-lg"
                                 />
-                                <span className="absolute right-2 text-xs font-semibold text-muted-foreground">%</span>
+                                <span className="absolute right-2 text-xs font-semibold text-muted-foreground">
+                                  %
+                                </span>
                               </div>
                             </div>
                             <span className="text-sm font-semibold text-success flex items-center">
@@ -294,7 +337,9 @@ function SelectMemberContent() {
         {/* Section 2: Assign Directly */}
         <div className="mb-24">
           <div className="mb-4 flex items-center justify-between">
-            <h2 className="text-lg font-bold text-foreground">Assign Directly</h2>
+            <h2 className="text-lg font-bold text-foreground">
+              Assign Directly
+            </h2>
             <span className="rounded-full bg-accent/30 px-3 py-1 text-xs text-secondary-foreground font-semibold">
               {members.length} members total
             </span>
@@ -317,7 +362,8 @@ function SelectMemberContent() {
                     key={m.id}
                     className={cn(
                       "transition border-border/80 hover:border-info/30",
-                      isSelected && "border-info ring-2 ring-info/5 bg-info/[0.01]"
+                      isSelected &&
+                        "border-info ring-2 ring-info/5 bg-info/[0.01]",
                     )}
                   >
                     <div className="flex items-start gap-4">
@@ -326,7 +372,9 @@ function SelectMemberContent() {
                         <input
                           type="checkbox"
                           checked={isSelected}
-                          onChange={(e) => handleCheckboxChange(m.user_id, e.target.checked)}
+                          onChange={(e) =>
+                            handleCheckboxChange(m.user_id, e.target.checked)
+                          }
                           className="h-5 w-5 rounded border-border text-info focus:ring-info/20 cursor-pointer"
                         />
                       </div>
@@ -354,17 +402,26 @@ function SelectMemberContent() {
                         {isSelected && (
                           <div className="mt-4 flex flex-wrap items-center gap-4 border-t border-border/40 pt-4">
                             <div className="flex items-center gap-2">
-                              <Label className="text-xs text-muted-foreground">Payout share:</Label>
+                              <Label className="text-xs text-muted-foreground">
+                                Payout share:
+                              </Label>
                               <div className="relative flex items-center">
                                 <Input
                                   type="number"
                                   min={0}
                                   max={100}
                                   value={percent || ""}
-                                  onChange={(e) => handlePercentChange(m.user_id, Number(e.target.value))}
+                                  onChange={(e) =>
+                                    handlePercentChange(
+                                      m.user_id,
+                                      Number(e.target.value),
+                                    )
+                                  }
                                   className="w-20 pr-6 text-right h-8 rounded-lg"
                                 />
-                                <span className="absolute right-2 text-xs font-semibold text-muted-foreground">%</span>
+                                <span className="absolute right-2 text-xs font-semibold text-muted-foreground">
+                                  %
+                                </span>
                               </div>
                             </div>
                             <span className="text-sm font-semibold text-success flex items-center">
@@ -392,15 +449,20 @@ function SelectMemberContent() {
                 <span
                   className={cn(
                     "ml-1 font-bold",
-                    currentTotalPercent === 100 ? "text-success" : "text-destructive"
+                    currentTotalPercent === 100
+                      ? "text-success"
+                      : "text-destructive",
                   )}
                 >
                   {currentTotalPercent}%
                 </span>
-                <span className="text-xs text-muted font-normal">(must equal 100%)</span>
+                <span className="text-xs text-muted font-normal">
+                  (must equal 100%)
+                </span>
               </div>
               <p className="text-xs text-muted mt-0.5">
-                {Object.values(selections).filter((s) => s.selected).length} member(s) selected for assignment.
+                {Object.values(selections).filter((s) => s.selected).length}{" "}
+                member(s) selected for assignment.
               </p>
             </div>
             <Button
