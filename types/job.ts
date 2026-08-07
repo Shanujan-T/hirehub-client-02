@@ -33,7 +33,7 @@ export interface Category {
   rejection_reason?: string | null;
   requested_by?: { id: number; full_name: string; email?: string } | null;
   baseline_price?: number | null;
-  baseline_unit?: "per_job" | "per_sqft" | "per_word" | "per_hour" | null;
+  baseline_scope_key?: string | null;
   /** Derived: flat | scaled from affects_price scope fields. */
   pricing_unit?: "flat" | "scaled" | null;
   created_at: string;
