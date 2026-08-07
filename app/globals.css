@@ -1,5 +1,8 @@
 @import "tailwindcss";
 
+/* Match next-themes class strategy (not prefers-color-scheme alone). */
+@custom-variant dark (&:where(.dark, .dark *));
+
 @theme {
   --color-primary: #08308b;
   --color-secondary: #4d2bd8;

@@ -68,6 +68,8 @@ export interface Job {
   scope_data?: ScopeData | null;
   scope_display?: ScopeDisplayRow[];
   status: "open" | "assigned" | "closed";
+  /** Count of CommunityApplication rows for this job (bids / applicants). */
+  application_count?: number;
   created_at: string;
   category?: Category;
 }

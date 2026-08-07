@@ -8,9 +8,9 @@ export type StatusVariant =
   | "default";
 
 const JOB: Record<string, StatusVariant> = {
-  open: "open",
-  assigned: "active",
-  closed: "completed",
+  open: "open", // blue
+  assigned: "completed", // green
+  closed: "pending", // gray
 };
 
 const CONTRACT: Record<string, StatusVariant> = {

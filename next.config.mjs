@@ -15,6 +15,7 @@ const nextConfig = {
       { source: "/client/:path*", destination: "/:path*", permanent: true },
       { source: "/admin-community/:path*", destination: "/community-admin/:path*", permanent: true },
       { source: "/member/dashboard", destination: "/dashboard", permanent: false },
+      { source: "/profile", destination: "/member/profile", permanent: false },
     ];
   },
 };
