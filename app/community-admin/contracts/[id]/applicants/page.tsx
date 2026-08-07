@@ -7,7 +7,7 @@ import { CommunityAdminRoute } from "@/components/community-admin-route";
 import { MemberCard } from "@/components/member-card";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
-import { EmptyState, LoadingState } from "@/components/page-states";
+import { LoadingState } from "@/components/page-states";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { cn, getErrorMessage } from "@/lib/utils";
 import { getContractApplicants, selectMembers, getContract } from "@/services/contract";
@@ -15,7 +15,7 @@ import { getCommunityMembers } from "@/services/community";
 import { useAuth } from "@/providers/auth-provider";
 import type { Contract, ContractApplication } from "@/types/contract";
 import type { CommunityMember } from "@/types/community";
-import { Check, User, DollarSign, Percent, Info } from "lucide-react";
+import { User, DollarSign, Info } from "lucide-react";
 
 interface SelectionState {
   [userId: number]: {
@@ -108,7 +108,7 @@ function SelectMemberContent() {
 
   const handleFinalize = async () => {
     const selectedList = Object.entries(selections)
-      .filter(([_, sel]) => sel.selected)
+      .filter(([, sel]) => sel.selected)
       .map(([userIdStr, sel]) => {
         const uId = Number(userIdStr);
         const app = applications.find((a) => a.member_id === uId);
@@ -145,7 +145,7 @@ function SelectMemberContent() {
 
   // Helper lists
   const applicantUserIds = new Set(applications.map((app) => app.member_id));
-  const directAssignMembers = members.filter((m) => !applicantUserIds.has(m.user_id));
+
 
   // Sum up percentages of selected items
   const currentTotalPercent = Object.values(selections)
