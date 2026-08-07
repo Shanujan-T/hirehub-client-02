@@ -10,6 +10,7 @@ import { MemberCardPanel, sortMembersAdminFirst } from "@/components/member-card
 import { StatusBadge } from "@/components/status-badge";
 import { communityMemberDetailPath } from "@/lib/member-detail-paths";
 import { Badge, Button, Card, Label, Textarea } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { useAsyncItem } from "@/lib/hooks/use-async";
 import { appendReturnTo } from "@/lib/navigation";
@@ -258,6 +259,7 @@ function CommunityDetailContent() {
   } | null>(null);
   const [joinLoading, setJoinLoading] = useState(false);
   const [joinSent, setJoinSent] = useState(false);
+  const [showNoSkillsDialog, setShowNoSkillsDialog] = useState(false);
   const [applyTarget, setApplyTarget] = useState<OpenCall | null>(null);
   const [applyNote, setApplyNote] = useState("");
   const [applySubmitting, setApplySubmitting] = useState(false);
@@ -313,7 +315,10 @@ function CommunityDetailContent() {
       router.push(appendReturnTo("/auth/login", `/communities/${id}`));
       return;
     }
-    if (!hasSkills) return;
+    if (!hasSkills) {
+      setShowNoSkillsDialog(true);
+      return;
+    }
     if (user.role !== "user") {
       notify.info("Only individual members can request to join communities.");
       return;
@@ -525,25 +530,15 @@ function CommunityDetailContent() {
             </Button>
           )}
           {showJoinButton && (
-            <div className="flex flex-col items-end gap-1">
-              <Button
-                variant="gradient"
-                size="sm"
-                className="rounded-full"
-                disabled={hasPendingRequest || joinLoading || Boolean(user && !hasSkills)}
-                onClick={handleRequestJoin}
-              >
-                {hasPendingRequest ? "Request Sent" : user ? "Request to Join" : "Sign in to Join"}
-              </Button>
-              {user && !hasSkills && (
-                <Link
-                  href="/profile"
-                  className="text-[11px] font-medium text-destructive hover:underline"
-                >
-                  Add a skill to your profile first
-                </Link>
-              )}
-            </div>
+            <Button
+              variant="gradient"
+              size="sm"
+              className="rounded-full"
+              disabled={hasPendingRequest || joinLoading}
+              onClick={handleRequestJoin}
+            >
+              {hasPendingRequest ? "Request Sent" : user ? "Request to Join" : "Sign in to Join"}
+            </Button>
           )}
         </div>
       </div>
@@ -687,6 +682,18 @@ function CommunityDetailContent() {
           }
         }}
         onConfirm={() => void handleInviteConfirm()}
+      />
+      <ConfirmDialog
+        open={showNoSkillsDialog}
+        onClose={() => setShowNoSkillsDialog(false)}
+        onConfirm={() => {
+          setShowNoSkillsDialog(false);
+          router.push("/profile");
+        }}
+        title="Add a skill to your profile first"
+        description="You need at least one skill listed before requesting to join a community."
+        confirmLabel="Go to Profile"
+        cancelLabel="Cancel"
       />
     </div>
   );

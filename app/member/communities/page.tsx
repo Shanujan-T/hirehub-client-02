@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { Suspense, useCallback, useEffect, useMemo, useState } from "react";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { CommunityBrowseCard } from "@/components/community-browse-card";
@@ -10,6 +11,7 @@ import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card } from "@/components/ui";
+import { ConfirmDialog } from "@/components/confirm-dialog";
 import { filterCommunities } from "@/lib/community-filters";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
@@ -20,6 +22,7 @@ import { useAuth } from "@/providers/auth-provider";
 import type { Community } from "@/types/community";
 
 function MemberCommunitiesContent() {
+  const router = useRouter();
   const { user } = useAuth();
   const { hrefWithReturn, setFilter, getFilter } = useListNavigation();
   const locationFilter = getFilter("location");
@@ -52,16 +55,25 @@ function MemberCommunitiesContent() {
     [browseCommunities, locationFilter, queryFilter]
   );
 
+  const [showNoSkillsDialog, setShowNoSkillsDialog] = useState(false);
+
   const hasSkills = user?.user_skills !== undefined ? user.user_skills.length > 0 : true;
 
   const handleJoin = async (communityId: number) => {
-    if (!hasSkills) return;
     try {
       await joinCommunity(communityId);
       notify.success("Join request sent");
       reload();
     } catch (err) {
       notify.error(getErrorMessage(err));
+    }
+  };
+
+  const handleJoinClick = (communityId: number) => {
+    if (!hasSkills) {
+      setShowNoSkillsDialog(true);
+    } else {
+      void handleJoin(communityId);
     }
   };
 
@@ -128,25 +140,14 @@ function MemberCommunitiesContent() {
                     community={community}
                     href={hrefWithReturn(`/communities/${community.id}`)}
                     action={
-                      <div className="flex flex-col items-end gap-1">
-                        <Button
-                          variant="gradient"
-                          size="sm"
-                          className="rounded-full"
-                          onClick={() => handleJoin(community.id)}
-                          disabled={!hasSkills}
-                        >
-                          Request to Join
-                        </Button>
-                        {!hasSkills && (
-                          <Link
-                            href="/profile"
-                            className="text-[11px] font-medium text-destructive hover:underline"
-                          >
-                            Add a skill to your profile first
-                          </Link>
-                        )}
-                      </div>
+                      <Button
+                        variant="gradient"
+                        size="sm"
+                        className="rounded-full"
+                        onClick={() => handleJoinClick(community.id)}
+                      >
+                        Request to Join
+                      </Button>
                     }
                   />
                 ))}
@@ -154,6 +155,18 @@ function MemberCommunitiesContent() {
             )}
           </>
         )}
+        <ConfirmDialog
+          open={showNoSkillsDialog}
+          onClose={() => setShowNoSkillsDialog(false)}
+          onConfirm={() => {
+            setShowNoSkillsDialog(false);
+            router.push("/profile");
+          }}
+          title="Add a skill to your profile first"
+          description="You need at least one skill listed before requesting to join a community."
+          confirmLabel="Go to Profile"
+          cancelLabel="Cancel"
+        />
       </DashboardPortalShell>
     </AuthenticatedRoute>
   );
