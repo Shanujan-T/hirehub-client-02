@@ -8,7 +8,14 @@ import { AuthenticatedRoute } from "@/components/auth-guard";
 import { PortalShell, adminNav } from "@/components/portal-shell";
 import { ScopeSchemaBuilder } from "@/components/scope-schema-builder";
 import { EmptyState, LoadingState } from "@/components/page-states";
-import { Button, Card, Input, Label, SelectMenu, Textarea } from "@/components/ui";
+import {
+  Button,
+  Card,
+  Input,
+  Label,
+  SelectMenu,
+  Textarea,
+} from "@/components/ui";
 import { useAsyncList } from "@/lib/hooks/use-async";
 import { useListNavigation } from "@/lib/hooks/use-list-navigation";
 import { cn, getErrorMessage } from "@/lib/utils";
@@ -28,9 +35,11 @@ function baselineScopeKeyLabel(key?: string | null) {
 
 function pricingUnitLabel(category: Category) {
   if (category.pricing_unit === "scaled") {
-    const fields = (category.scope_fields ?? category.scope_schema ?? []).filter(
-      (f) => f.type === "number" && f.affects_price
-    );
+    const fields = (
+      category.scope_fields ??
+      category.scope_schema ??
+      []
+    ).filter((f) => f.type === "number" && f.affects_price);
     if (!fields.length) return " · scaled";
     return ` · scaled (${fields.map((f) => f.label).join(", ")})`;
   }
@@ -84,18 +93,25 @@ function PendingCategoryCard({
         <p className="text-sm text-muted">
           Requested by{" "}
           {category.requested_by?.full_name ||
-            (category.requested_by_id ? `User #${category.requested_by_id}` : "Unknown")}
-          {category.requested_by?.email ? ` (${category.requested_by.email})` : ""}
+            (category.requested_by_id
+              ? `User #${category.requested_by_id}`
+              : "Unknown")}
+          {category.requested_by?.email
+            ? ` (${category.requested_by.email})`
+            : ""}
         </p>
         {category.request_description && (
-          <p className="mt-2 text-sm text-foreground">{category.request_description}</p>
+          <p className="mt-2 text-sm text-foreground">
+            {category.request_description}
+          </p>
         )}
       </div>
 
       {showApprovePanel ? (
         <div className="space-y-3 border-t border-border pt-3">
           <p className="text-sm text-muted">
-            Optional: define scope fields now, or skip and add them later via Edit Scope Fields.
+            Optional: define scope fields now, or skip and add them later via
+            Edit Scope Fields.
           </p>
           <ScopeSchemaBuilder value={schema} onChange={setSchema} />
           <div className="flex flex-wrap gap-2">
@@ -107,7 +123,11 @@ function PendingCategoryCard({
             >
               {submitting ? "Approving…" : "Approve category"}
             </Button>
-            <Button variant="outline" disabled={submitting} onClick={() => setShowApprovePanel(false)}>
+            <Button
+              variant="outline"
+              disabled={submitting}
+              onClick={() => setShowApprovePanel(false)}
+            >
               Cancel
             </Button>
           </div>
@@ -132,7 +152,11 @@ function PendingCategoryCard({
             >
               Approve…
             </Button>
-            <Button variant="destructive" disabled={submitting} onClick={() => void handleReject()}>
+            <Button
+              variant="destructive"
+              disabled={submitting}
+              onClick={() => void handleReject()}
+            >
               Reject
             </Button>
           </div>
@@ -149,7 +173,7 @@ function AdminCategoriesContent() {
 
   const fetcher = useCallback(
     () => getCategories({ status: isPending ? "pending" : "approved" }),
-    [isPending]
+    [isPending],
   );
   const { data: categories, loading, reload } = useAsyncList(fetcher);
 
@@ -159,12 +183,14 @@ function AdminCategoriesContent() {
   const [editName, setEditName] = useState("");
   const [editSchema, setEditSchema] = useState<ScopeFieldDefinition[]>([]);
   const [editBaselinePrice, setEditBaselinePrice] = useState("");
-  const [editBaselineScopeKey, setEditBaselineScopeKey] = useState<string | null>(null);
+  const [editBaselineScopeKey, setEditBaselineScopeKey] = useState<
+    string | null
+  >(null);
   const [saving, setSaving] = useState(false);
 
   const approvedForSeed = useMemo(
     () => (isPending ? [] : categories),
-    [categories, isPending]
+    [categories, isPending],
   );
 
   const numericFieldOptions = useMemo(() => {
@@ -185,7 +211,7 @@ function AdminCategoriesContent() {
     setEditName(category.name);
     setEditSchema(category.scope_schema ? [...category.scope_schema] : []);
     setEditBaselinePrice(
-      category.baseline_price != null ? String(category.baseline_price) : ""
+      category.baseline_price != null ? String(category.baseline_price) : "",
     );
     setEditBaselineScopeKey(category.baseline_scope_key ?? null);
   };
@@ -197,11 +223,12 @@ function AdminCategoriesContent() {
       await updateCategory(editingId, {
         name: editName.trim(),
         scope_schema: editSchema.length ? editSchema : null,
-        baseline_price: editBaselinePrice.trim() === "" ? null : Number(editBaselinePrice),
+        baseline_price:
+          editBaselinePrice.trim() === "" ? null : Number(editBaselinePrice),
         baseline_scope_key: editBaselineScopeKey || null,
       });
       toast.success(
-        "Category updated — district estimate rows refreshed for seeded locations only"
+        "Category updated — district estimate rows refreshed for seeded locations only",
       );
       setEditingId(null);
       reload();
@@ -219,7 +246,7 @@ function AdminCategoriesContent() {
       const result = await seedDistrictPricing(Number(seedCategoryId));
       toast.success(
         result.message ||
-          `District estimates updated (created ${result.stats?.created ?? 0}, updated ${result.stats?.updated ?? 0})`
+          `District estimates updated (created ${result.stats?.created ?? 0}, updated ${result.stats?.updated ?? 0})`,
       );
     } catch (err) {
       toast.error(getErrorMessage(err));
@@ -249,7 +276,7 @@ function AdminCategoriesContent() {
             "rounded-full px-4 py-1.5 text-sm font-medium transition",
             !isPending
               ? "bg-primary text-white"
-              : "border border-border bg-card text-muted hover:text-foreground"
+              : "border border-border bg-card text-muted hover:text-foreground",
           )}
         >
           Approved
@@ -261,7 +288,7 @@ function AdminCategoriesContent() {
             "rounded-full px-4 py-1.5 text-sm font-medium transition",
             isPending
               ? "bg-primary text-white"
-              : "border border-border bg-card text-muted hover:text-foreground"
+              : "border border-border bg-card text-muted hover:text-foreground",
           )}
         >
           Pending
@@ -272,8 +299,9 @@ function AdminCategoriesContent() {
         <Card className="mb-6 max-w-md space-y-3">
           <Label>Seed district pricing estimates</Label>
           <p className="text-xs text-muted">
-            Uses each category&apos;s Tier-1 (Colombo) base price × cost-of-living multipliers for
-            all 25 districts. Does not overwrite locations that already have real contract samples.
+            Uses each category&apos;s Tier-1 (Colombo) base price ×
+            cost-of-living multipliers for all 25 districts. Does not overwrite
+            locations that already have real contract samples.
           </p>
           <p className="text-[11px] text-muted">
             District cost multipliers derived from Numbeo cost-of-living data.
@@ -281,13 +309,17 @@ function AdminCategoriesContent() {
           <select
             className="w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
             value={seedCategoryId}
-            onChange={(e) => setSeedCategoryId(e.target.value ? Number(e.target.value) : "")}
+            onChange={(e) =>
+              setSeedCategoryId(e.target.value ? Number(e.target.value) : "")
+            }
           >
             <option value="">Select category</option>
             {approvedForSeed.map((c) => (
               <option key={c.id} value={c.id}>
                 {c.name}
-                {c.baseline_price != null ? ` (base LKR ${c.baseline_price})` : " — set base price first"}
+                {c.baseline_price != null
+                  ? ` (base LKR ${c.baseline_price})`
+                  : " — set base price first"}
               </option>
             ))}
           </select>
@@ -307,9 +339,7 @@ function AdminCategoriesContent() {
         <EmptyState
           title={isPending ? "No pending requests" : "No categories"}
           description={
-            isPending
-              ? "User category requests will show up here."
-              : undefined
+            isPending ? "User category requests will show up here." : undefined
           }
         />
       ) : isPending ? (
@@ -323,7 +353,10 @@ function AdminCategoriesContent() {
               <>
                 <div className="space-y-2">
                   <Label>Name</Label>
-                  <Input value={editName} onChange={(e) => setEditName(e.target.value)} />
+                  <Input
+                    value={editName}
+                    onChange={(e) => setEditName(e.target.value)}
+                  />
                 </div>
                 <div className="grid gap-3 sm:grid-cols-2">
                   <div className="space-y-2">
@@ -337,32 +370,37 @@ function AdminCategoriesContent() {
                       placeholder="e.g. 6000"
                     />
                     <p className="text-[11px] text-muted">
-                      Single calibration number for this category. Saving recalculates seeded
-                      district estimates only (never real contract data). District cost multipliers
-                      derived from Numbeo cost-of-living data.
+                      Single calibration number for this category. Saving
+                      recalculates seeded district estimates only (never real
+                      contract data). District cost multipliers derived from
+                      Numbeo cost-of-living data.
                     </p>
                   </div>
                   <div className="space-y-2">
-                     <Label>Baseline scaling dimension</Label>
-                     <SelectMenu
-                       value={editBaselineScopeKey || ""}
-                       onChange={(v) => setEditBaselineScopeKey(v || null)}
-                       placeholder="Flat (per job)"
-                       options={numericFieldOptions}
-                     />
-                     <p className="text-[11px] text-muted">
-                       Select which numeric scope field scales this category&apos;s baseline pricing.
-                     </p>
-                     <button
-                       type="button"
-                       className="text-xs text-muted hover:underline"
-                       onClick={() => setEditBaselineScopeKey(null)}
-                     >
-                       Clear scaling key
-                     </button>
-                   </div>
+                    <Label>Baseline scaling dimension</Label>
+                    <SelectMenu
+                      value={editBaselineScopeKey || ""}
+                      onChange={(v) => setEditBaselineScopeKey(v || null)}
+                      placeholder="Flat (per job)"
+                      options={numericFieldOptions}
+                    />
+                    <p className="text-[11px] text-muted">
+                      Select which numeric scope field scales this
+                      category&apos;s baseline pricing.
+                    </p>
+                    <button
+                      type="button"
+                      className="text-xs text-muted hover:underline"
+                      onClick={() => setEditBaselineScopeKey(null)}
+                    >
+                      Clear scaling key
+                    </button>
+                  </div>
                 </div>
-                <ScopeSchemaBuilder value={editSchema} onChange={setEditSchema} />
+                <ScopeSchemaBuilder
+                  value={editSchema}
+                  onChange={setEditSchema}
+                />
                 <div className="flex flex-wrap gap-2">
                   <Button
                     variant="gradient"
@@ -404,7 +442,11 @@ function AdminCategoriesContent() {
                     {c.baseline_price == null && pricingUnitLabel(c)}
                   </p>
                 </div>
-                <Button variant="outline" size="sm" onClick={() => startEdit(c)}>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => startEdit(c)}
+                >
                   Edit Scope Fields
                 </Button>
               </div>
