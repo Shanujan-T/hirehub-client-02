@@ -21,13 +21,9 @@ import {
 import { getCategories } from "@/services/job";
 import type { Category, ScopeFieldDefinition } from "@/types/job";
 
-type BaselineUnit = "per_job" | "per_sqft" | "per_word" | "per_hour";
-
-function baselineUnitLabel(unit?: string | null) {
-  if (unit === "per_sqft") return "/sq ft (legacy)";
-  if (unit === "per_word") return " per 100 words (legacy)";
-  if (unit === "per_hour") return "/hour (legacy)";
-  return " (Tier-1 Colombo base)";
+function baselineScopeKeyLabel(key?: string | null) {
+  if (key) return ` scaled by ${key}`;
+  return " (flat)";
 }
 
 function pricingUnitLabel(category: Category) {
@@ -163,13 +159,26 @@ function AdminCategoriesContent() {
   const [editName, setEditName] = useState("");
   const [editSchema, setEditSchema] = useState<ScopeFieldDefinition[]>([]);
   const [editBaselinePrice, setEditBaselinePrice] = useState("");
-  const [editBaselineUnit, setEditBaselineUnit] = useState<BaselineUnit | "">("");
+  const [editBaselineScopeKey, setEditBaselineScopeKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
 
   const approvedForSeed = useMemo(
     () => (isPending ? [] : categories),
     [categories, isPending]
   );
+
+  const numericFieldOptions = useMemo(() => {
+    const options = [{ value: "", label: "Flat (per job)" }];
+    editSchema.forEach((field) => {
+      if (field.type === "number" && field.key) {
+        options.push({
+          value: field.key,
+          label: field.label || field.key,
+        });
+      }
+    });
+    return options;
+  }, [editSchema]);
 
   const startEdit = (category: Category) => {
     setEditingId(category.id);
@@ -178,7 +187,7 @@ function AdminCategoriesContent() {
     setEditBaselinePrice(
       category.baseline_price != null ? String(category.baseline_price) : ""
     );
-    setEditBaselineUnit(category.baseline_unit ?? "");
+    setEditBaselineScopeKey(category.baseline_scope_key ?? null);
   };
 
   const handleSave = async () => {
@@ -189,7 +198,7 @@ function AdminCategoriesContent() {
         name: editName.trim(),
         scope_schema: editSchema.length ? editSchema : null,
         baseline_price: editBaselinePrice.trim() === "" ? null : Number(editBaselinePrice),
-        baseline_unit: editBaselineUnit || null,
+        baseline_scope_key: editBaselineScopeKey || null,
       });
       toast.success(
         "Category updated — district estimate rows refreshed for seeded locations only"
@@ -334,30 +343,24 @@ function AdminCategoriesContent() {
                     </p>
                   </div>
                   <div className="space-y-2">
-                    <Label>Pricing unit (legacy hint)</Label>
-                    <SelectMenu
-                      value={editBaselineUnit}
-                      onChange={(v) => setEditBaselineUnit(v as BaselineUnit | "")}
-                      placeholder="None"
-                      options={[
-                        { value: "per_job", label: "Flat / per job" },
-                        { value: "per_sqft", label: "Per sq ft" },
-                        { value: "per_word", label: "Per 100 words" },
-                        { value: "per_hour", label: "Per hour" },
-                      ]}
-                    />
-                    <p className="text-[11px] text-muted">
-                      Live scaling uses Scope fields with &quot;Affects price?&quot; checked — not
-                      this legacy hint.
-                    </p>
-                    <button
-                      type="button"
-                      className="text-xs text-muted hover:underline"
-                      onClick={() => setEditBaselineUnit("")}
-                    >
-                      Clear unit
-                    </button>
-                  </div>
+                     <Label>Baseline scaling dimension</Label>
+                     <SelectMenu
+                       value={editBaselineScopeKey || ""}
+                       onChange={(v) => setEditBaselineScopeKey(v || null)}
+                       placeholder="Flat (per job)"
+                       options={numericFieldOptions}
+                     />
+                     <p className="text-[11px] text-muted">
+                       Select which numeric scope field scales this category's baseline pricing.
+                     </p>
+                     <button
+                       type="button"
+                       className="text-xs text-muted hover:underline"
+                       onClick={() => setEditBaselineScopeKey(null)}
+                     >
+                       Clear scaling key
+                     </button>
+                   </div>
                 </div>
                 <ScopeSchemaBuilder value={editSchema} onChange={setEditSchema} />
                 <div className="flex flex-wrap gap-2">
@@ -394,7 +397,7 @@ function AdminCategoriesContent() {
                       <>
                         {" · "}
                         Base LKR {c.baseline_price}
-                        {baselineUnitLabel(c.baseline_unit)}
+                        {baselineScopeKeyLabel(c.baseline_scope_key)}
                         {pricingUnitLabel(c)}
                       </>
                     )}

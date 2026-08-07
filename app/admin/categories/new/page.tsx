@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { toast } from "sonner";
 import { AuthenticatedRoute } from "@/components/auth-guard";
 import { PortalShell, adminNav } from "@/components/portal-shell";
@@ -17,8 +17,21 @@ export default function AdminNewCategoryPage() {
   const [name, setName] = useState("");
   const [schema, setSchema] = useState<ScopeFieldDefinition[]>([]);
   const [baselinePrice, setBaselinePrice] = useState("");
-  const [baselineUnit, setBaselineUnit] = useState<"per_job" | "per_sqft" | "">("");
+  const [baselineScopeKey, setBaselineScopeKey] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
+
+  const numericFieldOptions = useMemo(() => {
+    const options = [{ value: "", label: "Flat (per job)" }];
+    schema.forEach((field) => {
+      if (field.type === "number" && field.key) {
+        options.push({
+          value: field.key,
+          label: field.label || field.key,
+        });
+      }
+    });
+    return options;
+  }, [schema]);
 
   const handleCreate = async () => {
     if (!name.trim()) {
@@ -31,7 +44,7 @@ export default function AdminNewCategoryPage() {
         name: name.trim(),
         scope_schema: schema.length ? schema : null,
         baseline_price: baselinePrice.trim() === "" ? null : Number(baselinePrice),
-        baseline_unit: baselineUnit || null,
+        baseline_scope_key: baselineScopeKey || null,
       });
       toast.success("Category created");
       router.push("/admin/categories");
@@ -73,22 +86,19 @@ export default function AdminNewCategoryPage() {
               />
             </div>
             <div className="space-y-2">
-              <Label>Baseline unit</Label>
+              <Label>Baseline scaling dimension</Label>
               <SelectMenu
-                value={baselineUnit}
-                onChange={(v) => setBaselineUnit(v as "per_job" | "per_sqft" | "")}
-                placeholder="None"
-                options={[
-                  { value: "per_job", label: "Per job" },
-                  { value: "per_sqft", label: "Per sq ft" },
-                ]}
+                value={baselineScopeKey || ""}
+                onChange={(v) => setBaselineScopeKey(v || null)}
+                placeholder="Flat (per job)"
+                options={numericFieldOptions}
               />
               <button
                 type="button"
                 className="text-xs text-muted hover:underline"
-                onClick={() => setBaselineUnit("")}
+                onClick={() => setBaselineScopeKey(null)}
               >
-                Clear unit
+                Clear scaling key
               </button>
             </div>
           </div>
