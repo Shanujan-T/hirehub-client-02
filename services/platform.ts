@@ -66,7 +66,7 @@ export async function createCategory(payload: {
   name: string;
   scope_schema?: import("@/types/job").ScopeFieldDefinition[] | null;
   baseline_price?: number | null;
-  baseline_unit?: "per_job" | "per_sqft" | "per_word" | "per_hour" | null;
+  baseline_scope_key?: string | null;
 }): Promise<Category> {
   const { data } = await apiClient.post<{ category: Category }>("/api/categories", payload);
   return data.category;
@@ -78,7 +78,7 @@ export async function updateCategory(
     name?: string;
     scope_schema?: import("@/types/job").ScopeFieldDefinition[] | null;
     baseline_price?: number | null;
-    baseline_unit?: "per_job" | "per_sqft" | "per_word" | "per_hour" | null;
+    baseline_scope_key?: string | null;
   }
 ): Promise<Category> {
   const { data } = await apiClient.put<{ category: Category }>(
