@@ -42,7 +42,11 @@ export function UserAvatar({
         alt={`${name} avatar`}
         width={dimensions[size]}
         height={dimensions[size]}
-        className={cn("inline-flex shrink-0 rounded-full object-cover shadow-sm", sizes[size], className)}
+        className={cn(
+          "inline-flex shrink-0 rounded-full object-cover shadow-sm",
+          sizes[size],
+          className,
+        )}
       />
     );
   }
@@ -52,7 +56,7 @@ export function UserAvatar({
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-full bg-brand-gradient font-bold text-white shadow-sm",
         sizes[size],
-        className
+        className,
       )}
       aria-hidden={!!name}
     >
@@ -67,7 +71,9 @@ export function roleLabel(role: string) {
   return role;
 }
 
-export function roleBadgeVariant(role: string): "info" | "active" | "completed" | "default" {
+export function roleBadgeVariant(
+  role: string,
+): "info" | "active" | "completed" | "default" {
   if (role === "admin") return "completed";
   return "info";
 }

@@ -40,7 +40,9 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
   const [phoneBusy, setPhoneBusy] = useState(false);
   const [emailBusy, setEmailBusy] = useState(false);
 
-  const applyUser = async (next: Awaited<ReturnType<typeof confirmIdentityPhoneOtp>>) => {
+  const applyUser = async (
+    next: Awaited<ReturnType<typeof confirmIdentityPhoneOtp>>,
+  ) => {
     updateUser(next);
     await refreshUser();
   };
@@ -113,12 +115,16 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
       >
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <p className="text-sm font-semibold text-foreground">Account Verification</p>
+            <p className="text-sm font-semibold text-foreground">
+              Account Verification
+            </p>
             <p className="mt-1 text-xs text-muted">
-              Required to create or manage a community. Confirmed instantly — no documents or manual review.
+              Required to create or manage a community. Confirmed instantly — no
+              documents or manual review.
             </p>
             <p className="mt-2 text-sm text-muted">
-              {verifiedViaLabel(phoneDone, emailDone)} You can create a community when ready.
+              {verifiedViaLabel(phoneDone, emailDone)} You can create a
+              community when ready.
             </p>
           </div>
           <StatusBadge status="verified" kind="account" />
@@ -128,16 +134,24 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
   }
 
   return (
-    <div id={PROFILE_ACCOUNT_SECTION_ID} className="scroll-mt-6 space-y-3 rounded-lg border border-border p-4">
+    <div
+      id={PROFILE_ACCOUNT_SECTION_ID}
+      className="scroll-mt-6 space-y-3 rounded-lg border border-border p-4"
+    >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
-          <p className="text-sm font-semibold text-foreground">Account Verification</p>
+          <p className="text-sm font-semibold text-foreground">
+            Account Verification
+          </p>
           <p className="mt-1 text-xs text-muted">
-            Required to create or manage a community. Confirm your phone or email with a one-time code — no ID
-            documents or manual review.
+            Required to create or manage a community. Confirm your phone or
+            email with a one-time code — no ID documents or manual review.
           </p>
         </div>
-        <StatusBadge status={status === "pending" ? "unverified" : status} kind="account" />
+        <StatusBadge
+          status={status === "pending" ? "unverified" : status}
+          kind="account"
+        />
       </div>
 
       <div className="space-y-4 rounded-lg border border-border p-4">
@@ -161,7 +175,11 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
             disabled={phoneBusy || !phone.trim()}
             onClick={handleSendPhone}
           >
-            {phoneBusy ? "Sending…" : phoneCodeSent ? "Resend SMS code" : "Send SMS code"}
+            {phoneBusy
+              ? "Sending…"
+              : phoneCodeSent
+                ? "Resend SMS code"
+                : "Send SMS code"}
           </Button>
         </div>
         {phoneCodeSent && (
@@ -196,9 +214,12 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
       </div>
 
       <div className="space-y-4 rounded-lg border border-dashed border-border p-4">
-        <p className="text-sm font-semibold">Email ({user?.email ?? "on file"})</p>
+        <p className="text-sm font-semibold">
+          Email ({user?.email ?? "on file"})
+        </p>
         <p className="text-xs text-muted">
-          Use email if SMS is unavailable. We will send a one-time code to your account email.
+          Use email if SMS is unavailable. We will send a one-time code to your
+          account email.
         </p>
         <Button
           type="button"
@@ -208,7 +229,11 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
           disabled={emailBusy}
           onClick={handleSendEmail}
         >
-          {emailBusy ? "Sending…" : emailCodeSent ? "Resend email code" : "Send email code"}
+          {emailBusy
+            ? "Sending…"
+            : emailCodeSent
+              ? "Resend email code"
+              : "Send email code"}
         </Button>
         {emailCodeSent && (
           <div className="space-y-2">
@@ -235,7 +260,9 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
         )}
       </div>
 
-      <p className="text-xs text-muted">Complete account verification to create a community.</p>
+      <p className="text-xs text-muted">
+        Complete account verification to create a community.
+      </p>
     </div>
   );
 }

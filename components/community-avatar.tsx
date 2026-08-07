@@ -40,7 +40,11 @@ export function CommunityAvatar({
         alt={`${name} community image`}
         width={dimensions[size]}
         height={dimensions[size]}
-        className={cn("inline-flex shrink-0 rounded-2xl object-cover shadow-sm", sizes[size], className)}
+        className={cn(
+          "inline-flex shrink-0 rounded-2xl object-cover shadow-sm",
+          sizes[size],
+          className,
+        )}
       />
     );
   }
@@ -50,7 +54,7 @@ export function CommunityAvatar({
       className={cn(
         "inline-flex shrink-0 items-center justify-center rounded-2xl bg-brand-gradient font-bold text-white shadow-sm",
         sizes[size],
-        className
+        className,
       )}
       aria-hidden={!!name}
     >

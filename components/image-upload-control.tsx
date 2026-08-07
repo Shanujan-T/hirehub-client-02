@@ -90,7 +90,7 @@ export function ImageUploadControl({
       <div
         className={cn(
           "flex flex-col items-center gap-4 rounded-2xl border border-dashed border-border bg-background/40 p-4 sm:flex-row",
-          dragOver && "border-info bg-info/5"
+          dragOver && "border-info bg-info/5",
         )}
         onDragOver={(event) => {
           event.preventDefault();
@@ -106,7 +106,7 @@ export function ImageUploadControl({
         <div
           className={cn(
             "overflow-hidden",
-            shape === "circle" ? "rounded-full" : "rounded-2xl"
+            shape === "circle" ? "rounded-full" : "rounded-2xl",
           )}
         >
           {displayUrl ? (
@@ -117,7 +117,7 @@ export function ImageUploadControl({
               height={112}
               className={cn(
                 "object-cover",
-                shape === "circle" ? "h-24 w-24" : "h-24 w-24 sm:h-28 sm:w-28"
+                shape === "circle" ? "h-24 w-24" : "h-24 w-24 sm:h-28 sm:w-28",
               )}
             />
           ) : (
@@ -143,7 +143,9 @@ export function ImageUploadControl({
             <Upload className="mr-1.5 h-4 w-4" aria-hidden />
             {uploading ? "Uploading…" : "Choose image"}
           </Button>
-          <p className="text-xs text-muted">JPG, PNG, or WEBP up to 5MB. Drag and drop supported.</p>
+          <p className="text-xs text-muted">
+            JPG, PNG, or WEBP up to 5MB. Drag and drop supported.
+          </p>
           {error && <p className="text-xs text-destructive">{error}</p>}
         </div>
       </div>
