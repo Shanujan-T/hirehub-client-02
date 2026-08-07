@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string) {
@@ -26,12 +27,19 @@ export function CommunityAvatar({
     md: "h-14 w-14 text-sm",
     lg: "h-20 w-20 text-lg",
   };
+  const dimensions = {
+    sm: 40,
+    md: 56,
+    lg: 80,
+  };
 
   if (imageUrl) {
     return (
-      <img
+      <Image
         src={imageUrl}
         alt={`${name} community image`}
+        width={dimensions[size]}
+        height={dimensions[size]}
         className={cn("inline-flex shrink-0 rounded-2xl object-cover shadow-sm", sizes[size], className)}
       />
     );

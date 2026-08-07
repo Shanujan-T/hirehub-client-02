@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { useEffect, useRef, useState } from "react";
 import { Upload } from "lucide-react";
 import { Button } from "@/components/ui";
@@ -109,9 +110,11 @@ export function ImageUploadControl({
           )}
         >
           {displayUrl ? (
-            <img
+            <Image
               src={displayUrl}
               alt="Upload preview"
+              width={112}
+              height={112}
               className={cn(
                 "object-cover",
                 shape === "circle" ? "h-24 w-24" : "h-24 w-24 sm:h-28 sm:w-28"

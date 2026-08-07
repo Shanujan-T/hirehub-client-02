@@ -1,3 +1,4 @@
+import Image from "next/image";
 import { cn } from "@/lib/utils";
 
 function getInitials(name: string) {
@@ -28,11 +29,19 @@ export function UserAvatar({
     lg: "h-14 w-14 text-base",
   };
 
+  const dimensions = {
+    sm: 36,
+    md: 44,
+    lg: 56,
+  };
+
   if (avatarUrl) {
     return (
-      <img
+      <Image
         src={avatarUrl}
         alt={`${name} avatar`}
+        width={dimensions[size]}
+        height={dimensions[size]}
         className={cn("inline-flex shrink-0 rounded-full object-cover shadow-sm", sizes[size], className)}
       />
     );

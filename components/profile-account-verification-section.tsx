@@ -26,7 +26,7 @@ function verifiedViaLabel(phone: boolean, email: boolean): string {
   return "Your account is verified.";
 }
 
-export function ProfileAccountVerificationSection(_: ProfileAccountVerificationSectionProps = {}) {
+export function ProfileAccountVerificationSection({}: ProfileAccountVerificationSectionProps = {}) {
   const { user, updateUser, refreshUser } = useAuth();
   const status = user?.identity_status ?? "unverified";
   const phoneDone = user?.phone_verified_for_identity ?? false;
