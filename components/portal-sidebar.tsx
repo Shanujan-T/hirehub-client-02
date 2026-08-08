@@ -175,6 +175,7 @@ function PortalNavList({
 
     const sectionIds = ["profile", "skills", "account-verification"];
     let frame: number | undefined;
+    let hashTimer: number | undefined;
     const updateActiveSection = () => {
       if (frame !== undefined) cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
@@ -185,18 +186,21 @@ function PortalNavList({
         }, "profile");
         const nextHash = `#${activeId}`;
 
-        if (window.location.hash !== nextHash) {
-          window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
-        }
         setHash(nextHash);
+        if (hashTimer !== undefined) window.clearTimeout(hashTimer);
+        hashTimer = window.setTimeout(() => {
+          if (window.location.hash !== nextHash) {
+            window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+          }
+        }, 150);
       });
     };
 
-    updateActiveSection();
     window.addEventListener("scroll", updateActiveSection, { passive: true });
     window.addEventListener("resize", updateActiveSection);
     return () => {
       if (frame !== undefined) cancelAnimationFrame(frame);
+      if (hashTimer !== undefined) window.clearTimeout(hashTimer);
       window.removeEventListener("scroll", updateActiveSection);
       window.removeEventListener("resize", updateActiveSection);
     };
