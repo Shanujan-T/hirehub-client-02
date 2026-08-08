@@ -32,6 +32,16 @@ function cleanScopeData(data: ScopeData): ScopeData {
   return cleaned;
 }
 
+function isMeaningfullyFilledScopeValue(value: ScopeData[string], type: string): boolean {
+  if (type === "number") {
+    // Zero is an entered numeric value. Do not use truthiness here: it would
+    // incorrectly treat 0 as missing.
+    return typeof value === "number" && Number.isFinite(value) && value >= 0;
+  }
+  if (Array.isArray(value)) return value.length > 0;
+  return typeof value === "string" && value.trim().length > 0;
+}
+
 export default function NewJobPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
@@ -46,6 +56,7 @@ export default function NewJobPage() {
   const [aiUnavailable, setAiUnavailable] = useState(false);
   const [roughPrompt, setRoughPrompt] = useState("");
   const [scopeData, setScopeData] = useState<ScopeData>({});
+  const [eventTime, setEventTime] = useState("");
   const [showRequestCategory, setShowRequestCategory] = useState(false);
   const [requestName, setRequestName] = useState("");
   const [requestDescription, setRequestDescription] = useState("");
@@ -63,6 +74,7 @@ export default function NewJobPage() {
   });
   const categoryId = watch("category_id");
   const location = watch("location");
+  const deadline = watch("deadline");
 
   const selectedCategory = useMemo(
     () => categories.find((c) => c.id === Number(categoryId)) ?? null,
@@ -70,6 +82,7 @@ export default function NewJobPage() {
   );
   const scopeSchema =
     selectedCategory?.scope_fields ?? selectedCategory?.scope_schema ?? [];
+  const isPhotography = selectedCategory?.name.trim().toLowerCase() === "photography";
 
   useEffect(() => {
     getCategories().then(setCategories).catch(() => toast.error("Failed to load categories"));
@@ -77,6 +90,7 @@ export default function NewJobPage() {
 
   useEffect(() => {
     setScopeData({});
+    setEventTime("");
   }, [categoryId]);
 
   const locationTrimmed = (location ?? "").trim();
@@ -84,10 +98,35 @@ export default function NewJobPage() {
   const scopeDataKey = JSON.stringify(cleanScopeData(scopeData));
   const scopeReady = scopeSchema.every((field) => {
     if (field.required === false) return true;
-    const value = scopeData[field.key];
-    if (field.type === "number") return typeof value === "number" && value > 0;
-    return Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.trim().length > 0;
+    return isMeaningfullyFilledScopeValue(scopeData[field.key], field.type);
   });
+  const deadlineReady =
+    typeof deadline === "string" &&
+    /^\d{4}-\d{2}-\d{2}$/.test(deadline) &&
+    !Number.isNaN(Date.parse(`${deadline}T00:00:00`));
+  const pricingReady = Boolean(categoryId && locationTrimmed && scopeReady && deadlineReady);
+
+  useEffect(() => {
+    const scopeFields = scopeSchema.map((field) => ({
+      key: field.key,
+      label: field.label,
+      type: field.type,
+      required: field.required !== false,
+      value: scopeData[field.key],
+      filled:
+        field.required === false ||
+        isMeaningfullyFilledScopeValue(scopeData[field.key], field.type),
+    }));
+    console.info("[suggested-price] readiness check", {
+      categoryId,
+      location: locationTrimmed,
+      deadline,
+      deadlineReady,
+      scopeFields,
+      scopeReady,
+      pricingReady,
+    });
+  }, [categoryId, deadline, deadlineReady, locationTrimmed, pricingReady, scopeDataKey, scopeReady, scopeSchema]);
 
   useEffect(() => {
     if (!categoryId) {
@@ -120,11 +159,29 @@ export default function NewJobPage() {
       setIsSeededEstimate(false);
       return;
     }
+    if (!deadlineReady) {
+      setSuggested(null);
+      setSuggestedLow(null);
+      setSuggestedHigh(null);
+      setSampleSize(0);
+      setPriceMethod("deadline_required");
+      setPriceNote(null);
+      setIsSeededEstimate(false);
+      return;
+    }
 
     // Debounce so inputs don't fire on every keystroke.
     const handle = window.setTimeout(() => {
-      getPricingSuggestion(Number(categoryId), locationTrimmed, cleanScopeData(scopeData))
+      const requestScope = cleanScopeData(scopeData);
+      console.info("[suggested-price] requesting suggestion", {
+        categoryId: Number(categoryId),
+        location: locationTrimmed,
+        scopeData: requestScope,
+        deadline,
+      });
+      getPricingSuggestion(Number(categoryId), locationTrimmed, requestScope, deadline)
         .then((p) => {
+          console.info("[suggested-price] response", p);
           const price = p.suggested_price ?? p.average_price ?? null;
           setSuggested(price);
           setSuggestedLow(p.suggested_price_low ?? null);
@@ -136,6 +193,12 @@ export default function NewJobPage() {
           if (price != null) setValue("final_price", price);
         })
         .catch((err) => {
+          console.error("[suggested-price] request failed", err, {
+            categoryId,
+            location: locationTrimmed,
+            scopeData: requestScope,
+            deadline,
+          });
           setSuggested(null);
           setSuggestedLow(null);
           setSuggestedHigh(null);
@@ -148,7 +211,7 @@ export default function NewJobPage() {
 
     return () => window.clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, locationTrimmed, scopeDataKey, setValue, scopeReady]);
+  }, [categoryId, locationTrimmed, scopeDataKey, setValue, scopeReady, deadline, deadlineReady]);
 
   const handleGenerate = async () => {
     const prompt = roughPrompt.trim() || watch("title") || watch("description") || "";
@@ -201,11 +264,16 @@ export default function NewJobPage() {
   };
 
   const onSubmit = async (data: CreateJobForm) => {
+    if (isPhotography && !eventTime) {
+      toast.error("Select the event time for this photography job");
+      return;
+    }
     try {
       const cleaned = cleanScopeData(scopeData);
       await createJob({
         ...data,
         suggested_price: suggested,
+        ...(isPhotography ? { event_time: eventTime } : {}),
         scope_data: Object.keys(cleaned).length ? cleaned : null,
       });
       toast.success("Job posted");
@@ -371,13 +439,26 @@ export default function NewJobPage() {
               )}
             </div>
             <div className="space-y-2">
-              <Label>Deadline</Label>
+              <Label>{isPhotography ? "Event date" : "Deadline"}</Label>
               <Input type="date" {...register("deadline")} />
+              {isPhotography && (
+                <>
+                  <Label htmlFor="event-time">Event time</Label>
+                  <Input
+                    id="event-time"
+                    type="time"
+                    value={eventTime}
+                    onChange={(event) => setEventTime(event.target.value)}
+                    required
+                  />
+                </>
+              )}
             </div>
-            <div className="rounded-xl border border-info/30 bg-info/10 p-4">
+            {categoryId && (
+              <div className="rounded-xl border border-info/30 bg-info/10 p-4">
               <Label className="flex items-center gap-2 text-info">
                 <Info className="h-4 w-4" />
-                Suggested Price
+                {priceMethod === "web_fallback" ? "Price Estimate" : "Suggested Price"}
               </Label>
               {suggested != null ? (
                 <>
@@ -390,7 +471,9 @@ export default function NewJobPage() {
                     )}
                   </p>
                   <p className="mt-1 text-xs text-muted">
-                    {sampleSize > 0 && !isSeededEstimate
+                    {priceMethod === "web_fallback"
+                      ? "Estimated from web sources (limited local data available)."
+                      : sampleSize > 0 && !isSeededEstimate
                       ? priceNote || "Estimated from local completed contracts"
                       : isSeededEstimate
                         ? priceNote ||
@@ -419,7 +502,8 @@ export default function NewJobPage() {
                         : "Loading price suggestion…"}
                 </p>
               )}
-            </div>
+              </div>
+            )}
             <div className="space-y-2">
               <Label>Final Price</Label>
               <Input type="number" step="0.01" {...register("final_price")} />
