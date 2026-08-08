@@ -29,12 +29,8 @@ import { useAuth, getDashboardPath } from "@/providers/auth-provider";
 
 
 function RegisterForm() {
-
   const { register: authRegister } = useAuth();
-
   const router = useRouter();
-
-
 
   const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm<RegisterForm>({
     resolver: zodResolver(registerSchema),
@@ -49,6 +45,7 @@ function RegisterForm() {
       notify.error(getErrorMessage(err, "Registration failed"));
     }
   };
+
 
   return (
     <AuthLayout title="Create account" subtitle="One account — post jobs, join communities, or both">

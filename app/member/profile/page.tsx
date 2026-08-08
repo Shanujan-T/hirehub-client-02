@@ -8,8 +8,8 @@ import { ImageUploadControl } from "@/components/image-upload-control";
 import { LoadingState } from "@/components/page-states";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { Badge, Button, Card, Input, Label, Textarea } from "@/components/ui";
-import { Wrench } from "lucide-react";
+import { Badge, Button, Card, Input, Label, Textarea, SelectMenu } from "@/components/ui";
+import { Wrench, Award } from "lucide-react";
 import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
@@ -61,6 +61,9 @@ function MemberProfileContent() {
   const [showDropdown, setShowDropdown] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  const [selectedSkillId, setSelectedSkillId] = useState("");
+  const [selectedLevel, setSelectedLevel] = useState("intermediate");
+
   const [requestSkillName, setRequestSkillName] = useState("");
   const [requestingSkill, setRequestingSkill] = useState(false);
   const [showRequestSkill, setShowRequestSkill] = useState(false);
@@ -88,7 +91,7 @@ function MemberProfileContent() {
       setLocation(user.location || "");
       setAddress(userAddressFromUser(user));
       setBio(user.bio || "");
-      getMySkills().then(setUserSkills).catch(() => {});
+      getMySkills().then(setUserSkills).catch(() => { });
     }
   }, [user]);
 
@@ -131,18 +134,26 @@ function MemberProfileContent() {
     }
   };
 
-  const handleSelectSkill = async (skillId: number) => {
+  const handleAddSkillClick = async () => {
+    if (!selectedSkillId) {
+      notify.error("Please select a skill first");
+      return;
+    }
     try {
-      await addMySkill({ skill_id: skillId, level: "intermediate" });
+      await addMySkill({
+        skill_id: Number(selectedSkillId),
+        level: selectedLevel,
+      });
       const updated = await getMySkills();
       setUserSkills(updated);
       notify.success("Skill added");
-      setSearchQuery("");
-      setShowDropdown(false);
+      setSelectedSkillId("");
+      setSelectedLevel("intermediate");
     } catch (err) {
       notify.error(getErrorMessage(err, "Failed to add skill"));
     }
   };
+
 
   const handleUpdateSkillLevel = async (userSkillId: number, level: string) => {
     try {
@@ -229,7 +240,7 @@ function MemberProfileContent() {
       if (result.vision_available === false || result.message) {
         setSampleNote(
           result.message ||
-            "Image review temporarily unavailable — try a text description instead"
+          "Image review temporarily unavailable — try a text description instead"
         );
       } else if (result.work_sample.verification_status === "plausible") {
         notify.success("Image sample reviewed as plausible");
@@ -241,6 +252,20 @@ function MemberProfileContent() {
       setSampleBusy(false);
     }
   };
+
+  const skillOptions = skills
+    .filter((s) => !userSkills.some((us) => us.skill_id === s.id))
+    .map((s) => ({
+      value: String(s.id),
+      label: s.name,
+    }));
+
+  const levelOptions = [
+    { value: "beginner", label: "Beginner", icon: <Award className="h-4 w-4" /> },
+    { value: "intermediate", label: "Intermediate", icon: <Award className="h-4 w-4" /> },
+    { value: "advanced", label: "Advanced", icon: <Award className="h-4 w-4" /> },
+    { value: "expert", label: "Expert", icon: <Award className="h-4 w-4" /> },
+  ];
 
   return (
     <AuthenticatedRoute>
@@ -294,7 +319,7 @@ function MemberProfileContent() {
             </Button>
           </div>
 
-          <div className="space-y-4 rounded-lg border border-border p-4">
+          <div id="skills" className="scroll-mt-6 space-y-4 rounded-lg border border-border p-4">
             <div>
               <p className="text-sm font-semibold text-foreground">Skills</p>
               <p className="mt-1 text-xs text-muted">
@@ -358,51 +383,31 @@ function MemberProfileContent() {
               </div>
             )}
 
-            {/* Search Combobox */}
-            <div ref={dropdownRef} className="relative space-y-2">
-              <Label htmlFor="search-skills">Add Skill</Label>
-              <div className="relative">
-                <Input
-                  id="search-skills"
-                  type="text"
-                  placeholder="Search skills to add..."
-                  value={searchQuery}
-                  onChange={(e) => {
-                    setSearchQuery(e.target.value);
-                    setShowDropdown(true);
-                  }}
-                  onFocus={() => setShowDropdown(true)}
-                  className="w-full"
-                />
-              </div>
+            {/* Add Skill section */}
+            <div className="space-y-3 pt-2">
+              <p className="text-sm font-semibold text-foreground">Add Skill</p>
 
-              {showDropdown && searchQuery.trim() && (
-                <div className="absolute z-50 mt-1 max-h-60 w-full overflow-auto rounded-xl border border-border bg-card p-1 shadow-lg">
-                  {skills
-                    .filter((s) => !userSkills.some((us) => us.skill_id === s.id))
-                    .filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                    .length > 0 ? (
-                      skills
-                        .filter((s) => !userSkills.some((us) => us.skill_id === s.id))
-                        .filter((s) => s.name.toLowerCase().includes(searchQuery.toLowerCase()))
-                        .map((s) => (
-                          <button
-                            key={s.id}
-                            type="button"
-                            className="flex w-full cursor-pointer items-center rounded-lg px-2.5 py-2 text-left text-sm hover:bg-secondary/10"
-                            onClick={() => void handleSelectSkill(s.id)}
-                          >
-                            <Wrench className="mr-2 h-4 w-4 text-muted" />
-                            {s.name}
-                          </button>
-                        ))
-                    ) : (
-                      <div className="p-2 text-center text-xs text-muted">
-                        No matching skills found.
-                      </div>
-                    )}
-                </div>
-              )}
+              <SelectMenu
+                options={skillOptions}
+                value={selectedSkillId}
+                onChange={setSelectedSkillId}
+                placeholder="Select skill"
+              />
+
+              <SelectMenu
+                options={levelOptions}
+                value={selectedLevel}
+                onChange={setSelectedLevel}
+                placeholder="Select level"
+              />
+
+              <button
+                type="button"
+                onClick={handleAddSkillClick}
+                className="inline-flex h-9 items-center justify-center rounded-xl border-[1.5px] border-secondary bg-transparent px-4 text-xs font-bold text-secondary shadow-sm hover:bg-secondary/5 transition active:scale-95 cursor-pointer"
+              >
+                Add Skill
+              </button>
             </div>
 
             {/* Request skill link */}

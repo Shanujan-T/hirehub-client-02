@@ -22,6 +22,8 @@ export const PORTAL_NAV_ICONS: Record<string, LucideIcon> = {
   "/member/contracts": ClipboardList,
   "/member/earnings": CircleDollarSign,
   "/dashboard/profile": User,
+  "/member/profile#skills": ClipboardList,
+  "/member/profile#account-verification": Shield,
   "/community-admin/dashboard": LayoutDashboard,
   "/community-admin/my-community": Building2,
   "/community-admin/open-calls": Megaphone,

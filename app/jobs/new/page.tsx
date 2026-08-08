@@ -17,6 +17,7 @@ import {
   generateJobDescription,
   getCategories,
   getPricingSuggestion,
+  getSuggestedPriceAuto,
   requestCategory,
 } from "@/services/job";
 import type { Category, ScopeData } from "@/types/job";
@@ -98,31 +99,90 @@ export default function NewJobPage() {
       setIsSeededEstimate(false);
       return;
     }
-    const cleaned = cleanScopeData(scopeData);
-    // Debounce so number inputs (e.g. word_count) don't fire on every keystroke.
+
+    let qty = 1;
+    if (selectedCategory) {
+      const key = selectedCategory.baseline_scope_key;
+      if (key && typeof scopeData[key] === "number") {
+        qty = scopeData[key] as number;
+      } else {
+        const numVal = Object.values(scopeData).find((v) => typeof v === "number");
+        if (numVal !== undefined) {
+          qty = numVal as number;
+        }
+      }
+    }
+
+    let scopeStr = "";
+    if (scopeData) {
+      const strVal = Object.values(scopeData).find((v) => typeof v === "string");
+      if (strVal) {
+        scopeStr = strVal as string;
+      }
+    }
+
+    const categoryName = selectedCategory?.name || "";
+
+    // Debounce so inputs don't fire on every keystroke.
     const handle = window.setTimeout(() => {
-      getPricingSuggestion(Number(categoryId), locationTrimmed, cleaned)
-        .then((p) => {
-          const price = p.suggested_price ?? p.average_price ?? null;
-          setSuggested(price);
-          setSampleSize(p.sample_size ?? 0);
-          setPriceMethod(p.method ?? null);
-          setPriceNote(p.note ?? null);
-          setIsSeededEstimate(Boolean(p.is_seeded_estimate));
-          if (price != null) setValue("final_price", price);
+      getSuggestedPriceAuto({
+        category: categoryName,
+        scope: scopeStr,
+        quantity: qty,
+        district: locationTrimmed,
+      })
+        .then((res) => {
+          if (res.suggestedPrice != null) {
+            setSuggested(res.suggestedPrice);
+            setSampleSize(0);
+            setPriceMethod("auto_suggested");
+            setPriceNote("Based on Sri Lanka service pricing dataset reference");
+            setIsSeededEstimate(true);
+            setValue("final_price", res.suggestedPrice);
+          } else {
+            getPricingSuggestion(Number(categoryId), locationTrimmed, cleanScopeData(scopeData))
+              .then((p) => {
+                const price = p.suggested_price ?? p.average_price ?? null;
+                setSuggested(price);
+                setSampleSize(p.sample_size ?? 0);
+                setPriceMethod(p.method ?? null);
+                setPriceNote(p.note ?? null);
+                setIsSeededEstimate(Boolean(p.is_seeded_estimate));
+                if (price != null) setValue("final_price", price);
+              })
+              .catch((err) => {
+                setSuggested(null);
+                setSampleSize(0);
+                setPriceMethod(null);
+                setPriceNote(getErrorMessage(err) || "Could not load price suggestion.");
+                setIsSeededEstimate(false);
+              });
+          }
         })
-        .catch((err) => {
-          setSuggested(null);
-          setSampleSize(0);
-          setPriceMethod(null);
-          setPriceNote(getErrorMessage(err) || "Could not load price suggestion.");
-          setIsSeededEstimate(false);
+        .catch(() => {
+          getPricingSuggestion(Number(categoryId), locationTrimmed, cleanScopeData(scopeData))
+            .then((p) => {
+              const price = p.suggested_price ?? p.average_price ?? null;
+              setSuggested(price);
+              setSampleSize(p.sample_size ?? 0);
+              setPriceMethod(p.method ?? null);
+              setPriceNote(p.note ?? null);
+              setIsSeededEstimate(Boolean(p.is_seeded_estimate));
+              if (price != null) setValue("final_price", price);
+            })
+            .catch((err) => {
+              setSuggested(null);
+              setSampleSize(0);
+              setPriceMethod(null);
+              setPriceNote(getErrorMessage(err) || "Could not load price suggestion.");
+              setIsSeededEstimate(false);
+            });
         });
     }, 400);
+
     return () => window.clearTimeout(handle);
-    // scopeDataKey tracks cleaned scope field changes; scopeData read inside is current.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional: debounce on serialized scope
-  }, [categoryId, locationTrimmed, scopeDataKey, setValue]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [categoryId, locationTrimmed, scopeDataKey, setValue, selectedCategory]);
 
   const handleGenerate = async () => {
     const prompt = roughPrompt.trim() || watch("title") || watch("description") || "";
