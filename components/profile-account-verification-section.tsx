@@ -64,7 +64,7 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
   return (
     <div
       id={PROFILE_ACCOUNT_SECTION_ID}
-      className="scroll-mt-6 space-y-3 rounded-lg border border-border p-4"
+      className="scroll-mt-24 space-y-3 rounded-lg border border-border p-4"
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
