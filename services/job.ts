@@ -98,6 +98,20 @@ export async function getPricingSuggestion(
   return data;
 }
 
+export async function getSuggestedPriceAuto(params: {
+  category: string;
+  scope?: string;
+  quantity?: number;
+  district?: string;
+}): Promise<{ suggestedPrice: number | null }> {
+  const { data } = await apiClient.get<{ suggestedPrice: number | null }>(
+    "/api/jobs/suggested-price",
+    { params }
+  );
+  return data;
+}
+
+
 export async function applyToJob(payload: {
   job_id: number;
   community_id: number;

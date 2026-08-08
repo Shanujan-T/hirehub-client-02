@@ -262,7 +262,7 @@ function SelectMemberContent() {
                     className={cn(
                       "transition border-border/80 hover:border-info/30",
                       isSelected &&
-                        "border-info ring-2 ring-info/5 bg-info/[0.01]",
+                      "border-info ring-2 ring-info/5 bg-info/[0.01]",
                     )}
                   >
                     <div className="flex items-start gap-4">
@@ -363,7 +363,7 @@ function SelectMemberContent() {
                     className={cn(
                       "transition border-border/80 hover:border-info/30",
                       isSelected &&
-                        "border-info ring-2 ring-info/5 bg-info/[0.01]",
+                      "border-info ring-2 ring-info/5 bg-info/[0.01]",
                     )}
                   >
                     <div className="flex items-start gap-4">

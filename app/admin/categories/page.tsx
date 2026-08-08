@@ -246,7 +246,7 @@ function AdminCategoriesContent() {
       const result = await seedDistrictPricing(Number(seedCategoryId));
       toast.success(
         result.message ||
-          `District estimates updated (created ${result.stats?.created ?? 0}, updated ${result.stats?.updated ?? 0})`,
+        `District estimates updated (created ${result.stats?.created ?? 0}, updated ${result.stats?.updated ?? 0})`,
       );
     } catch (err) {
       toast.error(getErrorMessage(err));

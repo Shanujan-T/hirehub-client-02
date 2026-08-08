@@ -26,7 +26,7 @@ function verifiedViaLabel(phone: boolean, email: boolean): string {
   return "Your account is verified.";
 }
 
-export function ProfileAccountVerificationSection({}: ProfileAccountVerificationSectionProps = {}) {
+export function ProfileAccountVerificationSection({ }: ProfileAccountVerificationSectionProps = {}) {
   const { user, updateUser, refreshUser } = useAuth();
   const status = user?.identity_status ?? "unverified";
   const phoneDone = user?.phone_verified_for_identity ?? false;
@@ -83,15 +83,13 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
       const res = await sendIdentityEmailOtp();
       setEmailCodeSent(true);
       notify.success(res.message);
-      if (res.dev_code) {
-        notify.info(`Dev code: ${res.dev_code}`);
-      }
     } catch (err) {
       notify.error(getErrorMessage(err, "Failed to send email code"));
     } finally {
       setEmailBusy(false);
     }
   };
+
 
   const handleConfirmEmail = async () => {
     setEmailBusy(true);
