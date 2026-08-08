@@ -180,7 +180,16 @@ function PortalNavList({
 
             href={item.href}
 
-            onClick={onNavigate}
+            onClick={() => {
+              onNavigate?.();
+              if (item.href.startsWith("/member/profile#")) {
+                // Next client navigation can update the hash without triggering
+                // the browser's native anchor scroll.
+                window.setTimeout(() => {
+                  window.dispatchEvent(new Event("profile-anchor-navigation"));
+                }, 0);
+              }
+            }}
 
             className={cn(
 
