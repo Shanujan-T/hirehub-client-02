@@ -63,6 +63,7 @@ export interface Job {
   description: string;
   location: string;
   deadline: string;
+  event_time?: string | null;
   suggested_price?: number | null;
   final_price: number;
   scope_data?: ScopeData | null;
