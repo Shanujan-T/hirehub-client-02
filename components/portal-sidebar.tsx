@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { usePathname } from "next/navigation";
 
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { X } from "lucide-react";
 
@@ -158,6 +158,7 @@ function PortalNavList({
 
   const pathname = usePathname();
   const [hash, setHash] = useState("");
+  const lastProfileDebugState = useRef("");
 
   useEffect(() => {
     const updateHash = () => setHash(window.location.hash);
@@ -169,6 +170,23 @@ function PortalNavList({
       window.removeEventListener("profile-anchor-navigation", updateHash);
     };
   }, []);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development" || pathname !== "/member/profile") return;
+
+    const debugState = `${pathname}${hash || "#profile"}`;
+    if (lastProfileDebugState.current === debugState) return;
+    lastProfileDebugState.current = debugState;
+    console.debug("[PortalNavList] profile sidebar active state", {
+      pathname,
+      hash,
+      activeItem: hash === "#skills"
+        ? "Skills"
+        : hash === "#account-verification"
+          ? "Account Verification"
+          : "Profile",
+    });
+  }, [hash, pathname]);
 
   useEffect(() => {
     if (pathname !== "/member/profile") return;
@@ -236,6 +254,9 @@ function PortalNavList({
             onClick={() => {
               onNavigate?.();
               if (item.href.startsWith("/member/profile#")) {
+                // Set this instance's state immediately. Hash-only navigation
+                // does not cause usePathname() to re-render.
+                setHash(`#${item.href.split("#")[1]}`);
                 // Next client navigation can update the hash without triggering
                 // the browser's native anchor scroll.
                 window.setTimeout(() => {
