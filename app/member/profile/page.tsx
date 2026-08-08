@@ -10,7 +10,7 @@ import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
 import { Badge, Button, Card, Input, Label, Textarea, SelectMenu } from "@/components/ui";
 import { Wrench, Award } from "lucide-react";
-import { useScrollToAccountSection } from "@/lib/profile-account-scroll";
+import { useScrollToProfileHash } from "@/lib/profile-account-scroll";
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
 import { getErrorMessage } from "@/lib/utils";
@@ -42,7 +42,7 @@ function MemberProfileContent() {
   const searchParams = useSearchParams();
   const returnTo = safeReturnPath(searchParams.get("returnTo"), MY_COMMUNITIES_RETURN);
   const { user, refreshUser, updateUser: setAuthUser } = useAuth();
-  useScrollToAccountSection();
+  useScrollToProfileHash();
   const [fullName, setFullName] = useState("");
   const [location, setLocation] = useState("");
   const [address, setAddress] = useState<UserAddress>({});
@@ -270,6 +270,7 @@ function MemberProfileContent() {
   return (
     <AuthenticatedRoute>
       <DashboardPortalShell title="My Profile" subtitle="Account details, bio, and skills">
+        <div id="profile" className="scroll-mt-6">
         <Card className="mx-auto max-w-lg space-y-6">
           <ImageUploadControl
             label="Profile picture"
@@ -525,6 +526,7 @@ function MemberProfileContent() {
 
           <ProfileAccountVerificationSection returnTo={returnTo} />
         </Card>
+        </div>
       </DashboardPortalShell>
     </AuthenticatedRoute>
   );
