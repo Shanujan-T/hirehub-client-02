@@ -18,6 +18,8 @@ export const dashboardNav: NavItem[] = [
   { href: "/member/contracts", label: "My Contracts" },
   { href: "/member/earnings", label: "Earnings" },
   { href: "/dashboard/profile", label: "Profile" },
+  { href: "/member/profile#skills", label: "Skills" },
+  { href: "/member/profile#account-verification", label: "Account Verification" },
 ];
 
 export function buildDashboardNav(user: User | null | undefined): NavItem[] {
