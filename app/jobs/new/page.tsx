@@ -17,7 +17,6 @@ import {
   generateJobDescription,
   getCategories,
   getPricingSuggestion,
-  getSuggestedPriceAuto,
   requestCategory,
 } from "@/services/job";
 import type { Category, ScopeData } from "@/types/job";
@@ -37,6 +36,8 @@ export default function NewJobPage() {
   const router = useRouter();
   const [categories, setCategories] = useState<Category[]>([]);
   const [suggested, setSuggested] = useState<number | null>(null);
+  const [suggestedLow, setSuggestedLow] = useState<number | null>(null);
+  const [suggestedHigh, setSuggestedHigh] = useState<number | null>(null);
   const [sampleSize, setSampleSize] = useState(0);
   const [priceMethod, setPriceMethod] = useState<string | null>(null);
   const [priceNote, setPriceNote] = useState<string | null>(null);
@@ -81,10 +82,18 @@ export default function NewJobPage() {
   const locationTrimmed = (location ?? "").trim();
   // Stable serialization so scope edits (word_count, etc.) always retrigger pricing.
   const scopeDataKey = JSON.stringify(cleanScopeData(scopeData));
+  const scopeReady = scopeSchema.every((field) => {
+    if (field.required === false) return true;
+    const value = scopeData[field.key];
+    if (field.type === "number") return typeof value === "number" && value > 0;
+    return Array.isArray(value) ? value.length > 0 : typeof value === "string" && value.trim().length > 0;
+  });
 
   useEffect(() => {
     if (!categoryId) {
       setSuggested(null);
+      setSuggestedLow(null);
+      setSuggestedHigh(null);
       setSampleSize(0);
       setPriceMethod(null);
       setPriceNote(null);
@@ -93,96 +102,53 @@ export default function NewJobPage() {
     }
     if (!locationTrimmed) {
       setSuggested(null);
+      setSuggestedLow(null);
+      setSuggestedHigh(null);
       setSampleSize(0);
       setPriceMethod(null);
       setPriceNote(null);
       setIsSeededEstimate(false);
       return;
     }
-
-    let qty = 1;
-    if (selectedCategory) {
-      const key = selectedCategory.baseline_scope_key;
-      if (key && typeof scopeData[key] === "number") {
-        qty = scopeData[key] as number;
-      } else {
-        const numVal = Object.values(scopeData).find((v) => typeof v === "number");
-        if (numVal !== undefined) {
-          qty = numVal as number;
-        }
-      }
+    if (!scopeReady) {
+      setSuggested(null);
+      setSuggestedLow(null);
+      setSuggestedHigh(null);
+      setSampleSize(0);
+      setPriceMethod("scope_required");
+      setPriceNote("Select job scope to see a price suggestion.");
+      setIsSeededEstimate(false);
+      return;
     }
-
-    let scopeStr = "";
-    if (scopeData) {
-      const strVal = Object.values(scopeData).find((v) => typeof v === "string");
-      if (strVal) {
-        scopeStr = strVal as string;
-      }
-    }
-
-    const categoryName = selectedCategory?.name || "";
 
     // Debounce so inputs don't fire on every keystroke.
     const handle = window.setTimeout(() => {
-      getSuggestedPriceAuto({
-        category: categoryName,
-        scope: scopeStr,
-        quantity: qty,
-        district: locationTrimmed,
-      })
-        .then((res) => {
-          if (res.suggestedPrice != null) {
-            setSuggested(res.suggestedPrice);
-            setSampleSize(0);
-            setPriceMethod("auto_suggested");
-            setPriceNote("Based on Sri Lanka service pricing dataset reference");
-            setIsSeededEstimate(true);
-            setValue("final_price", res.suggestedPrice);
-          } else {
-            getPricingSuggestion(Number(categoryId), locationTrimmed, cleanScopeData(scopeData))
-              .then((p) => {
-                const price = p.suggested_price ?? p.average_price ?? null;
-                setSuggested(price);
-                setSampleSize(p.sample_size ?? 0);
-                setPriceMethod(p.method ?? null);
-                setPriceNote(p.note ?? null);
-                setIsSeededEstimate(Boolean(p.is_seeded_estimate));
-                if (price != null) setValue("final_price", price);
-              })
-              .catch((err) => {
-                setSuggested(null);
-                setSampleSize(0);
-                setPriceMethod(null);
-                setPriceNote(getErrorMessage(err) || "Could not load price suggestion.");
-                setIsSeededEstimate(false);
-              });
-          }
+      getPricingSuggestion(Number(categoryId), locationTrimmed, cleanScopeData(scopeData))
+        .then((p) => {
+          const price = p.suggested_price ?? p.average_price ?? null;
+          setSuggested(price);
+          setSuggestedLow(p.suggested_price_low ?? null);
+          setSuggestedHigh(p.suggested_price_high ?? null);
+          setSampleSize(p.sample_size ?? 0);
+          setPriceMethod(p.method ?? null);
+          setPriceNote(p.note ?? null);
+          setIsSeededEstimate(Boolean(p.is_seeded_estimate));
+          if (price != null) setValue("final_price", price);
         })
-        .catch(() => {
-          getPricingSuggestion(Number(categoryId), locationTrimmed, cleanScopeData(scopeData))
-            .then((p) => {
-              const price = p.suggested_price ?? p.average_price ?? null;
-              setSuggested(price);
-              setSampleSize(p.sample_size ?? 0);
-              setPriceMethod(p.method ?? null);
-              setPriceNote(p.note ?? null);
-              setIsSeededEstimate(Boolean(p.is_seeded_estimate));
-              if (price != null) setValue("final_price", price);
-            })
-            .catch((err) => {
-              setSuggested(null);
-              setSampleSize(0);
-              setPriceMethod(null);
-              setPriceNote(getErrorMessage(err) || "Could not load price suggestion.");
-              setIsSeededEstimate(false);
-            });
+        .catch((err) => {
+          setSuggested(null);
+          setSuggestedLow(null);
+          setSuggestedHigh(null);
+          setSampleSize(0);
+          setPriceMethod(null);
+          setPriceNote(getErrorMessage(err) || "Could not load price suggestion.");
+          setIsSeededEstimate(false);
         });
     }, 400);
 
     return () => window.clearTimeout(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [categoryId, locationTrimmed, scopeDataKey, setValue, selectedCategory]);
+  }, [categoryId, locationTrimmed, scopeDataKey, setValue, scopeReady]);
 
   const handleGenerate = async () => {
     const prompt = roughPrompt.trim() || watch("title") || watch("description") || "";
@@ -416,7 +382,9 @@ export default function NewJobPage() {
               {suggested != null ? (
                 <>
                   <p className="mt-1 text-2xl font-extrabold text-info">
-                    LKR {suggested.toLocaleString(undefined, { maximumFractionDigits: 2 })}
+                    {suggestedLow != null && suggestedHigh != null && suggestedLow !== suggestedHigh
+                      ? `LKR ${suggestedLow.toLocaleString(undefined, { maximumFractionDigits: 2 })} – ${suggestedHigh.toLocaleString(undefined, { maximumFractionDigits: 2 })}`
+                      : `LKR ${suggested.toLocaleString(undefined, { maximumFractionDigits: 2 })}`}
                     {sampleSize > 0 && (
                       <span className="text-sm font-normal"> ({sampleSize} samples)</span>
                     )}
@@ -444,6 +412,8 @@ export default function NewJobPage() {
                     ? "Select a category to see a price estimate."
                     : !locationTrimmed
                       ? "Enter a location to see a price estimate."
+                      : !scopeReady
+                        ? "Select job scope to see a price suggestion."
                       : priceMethod === "insufficient_data" || priceNote
                         ? priceNote || "No pricing data for this category + location yet."
                         : "Loading price suggestion…"}
