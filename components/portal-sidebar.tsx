@@ -6,6 +6,8 @@ import Link from "next/link";
 
 import { usePathname } from "next/navigation";
 
+import { useEffect, useState } from "react";
+
 import { X } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
@@ -155,6 +157,50 @@ function PortalNavList({
 }) {
 
   const pathname = usePathname();
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash);
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    window.addEventListener("profile-anchor-navigation", updateHash);
+    return () => {
+      window.removeEventListener("hashchange", updateHash);
+      window.removeEventListener("profile-anchor-navigation", updateHash);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (pathname !== "/member/profile") return;
+
+    const sectionIds = ["profile", "skills", "account-verification"];
+    let frame: number | undefined;
+    const updateActiveSection = () => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const marker = window.innerHeight * 0.35;
+        const activeId = sectionIds.reduce((current, id) => {
+          const section = document.getElementById(id);
+          return section && section.getBoundingClientRect().top <= marker ? id : current;
+        }, "profile");
+        const nextHash = `#${activeId}`;
+
+        if (window.location.hash !== nextHash) {
+          window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+        }
+        setHash(nextHash);
+      });
+    };
+
+    updateActiveSection();
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+    return () => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [pathname]);
 
 
 
@@ -164,7 +210,10 @@ function PortalNavList({
 
       {navItems.map((item) => {
 
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const [itemPath, itemHash = ""] = item.href.split("#");
+        const active = itemHash
+          ? pathname === itemPath && (hash === `#${itemHash}` || (itemHash === "profile" && !hash))
+          : pathname === itemPath || pathname.startsWith(`${itemPath}/`);
 
         const Icon = getPortalNavIcon(item.href);
 
