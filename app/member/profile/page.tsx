@@ -270,7 +270,7 @@ function MemberProfileContent() {
   return (
     <AuthenticatedRoute>
       <DashboardPortalShell title="My Profile" subtitle="Account details, bio, and skills">
-        <div id="profile" className="scroll-mt-6">
+        <div id="profile" className="scroll-mt-24">
         <Card className="mx-auto max-w-lg space-y-6">
           <ImageUploadControl
             label="Profile picture"
@@ -320,7 +320,7 @@ function MemberProfileContent() {
             </Button>
           </div>
 
-          <div id="skills" className="scroll-mt-6 space-y-4 rounded-lg border border-border p-4">
+          <div id="skills" className="scroll-mt-24 space-y-4 rounded-lg border border-border p-4">
             <div>
               <p className="text-sm font-semibold text-foreground">Skills</p>
               <p className="mt-1 text-xs text-muted">
