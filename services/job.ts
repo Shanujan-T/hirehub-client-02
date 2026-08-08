@@ -4,6 +4,8 @@ import type { Category, CommunityApplication, Job } from "@/types/job";
 export interface PricingSuggestion {
   average_price: number | null;
   suggested_price?: number | null;
+  suggested_price_low?: number | null;
+  suggested_price_high?: number | null;
   sample_size: number;
   method?:
     | "scope_adjusted"
