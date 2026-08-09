@@ -64,7 +64,7 @@ export default function HomePage() {
               </h1>
 
               <p className="relative mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted sm:mt-6 sm:text-lg">
-                Post jobs with a user account, or join a community with an employer account to do the work — pick carefully. You can&apos;t switch later.
+                Post a job, or join a community to bid on real work — skilled teams apply, members compete internally, admins coordinate delivery.
               </p>
 
               <div className="relative mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
