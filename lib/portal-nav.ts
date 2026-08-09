@@ -14,17 +14,17 @@ export { dashboardNav as clientNav, dashboardNav as memberNav } from "@/lib/dash
 
 export const communityAdminNav: NavItem[] = [
 
-  { href: "/community-admin/dashboard", label: "Dashboard" },
+  { href: "/employer/community-admin/dashboard", label: "Community Admin" },
 
-  { href: "/community-admin/my-community", label: "My Community" },
+  { href: "/employer/community-admin/my-community", label: "My Community" },
 
-  { href: "/community-admin/open-calls", label: "Open Calls" },
+  { href: "/employer/community-admin/open-calls", label: "Open Calls" },
 
-  { href: "/community-admin/jobs", label: "Browse Jobs" },
+  { href: "/employer/community-admin/jobs", label: "Browse Jobs" },
 
-  { href: "/community-admin/contracts", label: "Contracts" },
+  { href: "/employer/community-admin/contracts", label: "Contracts" },
 
-  { href: "/community-admin/earnings", label: "Earnings" },
+  { href: "/employer/community-admin/earnings", label: "Earnings" },
 
 ];
 

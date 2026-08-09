@@ -9,25 +9,30 @@ export function userAdminsAnyCommunity(user: User | null | undefined): boolean {
   );
 }
 
-/** Shared sidebar for any logged-in platform user (not platform admin portal). */
-export const dashboardNav: NavItem[] = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/jobs", label: "My Jobs" },
-  { href: "/contracts", label: "Contracts (posted)" },
-  { href: "/member/communities", label: "My Communities" },
-  { href: "/member/contracts", label: "My Contracts" },
-  { href: "/member/earnings", label: "Earnings" },
-  { href: "/member/profile#profile", label: "Profile" },
-  { href: "/member/profile#skills", label: "Skills" },
-  { href: "/member/profile#account-verification", label: "Account Verification" },
+export const userNav: NavItem[] = [
+  { href: "/user/dashboard", label: "Dashboard" },
+  { href: "/user/jobs", label: "My Jobs" },
+  { href: "/user/contracts", label: "Contracts (posted)" },
+  { href: "/user/dashboard/profile", label: "Profile" },
 ];
 
+export const employerNav: NavItem[] = [
+  { href: "/employer/dashboard", label: "Dashboard" },
+  { href: "/employer/communities", label: "My Communities" },
+  { href: "/employer/my-contracts", label: "My Contracts" },
+  { href: "/employer/earnings", label: "Earnings" },
+  { href: "/employer/profile#profile", label: "Profile" },
+  { href: "/employer/profile#skills", label: "Skills" },
+  { href: "/employer/profile#account-verification", label: "Account Verification" },
+];
+
+export const dashboardNav = userNav;
+
 export function buildDashboardNav(user: User | null | undefined): NavItem[] {
-  const items = [...dashboardNav];
-  if (userAdminsAnyCommunity(user)) {
+  const items = user?.role === "employer" ? [...employerNav] : [...userNav];
+  if (user?.role === "employer" && userAdminsAnyCommunity(user)) {
     items.push(
-      { href: "/community-admin/dashboard", label: "Community Admin" },
-      ...communityAdminNav.filter((item) => item.href !== "/community-admin/dashboard")
+      ...communityAdminNav
     );
   }
   return items;
@@ -37,4 +42,4 @@ export function buildDashboardNav(user: User | null | undefined): NavItem[] {
 export const clientNav = dashboardNav;
 
 /** @deprecated use dashboardNav / buildDashboardNav */
-export const memberNav = dashboardNav;
+export const memberNav = employerNav;

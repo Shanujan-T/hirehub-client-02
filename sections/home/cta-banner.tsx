@@ -10,20 +10,20 @@ export function CtaBannerSection() {
 
       <div className="relative z-10 mx-auto max-w-3xl px-4 py-14 text-center lg:px-8 lg:py-16">
         <h2 className="text-2xl font-extrabold tracking-tight text-primary dark:text-foreground sm:text-3xl">
-          Ready to take the next step?
+          Ready to get started?
         </h2>
         <p className="mx-auto mt-3 max-w-xl text-sm leading-relaxed text-muted sm:text-base">
-          Join HireHub — build your skill profile, team up with a community, and start winning contracts.
+          Whether you&apos;re hiring or looking for work, HireHub has a place for you.
         </p>
         <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row sm:gap-4">
-          <Link href="/auth/register" className="w-full sm:w-auto">
+          <Link href="/auth/register?role=employer" className="w-full sm:w-auto">
             <Button variant="gradient" className="w-full rounded-xl sm:min-w-[220px]">
-              Join HireHub Free
+              Join a Community
             </Button>
           </Link>
-          <Link href="/communities" className="w-full sm:w-auto">
+          <Link href="/auth/register?role=user" className="w-full sm:w-auto">
             <Button variant="outline" className="w-full rounded-xl sm:min-w-[220px]">
-              Browse Communities
+              Post a Job
             </Button>
           </Link>
         </div>

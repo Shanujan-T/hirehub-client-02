@@ -13,7 +13,6 @@ import { Button, Input, Label, PasswordInput } from "@/components/ui";
 import { loginSchema, type LoginForm } from "@/lib/schemas";
 import { getErrorMessage } from "@/lib/utils";
 import { useAuth, getDashboardPath } from "@/providers/auth-provider";
-import { getMyMemberships } from "@/services/community";
 
 function LoginFormContent() {
   const { login } = useAuth();
@@ -31,12 +30,7 @@ function LoginFormContent() {
         router.push(returnTo);
         return;
       }
-      let isCommunityAdmin = false;
-      if (user.role === "user") {
-        const memberships = await getMyMemberships();
-        isCommunityAdmin = memberships.some((m) => m.role === "admin" && m.status === "approved");
-      }
-      router.push(getDashboardPath(user, isCommunityAdmin));
+      router.push(getDashboardPath(user));
     } catch (err) {
       notify.error(getErrorMessage(err, "Login failed"));
     }

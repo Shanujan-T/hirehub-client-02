@@ -154,7 +154,7 @@ export function AccountTypeSection() {
 
           <p className="mt-2 text-sm text-muted sm:text-base">
 
-            One account for everything — pick an action to get started after you sign up.
+            Two ways to use HireHub — choose one when you sign up.
 
           </p>
 
@@ -170,9 +170,9 @@ export function AccountTypeSection() {
 
             checklist={[...COMMUNITY_CHECKLIST]}
 
-            buttonLabel="Create Account"
+            buttonLabel="Join a Community"
 
-            href="/auth/register"
+            href="/auth/register?role=employer"
 
             icon={<Users className="h-5 w-5 text-white" aria-hidden />}
 
@@ -190,9 +190,9 @@ export function AccountTypeSection() {
 
             checklist={[...POST_JOB_CHECKLIST]}
 
-            buttonLabel="Create Account"
+            buttonLabel="Post a Job"
 
-            href="/auth/register"
+            href="/auth/register?role=user"
 
             icon={<Building2 className="h-5 w-5 text-white" aria-hidden />}
 

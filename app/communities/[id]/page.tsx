@@ -295,7 +295,7 @@ function CommunityDetailContent() {
   }, [id]);
 
   useEffect(() => {
-    if (!user || user.role !== "user") {
+    if (!user || user.role !== "employer") {
       setMembership(null);
       return;
     }
@@ -319,8 +319,8 @@ function CommunityDetailContent() {
       setShowNoSkillsDialog(true);
       return;
     }
-    if (user.role !== "user") {
-      notify.info("Only individual members can request to join communities.");
+    if (user.role !== "employer") {
+      notify.info("Only employer accounts can request to join communities.");
       return;
     }
     setJoinLoading(true);
@@ -347,8 +347,8 @@ function CommunityDetailContent() {
       router.push(appendReturnTo("/auth/login", `/communities/${id}`));
       return;
     }
-    if (user.role !== "user") {
-      notify.info("Only individual members can apply to open calls.");
+    if (user.role !== "employer") {
+      notify.info("Only employer accounts can apply to open calls.");
       return;
     }
     setApplySubmitting(true);
@@ -440,7 +440,7 @@ function CommunityDetailContent() {
 
   const showJoinButton =
     !authLoading &&
-    (!user || user.role === "user") &&
+    (!user || user.role === "employer") &&
     !isApprovedMember;
 
   // Job posters are platform "user" accounts; hide invite when viewing as this community's admin.
@@ -604,7 +604,7 @@ function CommunityDetailContent() {
           openCalls.map((oc) => {
             const applied =
               appliedOpenCallIds.has(oc.id) || hasPendingRequest;
-            const showApply = (!user || user.role === "user") && !isApprovedMember;
+            const showApply = (!user || user.role === "employer") && !isApprovedMember;
 
             return (
               <Card key={oc.id} className="mb-2 flex flex-wrap items-start justify-between gap-3">

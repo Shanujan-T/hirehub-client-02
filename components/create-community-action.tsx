@@ -16,7 +16,7 @@ export function CreateCommunityAction() {
   const verified = user?.identity_status === "verified";
   const [verifyModalOpen, setVerifyModalOpen] = useState(false);
 
-  const goToCreate = () => router.push("/member/communities/new");
+  const goToCreate = () => router.push("/employer/communities/new");
 
   const handleClick = () => {
     if (verified) {
