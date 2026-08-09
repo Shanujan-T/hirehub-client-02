@@ -11,6 +11,7 @@ import {
   UserRoundCheck,
 } from "lucide-react";
 import { DashboardPortalShell } from "@/components/portal-shell";
+import { EmptyState } from "@/components/page-states";
 import { StatusBadge } from "@/components/status-badge";
 import { Button, Card } from "@/components/ui";
 import { getErrorMessage } from "@/lib/utils";
@@ -118,17 +119,23 @@ export default function EmployerDashboardPage() {
 
       <section aria-label="Employer overview" className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         <Card className="p-5">
-          <Building2 className="h-5 w-5 text-info" aria-hidden />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary">
+            <Building2 className="h-5 w-5" aria-hidden />
+          </div>
           <p className="mt-3 text-sm text-muted">Approved communities</p>
           <p className="mt-1 text-3xl font-extrabold text-foreground">{loading ? "—" : approvedMemberships.length}</p>
         </Card>
         <Card className="p-5">
-          <ClipboardList className="h-5 w-5 text-secondary" aria-hidden />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-secondary/10 text-secondary">
+            <ClipboardList className="h-5 w-5" aria-hidden />
+          </div>
           <p className="mt-3 text-sm text-muted">Contracts in progress</p>
           <p className="mt-1 text-3xl font-extrabold text-foreground">{loading ? "—" : activeContracts.length}</p>
         </Card>
         <Card className="p-5 sm:col-span-2 xl:col-span-1">
-          <CircleDollarSign className="h-5 w-5 text-success" aria-hidden />
+          <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-info/10 text-info">
+            <CircleDollarSign className="h-5 w-5" aria-hidden />
+          </div>
           <p className="mt-3 text-sm text-muted">Released earnings</p>
           <p className="mt-1 text-3xl font-extrabold text-foreground">
             {loading ? "—" : formatLkr(releasedEarnings)}
@@ -149,13 +156,14 @@ export default function EmployerDashboardPage() {
         {loading ? (
           <Card className="p-5 text-sm text-muted">Loading your work…</Card>
         ) : recentContracts.length === 0 ? (
-          <Card className="p-5">
-            <p className="font-semibold text-foreground">No contracts yet</p>
-            <p className="mt-1 text-sm text-muted">Join a community to become eligible for work it wins.</p>
+          <EmptyState
+            title="No contracts yet"
+            description="Join a community to become eligible for work it wins."
+          >
             <Link href="/employer/communities" className="mt-3 inline-block text-sm font-semibold text-info hover:underline">
               Browse communities
             </Link>
-          </Card>
+          </EmptyState>
         ) : (
           <div className="space-y-3">
             {recentContracts.map((contract) => (

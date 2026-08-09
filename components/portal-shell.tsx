@@ -136,7 +136,18 @@ export function PortalShell({
               {actions && <div className="flex shrink-0 items-center gap-2">{actions}</div>}
             </div>
           </div>
-          <div className="relative z-10 flex-1 bg-background p-4 lg:p-8">{children}</div>
+          <div className="relative z-10 flex-1 overflow-hidden bg-background">
+            <div aria-hidden className="pointer-events-none absolute inset-0 bg-brand-wash" />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-dot-pattern opacity-20 dark:opacity-15"
+            />
+            <div
+              aria-hidden
+              className="pointer-events-none absolute inset-0 bg-hero-glow opacity-55 dark:opacity-45"
+            />
+            <div className="relative z-10 p-4 lg:p-8">{children}</div>
+          </div>
         </div>
       </div>
       <AiConciergeWidget />

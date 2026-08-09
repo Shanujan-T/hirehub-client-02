@@ -2,7 +2,7 @@
 
 import { Suspense, useCallback, useState } from "react";
 import { useParams } from "next/navigation";
-import { Sparkles } from "lucide-react";
+import { Inbox, Sparkles } from "lucide-react";
 import { toast } from "sonner";
 import { CommunityAdminRoute } from "@/components/community-admin-route";
 import { DashboardPortalShell } from "@/components/portal-shell";
@@ -82,7 +82,12 @@ function ReviewDeliverableContent() {
                   {contract.deliverable_url}
                 </a>
               ) : (
-                <p className="text-muted">No deliverable submitted yet.</p>
+                <div className="flex items-center gap-3 rounded-xl border border-border/70 bg-background/40 p-3">
+                  <span className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-brand-gradient text-white shadow-sm shadow-secondary/20">
+                    <Inbox className="h-4 w-4" aria-hidden />
+                  </span>
+                  <p className="text-sm text-muted">No deliverable submitted yet.</p>
+                </div>
               )}
             </Card>
 

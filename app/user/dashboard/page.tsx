@@ -92,7 +92,7 @@ export default function ClientDashboardPage() {
               ) : (
                 <div className="grid gap-3">
                   {jobs.slice(0, 5).map((job) => (
-                    <Card key={job.id} className="p-3 shadow-none">
+                    <Card key={job.id} className="p-3">
                       <div className="flex items-start justify-between gap-4">
                         <div>
                           <Link href={`/user/jobs/${job.id}`} className="font-bold text-primary hover:text-info dark:text-foreground">
@@ -121,7 +121,7 @@ export default function ClientDashboardPage() {
                   ))}
 
                   {contracts.slice(0, 3).map((contract) => (
-                    <Card key={contract.id} className="p-3 shadow-none">
+                    <Card key={contract.id} className="p-3">
                       <div className="flex items-start justify-between gap-4">
                         <div className="flex items-start gap-3">
                           {contract.community && (

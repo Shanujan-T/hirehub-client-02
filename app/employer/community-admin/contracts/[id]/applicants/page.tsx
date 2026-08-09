@@ -7,7 +7,7 @@ import { CommunityAdminRoute } from "@/components/community-admin-route";
 import { MemberCard } from "@/components/member-card";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
-import { LoadingState } from "@/components/page-states";
+import { EmptyState, LoadingState } from "@/components/page-states";
 import { Button, Card, Input, Label } from "@/components/ui";
 import { cn, getErrorMessage } from "@/lib/utils";
 import {
@@ -244,10 +244,10 @@ function SelectMemberContent() {
           </div>
 
           {applications.length === 0 ? (
-            <Card className="py-8 text-center text-muted">
-              No applications submitted yet. Use the roster below to assign
-              directly.
-            </Card>
+            <EmptyState
+              title="No applications submitted yet"
+              description="Use the roster below to assign directly."
+            />
           ) : (
             <div className="space-y-3">
               {applications.map((app) => {
@@ -312,7 +312,7 @@ function SelectMemberContent() {
                                       Number(e.target.value),
                                     )
                                   }
-                                  className="w-20 pr-6 text-right h-8 rounded-lg"
+                                  className="h-8 w-20 rounded-xl pr-6 text-right"
                                 />
                                 <span className="absolute right-2 text-xs font-semibold text-muted-foreground">
                                   %
@@ -346,9 +346,7 @@ function SelectMemberContent() {
           </div>
 
           {members.length === 0 ? (
-            <Card className="py-8 text-center text-muted">
-              No members in this community roster yet.
-            </Card>
+            <EmptyState title="No members in this community roster yet" />
           ) : (
             <div className="space-y-3">
               {members.map((m) => {
@@ -417,7 +415,7 @@ function SelectMemberContent() {
                                       Number(e.target.value),
                                     )
                                   }
-                                  className="w-20 pr-6 text-right h-8 rounded-lg"
+                                  className="h-8 w-20 rounded-xl pr-6 text-right"
                                 />
                                 <span className="absolute right-2 text-xs font-semibold text-muted-foreground">
                                   %

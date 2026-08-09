@@ -161,7 +161,7 @@ function JobsBrowseContent() {
           className={cn(
             "rounded-full px-4 py-1.5 text-sm font-medium transition",
             !showRecommended
-              ? "bg-primary text-white"
+              ? "bg-brand-gradient font-semibold text-white shadow-sm shadow-secondary/20"
               : "border border-border bg-card text-muted hover:text-foreground"
           )}
         >

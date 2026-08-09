@@ -306,7 +306,7 @@ function MemberProfileContent() {
             </Button>
           </div>
 
-          <div id="skills" className="scroll-mt-24 space-y-4 rounded-lg border border-border p-4">
+          <div id="skills" className="scroll-mt-24 space-y-4 rounded-2xl border border-border/80 bg-background/40 p-4 shadow-sm">
             <div>
               <p className="text-sm font-semibold text-foreground">Skills</p>
               <p className="mt-1 text-xs text-muted">
@@ -346,16 +346,13 @@ function MemberProfileContent() {
                       </button>
                     </div>
                     <div className="flex items-center gap-2">
-                      <select
+                      <SelectMenu
+                        options={levelOptions}
                         value={s.level}
-                        onChange={(e) => void handleUpdateSkillLevel(s.id, e.target.value)}
-                        className="rounded-lg border border-border bg-background px-2 py-1 text-xs outline-none focus:border-info cursor-pointer"
-                      >
-                        <option value="beginner">Beginner</option>
-                        <option value="intermediate">Intermediate</option>
-                        <option value="advanced">Advanced</option>
-                        <option value="expert">Expert</option>
-                      </select>
+                        onChange={(level) => void handleUpdateSkillLevel(s.id, level)}
+                        className="w-40 shrink-0"
+                        aria-label={`Proficiency level for ${s.skill?.name ?? "skill"}`}
+                      />
                       <button
                         type="button"
                         className="text-xs font-semibold text-muted hover:text-destructive hover:scale-110 px-1 transition"
@@ -492,7 +489,7 @@ function MemberProfileContent() {
               />
               {sampleNote && <p className="text-xs text-muted">{sampleNote}</p>}
               {latestSample && (
-                <div className="rounded-lg border border-border/60 p-2 text-xs">
+                <div className="rounded-xl border border-border/60 p-2 text-xs">
                   <p>
                     Status:{" "}
                     <span className="font-semibold">{latestSample.verification_status}</span>

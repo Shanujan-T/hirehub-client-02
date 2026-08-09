@@ -13,6 +13,7 @@ import { CommunityAvatar } from "@/components/community-avatar";
 import { CommunityDetailField } from "@/components/community-detail-field";
 import { ImageUploadControl } from "@/components/image-upload-control";
 import { MemberCard } from "@/components/member-card";
+import { EmptyState } from "@/components/page-states";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { StatusBadge } from "@/components/status-badge";
 import { Badge, Button, Card, Input, Label, Textarea } from "@/components/ui";
@@ -371,7 +372,7 @@ function MyCommunityContent() {
 
         {tab === "pending" ? (
           pending.length === 0 ? (
-            <p className="text-muted">No pending join requests.</p>
+            <EmptyState title="No pending join requests" />
           ) : (
             pending.map((m) => (
               <Card
@@ -395,7 +396,7 @@ function MyCommunityContent() {
             ))
           )
         ) : members.length === 0 ? (
-          <p className="text-muted">No approved members yet.</p>
+          <EmptyState title="No approved members yet" />
         ) : (
           members.map((m) => {
             const isSelf = m.user_id === user?.id;
