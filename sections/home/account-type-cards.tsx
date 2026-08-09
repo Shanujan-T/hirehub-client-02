@@ -154,7 +154,7 @@ export function AccountTypeSection() {
 
           <p className="mt-2 text-sm text-muted sm:text-base">
 
-            Two ways to use HireHub — choose one when you sign up.
+            Two account types, one platform — pick the one that fits you.
 
           </p>
 
