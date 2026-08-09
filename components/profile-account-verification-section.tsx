@@ -39,7 +39,6 @@ export function ProfileAccountVerificationSection({}: ProfileAccountVerification
       const res = await sendIdentityEmailOtp();
       setEmailCodeSent(true);
       notify.success(res.message);
-      if (res.dev_code) notify.info(`Dev code: ${res.dev_code}`);
     } catch (err) {
       notify.error(getErrorMessage(err, "Failed to send email code"));
     } finally {

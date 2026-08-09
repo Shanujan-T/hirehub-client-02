@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState, useRef } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { notify } from "@/lib/notify";
 import { AuthenticatedRoute } from "@/components/auth-guard";
@@ -8,8 +8,8 @@ import { ImageUploadControl } from "@/components/image-upload-control";
 import { LoadingState } from "@/components/page-states";
 import { DashboardPortalShell } from "@/components/portal-shell";
 import { UserAvatar } from "@/components/user-avatar";
-import { Badge, Button, Card, Input, Label, Textarea, SelectMenu } from "@/components/ui";
-import { Wrench, Award } from "lucide-react";
+import { Badge, Button, Card, Input, Label, Textarea, SelectMenu, SearchableSelectMenu } from "@/components/ui";
+import { Award } from "lucide-react";
 import { useScrollToProfileHash } from "@/lib/profile-account-scroll";
 import { MY_COMMUNITIES_RETURN, safeReturnPath } from "@/lib/return-navigation";
 import { useAuth } from "@/providers/auth-provider";
@@ -57,10 +57,6 @@ function MemberProfileContent() {
   const [sampleNote, setSampleNote] = useState<string | null>(null);
   const [latestSample, setLatestSample] = useState<WorkSample | null>(null);
 
-  const [searchQuery, setSearchQuery] = useState("");
-  const [showDropdown, setShowDropdown] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-
   const [selectedSkillId, setSelectedSkillId] = useState("");
   const [selectedLevel, setSelectedLevel] = useState("intermediate");
 
@@ -73,16 +69,6 @@ function MemberProfileContent() {
       router.replace(returnTo);
     }
   }, [user?.identity_status, returnTo, router, searchParams]);
-
-  useEffect(() => {
-    const clickOutside = (e: MouseEvent) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
-        setShowDropdown(false);
-      }
-    };
-    document.addEventListener("mousedown", clickOutside);
-    return () => document.removeEventListener("mousedown", clickOutside);
-  }, []);
 
   useEffect(() => {
     getSkills().then(setSkills).catch(() => notify.error("Failed to load skills"));
@@ -388,11 +374,13 @@ function MemberProfileContent() {
             <div className="space-y-3 pt-2">
               <p className="text-sm font-semibold text-foreground">Add Skill</p>
 
-              <SelectMenu
+              <SearchableSelectMenu
                 options={skillOptions}
                 value={selectedSkillId}
                 onChange={setSelectedSkillId}
-                placeholder="Select skill"
+                placeholder="Search skills..."
+                emptyMessage="No skills found."
+                aria-label="Search and select a skill"
               />
 
               <SelectMenu

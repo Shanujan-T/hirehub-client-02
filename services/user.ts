@@ -11,7 +11,7 @@ export async function uploadUserAvatar(userId: number, file: File): Promise<User
   return data.user;
 }
 
-type OtpSendResponse = { message: string; dev_code?: string };
+type OtpSendResponse = { message: string };
 
 export async function sendIdentityPhoneOtp(phone_number: string): Promise<OtpSendResponse> {
   const { data } = await apiClient.post<OtpSendResponse>(
