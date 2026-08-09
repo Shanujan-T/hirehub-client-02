@@ -67,6 +67,7 @@ export function UserAvatar({
 
 export function roleLabel(role: string) {
   if (role === "user") return "User";
+  if (role === "employer") return "Employer";
   if (role === "admin") return "Admin";
   return role;
 }

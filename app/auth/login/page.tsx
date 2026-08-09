@@ -1,42 +1,34 @@
 "use client";
 
 import Link from "next/link";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useRouter } from "next/navigation";
 import { Suspense } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { notify } from "@/lib/notify";
-import { getReturnToParam } from "@/lib/navigation";
 import { AuthLayout } from "@/components/auth-layout";
 import { GuestRoute } from "@/components/auth-guard";
 import { Button, Input, Label, PasswordInput } from "@/components/ui";
 import { loginSchema, type LoginForm } from "@/lib/schemas";
 import { getErrorMessage } from "@/lib/utils";
 import { useAuth, getDashboardPath } from "@/providers/auth-provider";
-import { getMyMemberships } from "@/services/community";
 
 function LoginFormContent() {
   const { login } = useAuth();
   const router = useRouter();
-  const searchParams = useSearchParams();
   const { register, handleSubmit, formState: { isSubmitting, errors } } = useForm<LoginForm>({ resolver: zodResolver(loginSchema) });
 
   const onSubmit = async (data: LoginForm) => {
     try {
-      await login(data);
+      const user = await login(data);
       notify.success("Logged in");
-      const user = JSON.parse(localStorage.getItem("user") || "{}");
-      const returnTo = getReturnToParam(searchParams, "");
-      if (returnTo) {
-        router.push(returnTo);
-        return;
-      }
-      let isCommunityAdmin = false;
-      if (user.role === "user") {
-        const memberships = await getMyMemberships();
-        isCommunityAdmin = memberships.some((m) => m.role === "admin" && m.status === "approved");
-      }
-      router.push(getDashboardPath(user, isCommunityAdmin));
+      const dashboardPath =
+        user.role === "user"
+          ? "/user/dashboard"
+          : user.role === "employer"
+            ? "/employer/dashboard"
+            : getDashboardPath(user);
+      router.replace(dashboardPath);
     } catch (err) {
       notify.error(getErrorMessage(err, "Login failed"));
     }

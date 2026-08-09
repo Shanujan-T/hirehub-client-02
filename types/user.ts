@@ -1,7 +1,7 @@
 import type { CommunityMember } from "@/types/community";
 import type { UserSkill } from "./skill";
 
-export type UserRole = "admin" | "user";
+export type UserRole = "admin" | "user" | "employer";
 
 /** Private postal address — only returned for the account owner (and admins). */
 export interface UserAddress {
@@ -47,6 +47,7 @@ export interface RegisterPayload {
   email: string;
   password: string;
   full_name: string;
+  role: "user" | "employer";
 }
 
 export interface LoginPayload {

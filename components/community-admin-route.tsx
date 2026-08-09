@@ -51,7 +51,7 @@ export function CommunityAdminRoute({ children }: { children: React.ReactNode })
 
   useEffect(() => {
     if (!authLoading && !user) router.replace("/auth/login");
-    if (!loading && user && !isAdmin) router.replace(getDashboardPath(user));
+    if (!loading && user && (user.role !== "employer" || !isAdmin)) router.replace(getDashboardPath(user));
   }, [user, authLoading, isAdmin, loading, router]);
 
   if (authLoading || loading) {
@@ -59,6 +59,6 @@ export function CommunityAdminRoute({ children }: { children: React.ReactNode })
       <div className="flex min-h-[50vh] items-center justify-center text-muted">Loading...</div>
     );
   }
-  if (!user || !isAdmin) return null;
+  if (!user || user.role !== "employer" || !isAdmin) return null;
   return <>{children}</>;
 }

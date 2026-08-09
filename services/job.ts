@@ -4,6 +4,8 @@ import type { Category, CommunityApplication, Job } from "@/types/job";
 export interface PricingSuggestion {
   average_price: number | null;
   suggested_price?: number | null;
+  suggested_price_low?: number | null;
+  suggested_price_high?: number | null;
   sample_size: number;
   method?:
     | "scope_adjusted"
@@ -54,6 +56,7 @@ export async function createJob(payload: {
   description: string;
   location: string;
   deadline: string;
+  event_time?: string | null;
   final_price: number;
   suggested_price?: number | null;
   scope_data?: import("@/types/job").ScopeData | null;
@@ -82,13 +85,15 @@ export async function requestCategory(payload: {
 export async function getPricingSuggestion(
   categoryId: number,
   location: string,
-  scopeValues?: import("@/types/job").ScopeData | null
+  scopeValues?: import("@/types/job").ScopeData | null,
+  deadline?: string
 ): Promise<PricingSuggestion> {
   const { data } = await apiClient.get<PricingSuggestion>(
     `/api/categories/${categoryId}/pricing-suggestion`,
     {
       params: {
         location,
+        ...(deadline ? { deadline } : {}),
         ...(scopeValues && Object.keys(scopeValues).length
           ? { scope_values: JSON.stringify(scopeValues) }
           : {}),

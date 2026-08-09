@@ -6,6 +6,8 @@ import Link from "next/link";
 
 import { usePathname } from "next/navigation";
 
+import { useEffect, useState } from "react";
+
 import { X } from "lucide-react";
 
 import { BrandLogo } from "@/components/brand-logo";
@@ -18,7 +20,7 @@ import { getPortalNavIcon } from "@/lib/portal-nav-icons";
 
 import type { NavItem } from "@/lib/portal-nav";
 
-import { useAuth } from "@/providers/auth-provider";
+import { getDashboardPath, useAuth } from "@/providers/auth-provider";
 
 import { cn } from "@/lib/utils";
 
@@ -60,15 +62,44 @@ const portalQuickActionButton = cn(
 
 );
 
+function normalizePathname(value: string) {
+  return value.length > 1 ? value.replace(/\/+$/, "") : value;
+}
+
+function normalizeHash(value: string) {
+  if (!value || value === "#") return "";
+  try {
+    return `#${decodeURIComponent(value.replace(/^#/, ""))}`;
+  } catch {
+    return value.startsWith("#") ? value : `#${value}`;
+  }
+}
+
+function isPortalNavItemActive(pathname: string, currentHash: string, href: string) {
+  const hashIndex = href.indexOf("#");
+  const itemPath = normalizePathname(hashIndex === -1 ? href : href.slice(0, hashIndex));
+  const itemHash = normalizeHash(hashIndex === -1 ? "" : href.slice(hashIndex + 1));
+  const currentPath = normalizePathname(pathname);
+
+  if (itemHash) {
+    const effectiveHash = normalizeHash(currentHash) || "#profile";
+    return currentPath === itemPath && effectiveHash === itemHash;
+  }
+
+  return currentPath === itemPath || currentPath.startsWith(`${itemPath}/`);
+}
+
 
 
 function PortalQuickActions() {
+
+  const { user } = useAuth();
 
   return (
 
     <div className="space-y-2 px-3 pt-3 pb-3">
 
-      <Link href="/jobs/new" className="block">
+      {user?.role === "user" && <Link href="/user/jobs/new" className="block">
 
         <Button variant="outline" size="sm" className={portalQuickActionButton}>
 
@@ -76,9 +107,9 @@ function PortalQuickActions() {
 
         </Button>
 
-      </Link>
+      </Link>}
 
-      <Link href="/member/communities" className="block">
+      {user?.role === "employer" && <Link href="/employer/communities" className="block">
 
         <Button variant="outline" size="sm" className={portalQuickActionButton}>
 
@@ -86,7 +117,7 @@ function PortalQuickActions() {
 
         </Button>
 
-      </Link>
+      </Link>}
 
     </div>
 
@@ -155,6 +186,73 @@ function PortalNavList({
 }) {
 
   const pathname = usePathname();
+  const [hash, setHash] = useState("");
+
+  useEffect(() => {
+    const updateHash = () => setHash(window.location.hash);
+    updateHash();
+    window.addEventListener("hashchange", updateHash);
+    window.addEventListener("popstate", updateHash);
+    window.addEventListener("profile-anchor-navigation", updateHash);
+    return () => {
+      window.removeEventListener("hashchange", updateHash);
+      window.removeEventListener("popstate", updateHash);
+      window.removeEventListener("profile-anchor-navigation", updateHash);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (process.env.NODE_ENV !== "development" || pathname !== "/member/profile") return;
+
+    console.debug("[PortalNavList] profile sidebar active state", {
+      pathname,
+      hashFromState: hash,
+      hashFromWindow: window.location.hash,
+      comparisons: navItems
+        .filter((item) => item.href.startsWith("/member/profile#"))
+        .map((item) => ({
+          label: item.label,
+          href: item.href,
+          active: isPortalNavItemActive(pathname, hash, item.href),
+        })),
+    });
+  }, [hash, navItems, pathname]);
+
+  useEffect(() => {
+    if (pathname !== "/member/profile") return;
+
+    const sectionIds = ["profile", "skills", "account-verification"];
+    let frame: number | undefined;
+    let hashTimer: number | undefined;
+    const updateActiveSection = () => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      frame = requestAnimationFrame(() => {
+        const marker = window.innerHeight * 0.35;
+        const activeId = sectionIds.reduce((current, id) => {
+          const section = document.getElementById(id);
+          return section && section.getBoundingClientRect().top <= marker ? id : current;
+        }, "profile");
+        const nextHash = `#${activeId}`;
+
+        setHash(nextHash);
+        if (hashTimer !== undefined) window.clearTimeout(hashTimer);
+        hashTimer = window.setTimeout(() => {
+          if (window.location.hash !== nextHash) {
+            window.history.replaceState(null, "", `${window.location.pathname}${window.location.search}${nextHash}`);
+          }
+        }, 150);
+      });
+    };
+
+    window.addEventListener("scroll", updateActiveSection, { passive: true });
+    window.addEventListener("resize", updateActiveSection);
+    return () => {
+      if (frame !== undefined) cancelAnimationFrame(frame);
+      if (hashTimer !== undefined) window.clearTimeout(hashTimer);
+      window.removeEventListener("scroll", updateActiveSection);
+      window.removeEventListener("resize", updateActiveSection);
+    };
+  }, [pathname]);
 
 
 
@@ -163,8 +261,7 @@ function PortalNavList({
     <nav className="shrink-0 space-y-1 p-3 pt-4">
 
       {navItems.map((item) => {
-
-        const active = pathname === item.href || pathname.startsWith(`${item.href}/`);
+        const active = isPortalNavItemActive(pathname, hash, item.href);
 
         const Icon = getPortalNavIcon(item.href);
 
@@ -180,7 +277,19 @@ function PortalNavList({
 
             href={item.href}
 
-            onClick={onNavigate}
+            onClick={() => {
+              onNavigate?.();
+              if (item.href.startsWith("/member/profile#")) {
+                // Set this instance's state immediately. Hash-only navigation
+                // does not cause usePathname() to re-render.
+                setHash(`#${item.href.split("#")[1]}`);
+                // Next client navigation can update the hash without triggering
+                // the browser's native anchor scroll.
+                window.setTimeout(() => {
+                  window.dispatchEvent(new Event("profile-anchor-navigation"));
+                }, 0);
+              }
+            }}
 
             className={cn(
 
@@ -274,6 +383,8 @@ export function PortalMobileDrawer({
 
 }) {
 
+  const { user } = useAuth();
+
   if (!open) return null;
 
 
@@ -308,7 +419,7 @@ export function PortalMobileDrawer({
 
         <div className="flex shrink-0 items-center justify-between gap-2 border-b border-border px-4 py-3">
 
-          <BrandLogo href="/dashboard" size="sm" />
+          <BrandLogo href={user ? getDashboardPath(user) : "/"} size="sm" />
 
           <button
 

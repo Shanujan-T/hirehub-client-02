@@ -18,7 +18,12 @@ import { cn } from "@/lib/utils";
 export type { HeaderNavLink };
 
 const linkClass =
-  "text-sm text-muted transition hover:text-info focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/30 rounded-sm";
+  "rounded-xl px-3 py-2 text-sm text-muted transition hover:bg-info/5 hover:text-info focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-info/30";
+
+function headerLinkClass(pathname: string, href: string) {
+  const active = pathname === href || pathname.startsWith(`${href}/`);
+  return cn(linkClass, active && "bg-secondary/10 font-semibold text-secondary");
+}
 
 function GuestAuthCtas() {
   return (
@@ -73,12 +78,15 @@ export function AppHeader({ className }: { className?: string }) {
             <>
               <div className="hidden items-center gap-2 lg:flex lg:flex-wrap">
                 {getHeaderNavLinks(pathname, user.role).map((item) => (
-                  <Link key={item.href} href={item.href} className={linkClass}>
+                  <Link key={item.href} href={item.href} className={headerLinkClass(pathname, item.href)}>
                     {item.label}
                   </Link>
                 ))}
                 {user.role !== "admin" && userAdminsAnyCommunity(user) && (
-                  <Link href="/community-admin/jobs" className={linkClass}>
+                  <Link
+                    href="/employer/community-admin/jobs"
+                    className={headerLinkClass(pathname, "/employer/community-admin/jobs")}
+                  >
                     Job marketplace
                   </Link>
                 )}

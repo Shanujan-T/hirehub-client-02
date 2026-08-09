@@ -2,12 +2,13 @@ import { io, type Socket } from "socket.io-client";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://127.0.0.1:5000";
 
-export function createSocket(): Socket {
-  const token = typeof window !== "undefined" ? localStorage.getItem("token") : null;
+export function createSocket(token: string): Socket {
   return io(API_URL, {
     auth: { token },
     transports: ["websocket", "polling"],
-    autoConnect: true,
+    // Callers attach listeners before explicitly connecting. This prevents a
+    // React effect cleanup from closing an in-flight handshake during dev remounts.
+    autoConnect: false,
   });
 }
 

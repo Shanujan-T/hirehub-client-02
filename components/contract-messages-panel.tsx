@@ -159,7 +159,7 @@ function MessageBubble({
 }
 
 export function ContractMessagesPanel({ contractId }: { contractId: number }) {
-  const { user } = useAuth();
+  const { user, token } = useAuth();
   const [messages, setMessages] = useState<Message[]>([]);
   const [conversationId, setConversationId] = useState<number | null>(null);
   const [draft, setDraft] = useState("");
@@ -200,9 +200,9 @@ export function ContractMessagesPanel({ contractId }: { contractId: number }) {
   }, [loadMessages]);
 
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !token) return;
 
-    const socket = createSocket();
+    const socket = createSocket(token);
     socketRef.current = socket;
 
     const handleNewMessage = (message: Message) => {
@@ -216,15 +216,17 @@ export function ContractMessagesPanel({ contractId }: { contractId: number }) {
     socket.on("connect", () => joinConversation(socket, conversationId));
     socket.on("new_message", handleNewMessage);
     socket.on("message_updated", handleMessageUpdated);
+    const connectTimer = window.setTimeout(() => socket.connect(), 0);
 
     return () => {
-      leaveConversation(socket, conversationId);
+      window.clearTimeout(connectTimer);
+      if (socket.connected) leaveConversation(socket, conversationId);
       socket.off("new_message", handleNewMessage);
       socket.off("message_updated", handleMessageUpdated);
       socket.disconnect();
       socketRef.current = null;
     };
-  }, [conversationId]);
+  }, [conversationId, token]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });

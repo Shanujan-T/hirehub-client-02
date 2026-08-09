@@ -14,10 +14,7 @@ export type NavDuplicateFlag = {
 };
 
 /** Logged-in main portal header (lg+). Shared across /dashboard and /community-admin. My Jobs and My Communities live in the sidebar only. */
-export const MAIN_PORTAL_HEADER_NAV: HeaderNavLink[] = [
-  { href: "/dashboard", label: "Dashboard" },
-  { href: "/communities", label: "Communities" },
-];
+export const MAIN_PORTAL_HEADER_NAV: HeaderNavLink[] = [];
 
 /**
  * Destinations that appear in both top header and left sidebar.
@@ -84,6 +81,14 @@ export function getHeaderNavLinks(pathname: string, role: UserRole): HeaderNavLi
     ];
   }
 
-  // /dashboard and /community-admin/* share the same top nav
-  return MAIN_PORTAL_HEADER_NAV;
+  if (role === "employer") {
+    return [
+      { href: "/employer/dashboard", label: "Dashboard" },
+      { href: "/communities", label: "Communities" },
+    ];
+  }
+  return [
+    { href: "/user/dashboard", label: "Dashboard" },
+    { href: "/user/jobs", label: "My Jobs" },
+  ];
 }

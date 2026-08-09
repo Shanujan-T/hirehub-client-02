@@ -17,7 +17,7 @@ export const PasswordInput = forwardRef<
         type={visible ? "text" : "password"}
         autoComplete={props.autoComplete ?? "current-password"}
         className={cn(
-          "flex h-10 w-full rounded-xl border border-border bg-background py-2 pl-3 pr-10 text-sm outline-none transition",
+          "flex h-10 w-full items-center rounded-xl border border-border bg-background pl-3 pr-10 text-sm outline-none transition",
           "focus:border-info focus:ring-2 focus:ring-info/20",
           className
         )}

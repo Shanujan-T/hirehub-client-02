@@ -6,7 +6,7 @@ export function safeReturnPath(path: string | null | undefined, fallback: string
   return path;
 }
 
-export const MY_COMMUNITIES_RETURN = "/member/communities";
+export const MY_COMMUNITIES_RETURN = "/employer/communities";
 
 /** In-page anchor on member profile for OTP account verification (§27/§31). */
 export const PROFILE_ACCOUNT_SECTION_ID = "account-verification";
@@ -14,7 +14,7 @@ export const PROFILE_ACCOUNT_SECTION_ID = "account-verification";
 /** @deprecated Legacy NIC hash — scroll handler still accepts this for bookmarks. */
 export const PROFILE_IDENTITY_SECTION_ID = "identity-verification";
 
-export const MEMBER_PROFILE_PATH = "/member/profile";
+export const MEMBER_PROFILE_PATH = "/employer/profile";
 
 /** Landing target for Create Community guard — profile account verification section. */
 export function profileAccountSectionHref(returnTo: string = MY_COMMUNITIES_RETURN): string {

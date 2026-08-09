@@ -3,11 +3,10 @@
 import Link from "next/link";
 import { useEffect, useState } from "react";
 import { AppHeader } from "@/components/app-header";
-import { LandingFlowStrip } from "@/components/landing-flow-strip";
+import { Button } from "@/components/ui";
 import { Sparkles } from "lucide-react";
 import { AccountTypeSection } from "@/sections/home/account-type-cards";
 import { CtaBannerSection } from "@/sections/home/cta-banner";
-import { Button } from "@/components/ui";
 import { getPublicStats, type PublicStats } from "@/services/platform";
 
 function HeroStats({ stats }: { stats: PublicStats | null }) {
@@ -16,8 +15,7 @@ function HeroStats({ stats }: { stats: PublicStats | null }) {
   return (
     <div className="relative mt-6 flex flex-wrap items-center justify-center gap-x-8 gap-y-2 text-sm text-muted">
       <span>
-        <span className="font-bold tabular-nums text-foreground">{stats.communities}</span> active
-        communities
+        <span className="font-bold tabular-nums text-foreground">{stats.communities}</span> active communities
       </span>
       <span>
         <span className="font-bold tabular-nums text-foreground">{stats.jobs}</span> jobs posted
@@ -65,11 +63,8 @@ export default function HomePage() {
                 HireHub
               </h1>
 
-              <LandingFlowStrip className="relative mt-5 sm:mt-6" />
-
               <p className="relative mx-auto mt-5 max-w-lg text-base leading-relaxed text-muted sm:mt-6 sm:text-lg">
-                Anyone can post a job. Skilled communities apply as teams. Admins assign work internally — one
-                contract platform for local hiring.
+                Post a job, or join a community to bid on real work — skilled teams apply, members compete internally, admins coordinate delivery.
               </p>
 
               <div className="relative mt-6 flex flex-wrap items-center justify-center gap-3 sm:mt-7">
@@ -81,6 +76,11 @@ export default function HomePage() {
                 <Link href="/auth/login">
                   <Button variant="outline" size="lg" className="rounded-full">
                     Login
+                  </Button>
+                </Link>
+                <Link href="/auth/register">
+                  <Button variant="gradient" size="lg" className="rounded-full">
+                    Register
                   </Button>
                 </Link>
               </div>

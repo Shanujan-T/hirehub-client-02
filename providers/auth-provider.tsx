@@ -8,8 +8,8 @@ interface AuthContextValue {
   user: User | null;
   token: string | null;
   loading: boolean;
-  login: (payload: LoginPayload) => Promise<void>;
-  register: (payload: RegisterPayload) => Promise<void>;
+  login: (payload: LoginPayload) => Promise<User>;
+  register: (payload: RegisterPayload) => Promise<User>;
   logout: () => void;
   refreshUser: () => Promise<void>;
   updateUser: (user: User) => void;
@@ -41,17 +41,37 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    const storedToken = localStorage.getItem("token");
-    const storedUser = localStorage.getItem("user");
-    if (storedToken && storedUser) {
+    let active = true;
+
+    const hydrateAuth = async () => {
+      const storedToken = localStorage.getItem("token");
+      if (!storedToken) {
+        if (active) setLoading(false);
+        return;
+      }
+
       setToken(storedToken);
-      setUser(JSON.parse(storedUser));
-      setLoading(false);
-      void refreshUser();
-    } else {
-      setLoading(false);
-    }
-  }, [refreshUser]);
+      try {
+        const me = await authService.getMe();
+        if (!active) return;
+        setUser(me);
+        localStorage.setItem("user", JSON.stringify(me));
+      } catch {
+        if (!active) return;
+        setUser(null);
+        setToken(null);
+        localStorage.removeItem("token");
+        localStorage.removeItem("user");
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    void hydrateAuth();
+    return () => {
+      active = false;
+    };
+  }, []);
 
   const login = async (payload: LoginPayload) => {
     const data = await authService.login(payload);
@@ -60,6 +80,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(data.access_token);
     setUser(data.user);
     setLoading(false);
+    return data.user;
   };
 
   const register = async (payload: RegisterPayload) => {
@@ -69,6 +90,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(data.access_token);
     setUser(data.user);
     setLoading(false);
+    return data.user;
   };
 
   const logout = () => {
@@ -94,6 +116,7 @@ export function useAuth() {
 export function getDashboardPath(user: User | null, isCommunityAdmin = false): string {
   if (!user) return "/auth/login";
   if (user.role === "admin") return "/admin/dashboard";
+  if (user.role === "employer") return "/employer/dashboard";
   void isCommunityAdmin;
-  return "/dashboard";
+  return "/user/dashboard";
 }

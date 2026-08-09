@@ -7,6 +7,7 @@ import { useNotifications } from "@/providers/notification-provider";
 import { Button } from "@/components/ui";
 import { cn } from "@/lib/utils";
 import type { Notification } from "@/types/notification";
+import { getDashboardPath, useAuth } from "@/providers/auth-provider";
 
 function formatRelativeTime(iso: string): string {
   const date = new Date(iso);
@@ -73,6 +74,7 @@ function NotificationItem({
 }
 
 export function NotificationBell() {
+  const { user } = useAuth();
   const { notifications, unreadCount, loading, refresh, markAllRead, openNotification } =
     useNotifications();
   const [open, setOpen] = useState(false);
@@ -150,7 +152,7 @@ export function NotificationBell() {
 
           <div className="border-t border-border px-4 py-2 text-center">
             <Link
-              href="/dashboard"
+              href={getDashboardPath(user)}
               className="text-xs text-info hover:underline"
               onClick={() => setOpen(false)}
             >

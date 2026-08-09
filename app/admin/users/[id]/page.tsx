@@ -112,7 +112,7 @@ export default function AdminUserDetailPage() {
 
               <Card className="space-y-3">
                 <h3 className="font-bold text-foreground">Reputation</h3>
-                {user.role === "user" ? (
+                {user.role === "employer" ? (
                   <>
                     <p className="text-sm">
                       <span className="text-muted">Rating:</span>{" "}
@@ -129,7 +129,7 @@ export default function AdminUserDetailPage() {
               </Card>
             </div>
 
-            {user.role === "user" && (
+            {user.role === "employer" && (
               <Card className="space-y-3">
                 <h3 className="font-bold text-foreground">Skills</h3>
                 {user.user_skills && user.user_skills.length > 0 ? (
