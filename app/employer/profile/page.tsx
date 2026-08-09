@@ -22,6 +22,7 @@ import {
   updateUser,
 } from "@/services/contract";
 import {
+  removeUserAvatar,
   uploadUserAvatar,
   getMySkills,
   addMySkill,
@@ -114,6 +115,21 @@ function MemberProfileContent() {
       notify.success("Profile picture updated");
     } catch (err) {
       notify.error(getErrorMessage(err, "Failed to upload profile picture"));
+      throw err;
+    } finally {
+      setUploadingAvatar(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    if (!user) return;
+    setUploadingAvatar(true);
+    try {
+      const updated = await removeUserAvatar(user.id);
+      setAuthUser(updated);
+      notify.success("Profile picture removed");
+    } catch (err) {
+      notify.error(getErrorMessage(err, "Failed to remove profile picture"));
       throw err;
     } finally {
       setUploadingAvatar(false);
@@ -262,7 +278,9 @@ function MemberProfileContent() {
             label="Profile picture"
             previewUrl={user?.avatar_url}
             uploading={uploadingAvatar}
+            avatarEditOverlay
             onUpload={handleAvatarUpload}
+            onRemove={handleAvatarRemove}
             fallback={
               <UserAvatar
                 name={user?.full_name ?? "Member"}

@@ -30,7 +30,7 @@ import { getErrorMessage } from "@/lib/utils";
 
 import { updateUser } from "@/services/contract";
 
-import { uploadUserAvatar } from "@/services/user";
+import { removeUserAvatar, uploadUserAvatar } from "@/services/user";
 
 import type { UserAddress } from "@/types/user";
 
@@ -150,6 +150,34 @@ function ClientProfileContent() {
 
   };
 
+  const handleAvatarRemove = async () => {
+
+    if (!user) return;
+
+    setUploadingAvatar(true);
+
+    try {
+
+      const updated = await removeUserAvatar(user.id);
+
+      setAuthUser(updated);
+
+      notify.success("Profile picture removed");
+
+    } catch (err) {
+
+      notify.error(getErrorMessage(err, "Failed to remove profile picture"));
+
+      throw err;
+
+    } finally {
+
+      setUploadingAvatar(false);
+
+    }
+
+  };
+
 
 
   return (
@@ -168,7 +196,11 @@ function ClientProfileContent() {
 
             uploading={uploadingAvatar}
 
+            avatarEditOverlay
+
             onUpload={handleAvatarUpload}
+
+            onRemove={handleAvatarRemove}
 
             fallback={
 

@@ -11,6 +11,11 @@ export async function uploadUserAvatar(userId: number, file: File): Promise<User
   return data.user;
 }
 
+export async function removeUserAvatar(userId: number): Promise<User> {
+  const { data } = await apiClient.delete<{ user: User }>(`/api/users/${userId}/avatar`);
+  return data.user;
+}
+
 type OtpSendResponse = { message: string };
 
 export async function sendIdentityPhoneOtp(phone_number: string): Promise<OtpSendResponse> {
