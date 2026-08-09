@@ -6,7 +6,9 @@ import Link from "next/link";
 
 import Image from "next/image";
 
-import { Suspense } from "react";
+import axios from "axios";
+
+import { Suspense, useState } from "react";
 
 import { Briefcase, HardHat } from "lucide-react";
 
@@ -86,6 +88,7 @@ function RegisterForm() {
   const { register: authRegister } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
+  const [submitError, setSubmitError] = useState<{ message: string; emailConflict: boolean } | null>(null);
   const requestedRole = searchParams.get("role") === "employer" ? "employer" : "user";
 
   const { register, handleSubmit, watch, formState: { isSubmitting, errors } } = useForm<RegisterForm>({
@@ -95,12 +98,24 @@ function RegisterForm() {
   const selectedRole = watch("role", requestedRole);
 
   const onSubmit = async (data: RegisterForm) => {
+    setSubmitError(null);
     try {
-      await authRegister(data);
+      const user = await authRegister(data);
       notify.success("Account created");
-      router.push(getDashboardPath(JSON.parse(localStorage.getItem("user") || "{}")));
+      const dashboardPath =
+        user.role === "user"
+          ? "/user/dashboard"
+          : user.role === "employer"
+            ? "/employer/dashboard"
+            : getDashboardPath(user);
+      router.replace(dashboardPath);
     } catch (err) {
-      notify.error(getErrorMessage(err, "Registration failed"));
+      const emailConflict = axios.isAxiosError(err) && err.response?.status === 409;
+      const message = emailConflict
+        ? "An account with this email already exists. Try logging in instead."
+        : getErrorMessage(err, "Registration failed. Please try again.");
+      setSubmitError({ message, emailConflict });
+      notify.error(message);
     }
   };
 
@@ -151,6 +166,17 @@ function RegisterForm() {
           <p className="text-xs text-muted">At least 6 characters</p>
           {errors.password && <p className="text-xs text-destructive">{errors.password.message}</p>}
         </div>
+
+        {submitError && (
+          <div role="alert" aria-live="polite" className="rounded-xl border border-destructive/30 bg-destructive/5 px-3 py-2 text-sm text-destructive">
+            {submitError.message}{" "}
+            {submitError.emailConflict && (
+              <Link href="/auth/login" className="font-semibold underline underline-offset-2">
+                Log in
+              </Link>
+            )}
+          </div>
+        )}
 
         <Button type="submit" variant="gradient" disabled={isSubmitting} className="w-full rounded-full">{isSubmitting ? "Creating..." : "Create Account"}</Button>
 

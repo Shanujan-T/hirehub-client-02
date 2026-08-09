@@ -118,7 +118,7 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
       void refresh().catch((err) => console.error("Notification poll failed", err));
     }, POLL_MS);
 
-    const socket = createSocket();
+    const socket = createSocket(token);
     socketRef.current = socket;
 
     const handleNotification = (payload: Notification) => {
@@ -141,8 +141,10 @@ export function NotificationProvider({ children }: { children: React.ReactNode }
     socket.on("connect_error", (err) => {
       console.error("Notification socket connect_error", err.message);
     });
+    const connectTimer = window.setTimeout(() => socket.connect(), 0);
 
     return () => {
+      window.clearTimeout(connectTimer);
       window.clearInterval(poll);
       socket.off("notification", handleNotification);
       socket.disconnect();

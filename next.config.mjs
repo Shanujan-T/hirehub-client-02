@@ -11,10 +11,9 @@ const nextConfig = {
   },
   async redirects() {
     return [
-      { source: "/employer/:path*", destination: "/:path*", permanent: true },
       { source: "/client/:path*", destination: "/:path*", permanent: true },
       { source: "/admin-community/:path*", destination: "/community-admin/:path*", permanent: true },
-      { source: "/member/dashboard", destination: "/dashboard", permanent: false },
+      { source: "/member/dashboard", destination: "/employer/dashboard", permanent: false },
       { source: "/profile", destination: "/member/profile", permanent: false },
     ];
   },
