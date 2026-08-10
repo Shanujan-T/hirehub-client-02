@@ -6,7 +6,7 @@ import Link from "next/link";
 
 import { usePathname } from "next/navigation";
 
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 import { X } from "lucide-react";
 
@@ -82,6 +82,9 @@ function isPortalNavItemActive(pathname: string, currentHash: string, href: stri
   const currentPath = normalizePathname(pathname);
 
   if (itemHash) {
+    if (currentPath.startsWith(`${itemPath}/`)) {
+      return itemHash === "#profile";
+    }
     const effectiveHash = normalizeHash(currentHash) || "#profile";
     return currentPath === itemPath && effectiveHash === itemHash;
   }
@@ -187,6 +190,19 @@ function PortalNavList({
 
   const pathname = usePathname();
   const [hash, setHash] = useState("");
+  const { profilePath, profileSectionIds } = useMemo(() => {
+    const profileItem = navItems.find((item) => item.label === "Profile");
+    const resolvedProfilePath = profileItem
+      ? normalizePathname(profileItem.href.split("#", 1)[0])
+      : "";
+    return {
+      profilePath: resolvedProfilePath,
+      profileSectionIds: navItems
+        .filter((item) => item.href.startsWith(`${resolvedProfilePath}#`))
+        .map((item) => item.href.split("#", 2)[1])
+        .filter(Boolean),
+    };
+  }, [navItems]);
 
   useEffect(() => {
     const updateHash = () => setHash(window.location.hash);
@@ -199,36 +215,35 @@ function PortalNavList({
       window.removeEventListener("popstate", updateHash);
       window.removeEventListener("profile-anchor-navigation", updateHash);
     };
-  }, []);
+  }, [pathname]);
 
   useEffect(() => {
-    if (process.env.NODE_ENV !== "development" || pathname !== "/member/profile") return;
+    if (process.env.NODE_ENV !== "development" || !profilePath || pathname !== profilePath) return;
 
     console.debug("[PortalNavList] profile sidebar active state", {
       pathname,
       hashFromState: hash,
       hashFromWindow: window.location.hash,
       comparisons: navItems
-        .filter((item) => item.href.startsWith("/member/profile#"))
+        .filter((item) => item.href.startsWith(`${profilePath}#`))
         .map((item) => ({
           label: item.label,
           href: item.href,
           active: isPortalNavItemActive(pathname, hash, item.href),
         })),
     });
-  }, [hash, navItems, pathname]);
+  }, [hash, navItems, pathname, profilePath]);
 
   useEffect(() => {
-    if (pathname !== "/member/profile") return;
+    if (!profilePath || pathname !== profilePath || profileSectionIds.length === 0) return;
 
-    const sectionIds = ["profile", "skills", "account-verification"];
     let frame: number | undefined;
     let hashTimer: number | undefined;
     const updateActiveSection = () => {
       if (frame !== undefined) cancelAnimationFrame(frame);
       frame = requestAnimationFrame(() => {
         const marker = window.innerHeight * 0.35;
-        const activeId = sectionIds.reduce((current, id) => {
+        const activeId = profileSectionIds.reduce((current, id) => {
           const section = document.getElementById(id);
           return section && section.getBoundingClientRect().top <= marker ? id : current;
         }, "profile");
@@ -246,13 +261,14 @@ function PortalNavList({
 
     window.addEventListener("scroll", updateActiveSection, { passive: true });
     window.addEventListener("resize", updateActiveSection);
+    updateActiveSection();
     return () => {
       if (frame !== undefined) cancelAnimationFrame(frame);
       if (hashTimer !== undefined) window.clearTimeout(hashTimer);
       window.removeEventListener("scroll", updateActiveSection);
       window.removeEventListener("resize", updateActiveSection);
     };
-  }, [pathname]);
+  }, [pathname, profilePath, profileSectionIds]);
 
 
 
@@ -279,7 +295,7 @@ function PortalNavList({
 
             onClick={() => {
               onNavigate?.();
-              if (item.href.startsWith("/member/profile#")) {
+              if (profilePath && item.href.startsWith(`${profilePath}#`)) {
                 // Set this instance's state immediately. Hash-only navigation
                 // does not cause usePathname() to re-render.
                 setHash(`#${item.href.split("#")[1]}`);
