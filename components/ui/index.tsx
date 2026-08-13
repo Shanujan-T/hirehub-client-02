@@ -87,7 +87,7 @@ export function Badge({
     info: "bg-info/10 font-bold text-info",
   };
   return (
-    <span className={cn("inline-flex rounded-full px-2.5 py-0.5 text-xs capitalize", variants[variant], className)}>
+    <span className={cn("inline-flex items-center justify-center rounded-full px-2.5 py-0.5 text-center text-xs capitalize", variants[variant], className)}>
       {children}
     </span>
   );
